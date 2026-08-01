@@ -1,7 +1,18 @@
 """CLI entry point: `uv run python -m police_thief <command> ...`.
 
+This repository is the **thief-side submission repo** (sibling `cop` repo:
+see README.md). `serve` defaults to `--role thief`, the only role this repo
+submits as. `--role cop` still works -- it runs this same shared package
+as a local opponent peer for interop/protocol testing, never as a
+submission-grade cop implementation -- and prints a one-line notice to
+stderr saying so every time it's used, so it's never silently mistaken for
+supported behavior in this repo.
+
 Commands:
-  serve --role cop|thief   Start this peer's FastMCP server (Chapter 2).
+  serve [--role thief|cop] Start this peer's FastMCP server (Chapter 2).
+                           Defaults to --role thief. --role cop is for local
+                           opponent-peer testing only -- see the module
+                           docstring above.
   simulate                 Run a single-process local match with placeholder
                            policies and print the result (Chapter 3).
   replay --log-file PATH   Launch the Replay Viewer against a saved match
@@ -30,6 +41,7 @@ capture/scoring end-to-end against the single shared config/game.json.
 from __future__ import annotations
 
 import argparse
+import sys
 import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox
@@ -58,7 +70,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     serve = subparsers.add_parser("serve", help="Start this peer's FastMCP server")
-    serve.add_argument("--role", required=True, choices=[role.value for role in AgentRole])
+    serve.add_argument(
+        "--role",
+        default=AgentRole.THIEF.value,
+        choices=[role.value for role in AgentRole],
+        help=(
+            "Peer role to run. Defaults to 'thief' -- the only role this "
+            "repository submits as. 'cop' runs a local opponent peer for "
+            "interop testing only; see the sibling cop repository for the "
+            "real cop submission."
+        ),
+    )
     serve.add_argument("--config-root", type=Path, default=DEFAULT_CONFIG_ROOT)
 
     simulate = subparsers.add_parser("simulate", help="Run a local placeholder-policy match")
@@ -78,6 +100,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def _serve(args: argparse.Namespace) -> None:
     role = AgentRole(args.role)
+    if role is AgentRole.COP:
+        print(
+            "NOTE: 'cop' is not a supported submission role in this (thief) "
+            "repository -- this process is a local opponent peer for interop "
+            "testing only. The real cop submission lives in the sibling cop "
+            "repository (see README.md).",
+            file=sys.stderr,
+        )
     network = load_network_config(role, args.config_root)
     mcp = build_peer_server(role.value, PeerInboxes())
     run_peer_server(mcp, host="0.0.0.0", port=network.my_port)

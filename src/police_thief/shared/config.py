@@ -35,7 +35,12 @@ class NetworkConfig:
 
 
 def config_dir_for(role: AgentRole, config_root: Path) -> Path:
-    """Return this role's own config directory (config/police/ or config/thief/)."""
+    """Return this role's own config directory (config/cop/ or config/thief/).
+
+    In this thief-submission repository, `config/cop/` is a local-only
+    opponent-peer directory used for interop testing -- it is not a
+    submission-grade cop config. See config/cop/game.toml's header comment.
+    """
     return config_root / role.value
 
 

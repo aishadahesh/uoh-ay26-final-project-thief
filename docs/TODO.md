@@ -55,8 +55,8 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 
 ## B. Repository & Project Scaffolding (both roles)
 
-- [ ] T0041 Create GitHub repo for the cop agent — deferred to Section O submission-prep repo split
-- [ ] T0042 Create GitHub repo for the thief agent — deferred to Section O submission-prep repo split
+- [ ] T0041 Create GitHub repo for the cop agent — this repo is not it; deferred to the sibling cop repo (see README.md)
+- [ ] T0042 Create GitHub repo for the thief agent — this local repo is now structured and content-ready to be the thief submission (CLI defaults to `--role thief`, README/docs updated); pushing it to a real GitHub URL is the one remaining manual step
 - [ ] T0043 Set repo visibility: public, or private + share with lecturer's address
 - [x] T0044 Initialize `git` in both local project folders — single shared repo initialized (initial commit already present)
 - [x] T0045 Create initial `.gitignore` for cop repo (Python defaults + secrets) — single shared `.gitignore`, Python/venv/secrets patterns added
@@ -875,19 +875,19 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 ## N. Documentation & Academic Report
 
 ### N.1 README.md — Academic Report (both repos)
-- [ ] T0661 Write the Dec-POMDP model section: state, action, observation spaces as implemented
-- [ ] T0662 Write the FastMCP orchestration dilemmas section: turn management, network-failure handling
-- [ ] T0663 Write the decision-mechanism section: heuristics/custom algorithm/RL details and parameters chosen
-- [ ] T0664 Write the Gatekeeper/Orchestrator role and parameter-choice discussion
-- [ ] T0665 Include learning-curve plots if RL was used, with a caption explaining convergence behavior
-- [ ] T0666 Insert the mandatory belief-heatmap GUI screenshot
-- [ ] T0667 Insert the mandatory Replay Viewer "Verified OK" screenshot
-- [ ] T0668 Insert the cross-link to the sibling repository (cop <-> thief)
-- [ ] T0669 Write a section explaining the scent/pheromone model and how uncertainty/deception were combined
-- [ ] T0670 Write a section summarizing league results (games played, opponents faced, final scores)
-- [ ] T0671 Write a section documenting any book-contradiction interpretation choices made per the academic-freedom clause
-- [ ] T0672 Proofread the README for clarity, spelling, and academic tone
-- [ ] T0673 Verify the README renders correctly on GitHub's web UI (formatting, images, links)
+- [x] T0661 Write the Dec-POMDP model section: state, action, observation spaces as implemented — README `## Academic Report` → "The Dec-POMDP model"
+- [x] T0662 Write the FastMCP orchestration dilemmas section: turn management, network-failure handling — README → "FastMCP / P2P architecture and orchestration dilemmas"
+- [x] T0663 Write the decision-mechanism section: heuristics/custom algorithm/RL details and parameters chosen — README → "Thief strategy design"
+- [x] T0664 Write the Gatekeeper/Orchestrator role and parameter-choice discussion — covered within the orchestration-dilemmas section, with pointers to `docs/PRD_reliability_layer.md` / `docs/PRD_gmail_gatekeeper.md`
+- [x] T0665 Include learning-curve plots if RL was used, with a caption explaining convergence behavior — not applicable (RL not chosen); README → "Learning / empirical evidence" documents this explicitly instead of a plot
+- [ ] T0666 Insert the mandatory belief-heatmap GUI screenshot — section placeholder written; image capture still outstanding
+- [ ] T0667 Insert the mandatory Replay Viewer "Verified OK" screenshot — section placeholder written; image capture still outstanding
+- [x] T0668 Insert the cross-link to the sibling repository (cop <-> thief) — README banner + "Sibling repository" section
+- [x] T0669 Write a section explaining the scent/pheromone model and how uncertainty/deception were combined — covered in the Dec-POMDP and strategy-design sections (BeliefMap + detect_bluff)
+- [ ] T0670 Write a section summarizing league results (games played, opponents faced, final scores) — not written; no real league matches exist yet (see O.6/L sections)
+- [ ] T0671 Write a section documenting any book-contradiction interpretation choices made per the academic-freedom clause — not yet folded into the README; currently only in `docs/TODO.md` (rule 47 note)
+- [ ] T0672 Proofread the README for clarity, spelling, and academic tone — do a final pass once the screenshots and league-results section are in
+- [ ] T0673 Verify the README renders correctly on GitHub's web UI (formatting, images, links) — re-check after pushing to the real GitHub repo
 
 ### N.2 PRD Files (7 layers)
 - [x] T0674 Finalize `PRD/01-base-logic.md` — `docs/PRD_board_physics.md` (Chapter 3)
@@ -974,7 +974,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [x] T0735 Confirm scent map and belief map are implemented and actually influence decisions — `test_strategy_pipeline.py`'s headline proof: two real brains capture using only their own belief maps, never touching the opponent's true position (Chapter 6)
 - [x] T0736 Confirm Live GUI and Replay Viewer both show correct, matching, "Verified OK" state — proven via real Tkinter widget-state assertions (Chapter 7); the *screenshot* deliverable itself remains a flagged manual step (no native-window-capture tool available in this session)
 - [ ] T0737 Confirm both sides sent their own separate Gmail JSON report for every counted match — not done; zero real matches exist yet, and real Gmail sending requires the deferred OAuth setup (rule 30)
-- [ ] T0738 Confirm GitHub repos are tagged and README is properly structured — not done on either count: no Git tag exists (`git tag -l` is empty) and `README.md` is a 2-line stub, not yet the required academic report (see rule 41/42 — the single largest outstanding item)
+- [ ] T0738 Confirm GitHub repos are tagged and README is properly structured — README now contains the full rule-42 academic report (Dec-POMDP, FastMCP/orchestration dilemmas, commit-reveal, strategy design, learning-curve N/A note, sibling link); only the two mandatory screenshots and the `v1.0-submission` Git tag (submission-time-only action, not created yet) remain
 - [ ] T0739 Confirm at least `[min games to pass]` distinct-opponent games were completed — not done; 0 of the required 2, no opponent teams exist in a solo development session
 - [x] T0740 Do a final full read-through of `requirements.md` against the finished project, line by line — performed as this chapter's Section T sweep: all 55 mandatory rules in `docs/tasks.md` App. E individually cross-checked against the actual code/tests/git history, one genuinely new rulebook tension found (rule 47, see T0881) and documented rather than silently resolved either way
 
@@ -1165,14 +1165,14 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [x] T0873 Verify rule 39: no secrets or credentials are ever pushed to any repo — actively re-verified in Chapter 11: `git log --all --diff-filter=A --name-only` searched for `credentials.json`/`token.json`/`.env`/`secret`-like filenames across the entire commit history; none found
 - [x] T0874 Verify rule 40: authorization/secret files are listed in `.gitignore` — confirmed present: `credentials.json`, `token.json`, `*.pem`, `*.key`, `.env`
 - [ ] T0875 Verify rule 41: the final submission version is tagged with a documented annotated Git tag — confirmed not done (`git tag -l` returns nothing); this is correctly a submission-time action, not a mid-development one, and should not be created without an explicit request at actual submission time
-- [ ] T0876 Verify rule 42: a comprehensive academic README report is attached to the repo — **not done, and the single largest outstanding gap in the entire project.** `README.md` is currently a 2-line stub, deliberately kept minimal throughout this project per an earlier explicit instruction reserving it for the final academic report. That report (Dec-POMDP model description, FastMCP orchestration dilemmas, decision-making/Gatekeeper/Orchestrator details, mandatory screenshots, sibling-repo link) has not been written yet
+- [x] T0876 Verify rule 42: a comprehensive academic README report is attached to the repo — written: README.md's `## Academic Report` section covers the Dec-POMDP model, FastMCP orchestration dilemmas, commit-reveal protocol, thief strategy design, and the learning-curve N/A note, plus the sibling-repo link. Only the two mandatory screenshots remain outstanding (image capture, not content) — see T0666/T0667
 - [ ] T0877 Verify rule 43: deliverables are submitted as Word/PDF with the template's field layout unchanged — not done; a course-logistics step requiring the official Word template, outside this repository's scope
 - [ ] T0878 Verify rule 44: the assignment is submitted as a separate file per team member — not done; same course-logistics scope
 - [ ] T0879 Verify rule 45: team identity is encoded as an 8-character unique code without spaces — **not done**: `config/cop/game.toml` and `config/thief/game.toml` both still have `group_name = "TBD"` / `group_id = "TBD"` placeholders; a real team code needs to be chosen and propagated before any real match or submission
 - [x] T0880 Verify rule 46: a barrier placed on the cop's own occupied cell counts toward capture at that instant — implemented and tested (`test_barrier_placed_exactly_on_thiefs_cell_counts_as_capture`, Chapter 3) per Sec. 3.3.5's clear body text (a barrier landing on the *thief's* cell captures it); Appendix E's own condensed rule text says "the cell the cop occupies," which reads as an appendix paraphrase artifact against the unambiguous primary section — resolved via the primary text per this project's academic-freedom-on-contradiction principle (Sec. 0)
 - [ ] T0881 Verify rule 47: a thief leaving the arena via an illegal move counts as captured — **a genuine, newly-found rulebook tension, not yet resolved in code.** The main body (Sec. 3.3.2) only says an illegal move "must be rejected/handled," and the current implementation does exactly that: `Board.apply_move` raises `MoveRejectedError` for an out-of-bounds attempt. Rule 47 (found only in Appendix E's "completions" list, §16.6, with no corresponding body-text passage) instead says this specific illegal move should count as a **capture** (cop-capture score) rather than the general "illegal move -> technical loss" mapping rule 14's own consequence text implies. Today, `MoveRejectedError` is not even caught anywhere in `Orchestrator.run_turn`'s exception handling, so it would currently propagate uncaught rather than resolve to either outcome. This is left honestly unresolved rather than silently guessed at; flagged for a dedicated follow-up decision (see `ProgressDoc.md`'s Chapter 11 entry)
 - [x] T0882 Verify rule 48: every match outcome is scored exactly per the scoring table — `ScoringTable`/`score_for` defaults exactly match the Mandatory Parameters Table (20/5 capture, 5/10 survival, 2/2 tie, 0/0 technical loss), tested for all four `MatchOutcome` values
-- [ ] T0883 Verify rule 49: two separate GitHub repos are submitted with cross-linked READMEs and four cross-links in the submission JSON — the *mechanism* for the four cross-links exists and is tested (`RepoCrossLinks`, Chapter 9); the actual second GitHub repo, its README cross-link, and a real submission have not been created yet — this is currently a single-repo development layout
+- [ ] T0883 Verify rule 49: two separate GitHub repos are submitted with cross-linked READMEs and four cross-links in the submission JSON — the *mechanism* for the four cross-links exists and is tested (`RepoCrossLinks`, Chapter 9); this repo's README now cross-links the sibling cop repo (see banner + "Sibling repository" section); confirming the sibling's README links back, and that both are the actual, real, pushed submission repos, is outside this repo's own scope
 - [x] T0884 Verify rule 50: every repo includes README, config files, PRD files, PLAN file, and TODO files — all present in this repo (`README.md`, `config/`, 9 `docs/PRD_*.md` files, `docs/PLAN.md`, `docs/TODO.md`); README's *content* is the separate, larger gap tracked at rule 42
 - [ ] T0885 Verify rule 51: automated end-of-match reports go to the correct lecturer report address — the fixed recipient is documented (commented out) in both private TOML configs' new `[email]` section, but no config loader reads it yet and no real send has ever occurred (depends on rules 30/32's OAuth gap)
 - [x] T0886 Verify rule 52: each opponent match-up counts only once toward scoring — `LeagueRecord.record_counted_game` raises `LeagueRuleError` on a second counted game against the same opponent (Chapter 9), tested

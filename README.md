@@ -4,7 +4,78 @@ Final project for the University of Haifa "Orchestration of AI Agents" course (A
 
 > **This is the THIEF repo.** Sibling (cop) repo: https://github.com/aishadahesh/uoh-ay26-final-project-cop
 
-> **Status: practical overview.** This README describes the current state of the codebase and how to run it. The full academic report required for submission (Dec-POMDP model discussion, design-decision justification, learning curves, mandatory screenshots) is a separate, later pass — see `docs/TODO.md` Section O.6 / rule 42 for what's still outstanding there.
+> **Status: practical overview**, followed by the required Academic Report (see [Academic Report](#academic-report) below). The one remaining gap is the mandatory screenshots — see `docs/TODO.md` Section O.6 / rule 42.
+
+## Role support in this repository
+
+This repository is submitted as the **thief** side only. The sibling repo linked above is the real **cop** submission.
+
+- `uv run python -m police_thief serve` starts the **thief** peer by default (`--role` defaults to `thief`).
+- `--role cop` still works — the shared `police_thief` package can run either role's logic (see [ADR-011](docs/PLAN.md#adr-011-single-shared-package-during-development-split-into-two-repos-at-submission)) — but it exists **only** to run a local opponent peer for protocol/interop testing on your own machine. It is not a submission-grade cop implementation, prints a one-line notice to that effect every time it's used, and must never be presented as this repo's submission.
+- Everywhere else in this codebase that models "cop" (the `AgentRole.COP` enum member, `config/cop/`, cop-branch logic in shared modules like scoring/board/replay/commit-reveal) is required, not incidental: this thief agent has to validate the cop's moves, verify its commit-reveal proofs, score matches against it, and replay its logs, which means genuinely understanding and exercising the cop side of the protocol. None of that makes this repo a cop submission — it makes the thief submission correct.
+
+## Academic Report
+
+<a id="academic-report"></a>
+
+### The Dec-POMDP model
+
+The game is modeled as a `Dec-POMDP` `⟨n, S, {Aᵢ}, P, R, {Ωᵢ}, O, γ⟩` with `n = 2` (cop, thief), implemented in `domain/dec_pomdp.py`:
+
+- **`S`** (state space): full board truth — both agents' coordinates plus the barrier layout — is combinatorially large even on a 7×7 grid, which is precisely why brute-force search over `S` is infeasible and heuristic/learned policies are required (`docs/tasks.md` Ch.1).
+- **`{Aᵢ}`**: orthogonal movement, barrier placement (cop only), and a natural-language verbal channel (hints/bluffs) — mixing physical and "psychological" action spaces.
+- **`P`**: the transition function is not centrally computed by any referee; both peers independently apply the same rules to the same signed `config/game.json`, so they always agree on the result without needing to trust each other (see Commit-Reveal below).
+- **`{Ωᵢ}, O`**: neither agent ever observes `S` directly. Each side's *only* signal about the other is a decaying pheromone scent trail (`domain/scent.py`) and the opponent's (possibly deceptive) verbal hint (`domain/hints.py`) — this is the whole reason a `BeliefMap` (`domain/belief.py`) exists: it is a Bayesian-style posterior over the opponent's position, built from the one channel that cannot lie (scent), that the verbal channel (which can lie) is checked against.
+- **`γ`** (discount factor): favors patient, multi-turn strategies (e.g. building a barrier cage over several turns) over greedy one-step gains.
+
+The practical upshot for the thief specifically: since the state space forbids exhaustive search, the thief's own belief about *where the cop currently believes it is* — inferred from how the cop's scent-adjacent movement responds over time — is exactly as important as its own position.
+
+### FastMCP / P2P architecture and orchestration dilemmas
+
+Every peer is simultaneously an MCP server (exposing `@mcp.tool` endpoints the opponent calls) and an MCP client (calling the opponent's tools) — `services/mcp_server.py` / `mcp_client.py`. There is no central game server; each side enforces the rules against its own copy of the byte-identical, signed `config/game.json` (Appendix B), and the two independent copies are provably consistent via `config_sha256` rather than via a shared referee.
+
+Building this raised real orchestration tensions, deliberately worked through rather than glossed over:
+- **Turn/deadline management**: a hung or slow opponent must not hang this peer forever. `services/deadline_tracker.py` wraps every network await with a hard timeout, and `services/watchdog.py` provides heartbeat monitoring with a controlled shutdown instead of an indefinite wait — see `docs/PRD_reliability_layer.md`.
+- **Network-failure handling**: dropped tunnels, a stale opponent process, or a malformed response all have to fail *safely* (technical loss, not a crash) — enforced by `services/state_machine.py` rejecting any illegal state transition outright.
+- **Gatekeeper / Orchestrator roles**: `services/orchestrator.py` is the single call-path into the strategy + network + crypto layers per turn (no other module calls the network directly), and `services/gatekeeper.py` is the analogous single choke point for outbound Gmail reporting (token-bucket rate limiting + quota manager + DOS anomaly detector) — see `docs/PRD_gmail_gatekeeper.md`.
+- **Public reachability**: FastMCP servers are exposed off `localhost` via an `ngrok`/`Localtonet` tunnel for real cross-machine play (Chapter 2, Stage 5) — a real tunnel session with the sibling cop repo is one of the manual steps still outstanding (see below).
+
+### Commit-Reveal protocol
+
+Every move is committed (`H = SHA256(state ‖ move ‖ intent ‖ nonce)`) before it is revealed, so neither side can retroactively rewrite what it "actually" played — `services/commit_reveal.py`. The nonce is withheld until reveal, both sides run a mutual end-of-match audit over the full log, and a Step-0 hardware/commit-hash fairness declaration (`services/step0.py`) is exchanged before the first move. Full design rationale, worked examples, and the tampering/rejection test matrix are in `docs/PRD_commit_reveal_crypto.md`.
+
+### Thief strategy design
+
+The shipped baseline (`docs/PLAN.md` ADR-010, `docs/PRD_strategy_module.md`) is a **Manhattan-distance heuristic blended with a Bayesian belief map** (`domain/heuristics.py`, `domain/belief.py`, `domain/strategy/manhattan_brain.py`) — chosen over reinforcement learning as the fastest path to a working, testable baseline, with RL treated as an explicitly optional stretch track the rulebook itself does not require (Sec. 6.2.1). The thief's decision loop:
+
+1. Update its own `BeliefMap` from the cop's scent trail (the one channel that cannot lie).
+2. Read the cop's verbal hint and run `detect_bluff` against the belief map's own picture — a claimed direction contradicted by the real scent is flagged as a lie.
+3. Move away from the belief map's `arg_max` (the cop's most likely position), never toward its own true, hidden position — the LLM (when used for hint phrasing) never decides the move itself; that boundary is enforced structurally in `BrainBase`, not just by convention.
+
+### Learning / empirical evidence
+
+Not applicable in this build: reinforcement learning was evaluated and deliberately **not** chosen as the strategy track (see ADR-010 above and `docs/PRD_strategy_module.md` §1) — the rulebook explicitly treats RL as one optional tool among several, not a requirement (rule 25/T0251). No learning-curve data therefore exists to report. The empirical evidence that *is* available is behavioral: `tests/integration/test_strategy_pipeline.py` proves two real, independent belief-map/heuristic brains reach a capture using only their own local observations, never reading the opponent's true position.
+
+### Screenshots
+
+**Live GUI (belief heatmap + turn banner):** *pending — capture from `uv run python -m police_thief demo` or a live `serve` match and insert here before submission.*
+
+**Replay Viewer — `Verified OK`:** *pending — capture from `uv run python -m police_thief replay --log-file <a completed match log>` and insert here before submission.*
+
+(The underlying behavior for both is proven by real widget-state assertions in `tests/unit/test_gui.py` / `tests/unit/test_replay.py`; only the screenshot image itself is outstanding — there's no native window-capture tool in this development environment.)
+
+### Sibling repository
+
+Cop submission (the opponent this thief plays against): **https://github.com/aishadahesh/uoh-ay26-final-project-cop**
+
+### Submission tagging
+
+Per rule 41, the final submission commit in both repos must be marked with an annotated, documented Git tag (not created yet — do this only at actual submission time):
+
+```bash
+git tag -a v1.0-submission -m "Final submission: Police-Thief P2P, group N"
+git push origin v1.0-submission
+```
 
 ## What's built
 
@@ -113,14 +184,24 @@ Google OAuth `credentials.json` in the project root, and complete browser
 consent once; its reusable token is stored as `token.json`. Email is sent only
 after both computers agree on the result.
 
-**Run two real, separate peer processes talking over FastMCP** (two terminals):
+**Run this peer as a real, standalone FastMCP process:**
 
 ```bash
-uv run python -m police_thief serve --role cop
+uv run python -m police_thief serve                # --role defaults to thief
+```
+
+**For local interop/protocol testing only**, you can also run a second process
+pretending to be the opponent on the same machine (two terminals):
+
+```bash
+uv run python -m police_thief serve --role cop      # local opponent peer only — see "Role support" above
 uv run python -m police_thief serve --role thief
 ```
 
-Each loads only its own `config/cop/game.toml` or `config/thief/game.toml` — never the other's.
+`--role cop` prints a one-line stderr notice every time, since it is never a
+submission-grade cop peer in this repo — only a local stand-in for the real
+cop process, which lives in the sibling repo. Each loads only its own
+`config/cop/game.toml` or `config/thief/game.toml` — never the other's.
 
 **Replay a saved, cryptographically-sealed match log:**
 
@@ -148,7 +229,8 @@ src/police_thief/
   main.py       # CLI: serve / simulate / demo / replay
 config/
   game.json           # shared, signed match config (both sides must load byte-identical)
-  cop/, thief/         # private per-role config (network port, strategy class, etc.)
+  thief/               # this repo's real, submitted private config
+  cop/                 # local opponent-peer config for interop testing only — not a submission config
 docs/
   tasks.md            # full rulebook extraction (single source of truth for requirements)
   PRD.md, PLAN.md      # master design documents
@@ -163,9 +245,9 @@ ProgressDoc.md    # the chapter-by-chapter development log
 
 Tracked in detail in `docs/TODO.md` and `ProgressDoc.md`'s Chapter 11 entry — the short version:
 
-- The full academic report in this README (Rule 42) — the next planned pass.
+- The two mandatory screenshots in the [Academic Report](#academic-report) section above (Live GUI, Replay Viewer `Verified OK`) — everything else that section requires is written; only the images are pending.
 - A real Google Cloud OAuth consent flow (the code is ready; someone needs to create the project and run it once).
-- A real `ngrok`/tunnel session for cross-machine play.
-- Actual league matches against other teams' agents.
-- A real 8-character team identity code (currently placeholder `"TBD"` in both `config/*/game.toml`).
+- A real `ngrok`/tunnel session for cross-machine play against the sibling cop repo.
+- Actual league matches against other teams' agents, and this repo's real GitHub URL, group name, and 8-character group ID (currently placeholder `"TBD"` in `config/thief/game.toml`).
+- The annotated `v1.0-submission` Git tag (command above) — created only at actual submission time, in both repos.
 - One open rulebook-interpretation question found during the Chapter 11 sanity sweep (rule 47 — see `docs/TODO.md`).

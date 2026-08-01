@@ -1,5 +1,11 @@
 version = "1.00"
 
+# NOT A SUBMISSION-GRADE CONFIG. This repository is the THIEF submission
+# repo (see README.md). This file exists only so a single machine can run
+# a local `cop` peer for interop/protocol testing (`serve --role cop`)
+# against the real `thief` peer in this repo. The actual cop submission,
+# and its authoritative private config, lives in the sibling cop repo.
+#
 # Private, per-peer settings ONLY — never shared with, or read by, the thief
 # process. See docs/tasks.md Chapter 2 ("Total Separation of Working
 # Environments") and Appendix B (private vs. shared config files).

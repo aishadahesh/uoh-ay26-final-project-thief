@@ -36,5 +36,5 @@ step_deadline_seconds = 30
 # `recipient` is fixed by the rulebook's [agent's report address], never a
 # per-team choice. Use dry_run until the real OAuth credentials.json/token.json
 # setup is completed locally.
-recipient = "assdiyousef@gmail.com"
+recipient = "rmisegal+uoh26finalgame@gmail.com"
 mode = "dry_run"

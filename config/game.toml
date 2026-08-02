@@ -1,13 +1,13 @@
 version = "1.10"
 
 # Submission-facing private per-peer TOML for this THIEF repository.
-# The runtime also keeps the same values under config/thief/game.toml so
-# local interop tests can preserve the role-separated config directory layout
-# required by the P2P rulebook.
+# The runtime also keeps the same values under config/thief/game.toml.
+# The local police smoke command uses built-in loopback defaults; this thief
+# submission repo does not track a config/cop directory.
 
 [game]
-group_name = "Aisha-Yosef"
-group_id = "ay26-uoh"
+group_name = "uoh-ay26"
+group_id = "uoh-ay26"
 sub_game_number = 1
 members = ["Aisha Abu Dahesh", "Yousef Asadi"]
 repos = { cop = "https://github.com/aishadahesh/uoh-ay26-final-project-cop", thief = "https://github.com/aishadahesh/uoh-ay26-final-project-thief" }

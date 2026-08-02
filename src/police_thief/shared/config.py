@@ -1,12 +1,10 @@
 """Per-peer configuration loading.
 
-Chapter 2's mandatory environment-separation rule (docs/tasks.md Sec. 3,
-"Total Separation of Working Environments") requires each role to load its
-own config directory (config/cop/ vs config/thief/) — never a config
-shared in memory with the other role. This module loads the [network]
-section (Chapter 2) and the [strategy] section (Chapter 6, Sec. 6.1.2);
-the fuller shared, signed config/game.json format (App. B) is a separate
-module (shared/game_config.py).
+Chapter 2's environment-separation rule requires this peer to load its own
+private local config, never a config shared in memory with the opponent. This
+thief submission repository tracks only the thief private TOML files. The
+PDF-compatible local `peer --role police` smoke command uses built-in loopback
+defaults instead of a tracked `config/cop/` directory.
 """
 
 from __future__ import annotations
@@ -27,31 +25,36 @@ class ConfigError(ValueError):
 
 @dataclass(frozen=True)
 class NetworkConfig:
-    """The [network] section of a role's private config/<role>/game.toml."""
+    """The `[network]` section of a peer's private TOML config."""
 
     my_port: int
     opponent_url: str
     turn_timeout_seconds: float
 
 
-def config_dir_for(role: AgentRole, config_root: Path) -> Path:
-    """Return this role's own config directory (config/cop/ or config/thief/).
+LOCAL_POLICE_FALLBACK = NetworkConfig(
+    my_port=8801,
+    opponent_url="http://127.0.0.1:8802/mcp",
+    turn_timeout_seconds=180.0,
+)
 
-    In this thief-submission repository, `config/cop/` is a local-only
-    opponent-peer directory used for interop testing -- it is not a
-    submission-grade cop config. See config/cop/game.toml's header comment.
-    """
+
+def config_dir_for(role: AgentRole, config_root: Path) -> Path:
+    """Return the conventional private config directory for `role`."""
     return config_root / role.value
 
 
 def load_network_config(role: AgentRole, config_root: Path) -> NetworkConfig:
-    """Load role's private config/<role>/game.toml [network] section.
+    """Load the peer's private network config.
 
-    Never reads the other role's directory — the caller passes only its own
-    `role`, and this function only ever looks inside that one directory.
+    The thief role reads `config/thief/game.toml`. The local police role is
+    retained only for the PDF two-terminal smoke command and falls back to
+    loopback defaults when no `config/cop/` directory is tracked.
     """
     path = config_dir_for(role, config_root) / "game.toml"
     if not path.is_file():
+        if role is AgentRole.COP and _is_thief_submission_config(config_root):
+            return LOCAL_POLICE_FALLBACK
         raise ConfigError(f"missing per-peer config file: {path}")
     with path.open("rb") as f:
         data = tomllib.load(f)
@@ -66,6 +69,13 @@ def load_network_config(role: AgentRole, config_root: Path) -> NetworkConfig:
         raise ConfigError(f"malformed config at {path}: missing key {exc}") from exc
 
 
+def _is_thief_submission_config(config_root: Path) -> bool:
+    return (
+        (config_root / "game.toml").is_file()
+        and (config_root / AgentRole.THIEF.value / "game.toml").is_file()
+    )
+
+
 def _load_toml(role: AgentRole, config_root: Path) -> dict:
     path = config_dir_for(role, config_root) / "game.toml"
     if not path.is_file():
@@ -75,12 +85,11 @@ def _load_toml(role: AgentRole, config_root: Path) -> dict:
 
 
 def load_strategy_class(role: AgentRole, config_root: Path) -> type[BrainBase]:
-    """Load role's own `[strategy]` `{role}_class` key (Sec. 6.1.2).
+    """Load role's own `[strategy]` `{role}_class` key.
 
-    E.g. for role=THIEF, reads `thief_class = "my_team.strategy:MyBrain"`
-    from config/thief/game.toml -- never the other role's key or file.
-    Falls back to the built-in ManhattanHeuristicBrain (docs/PLAN.md
-    ADR-010's chosen baseline) if the key is absent or commented out.
+    For role=THIEF, this reads `thief_class = "my_team.strategy:MyBrain"`
+    from `config/thief/game.toml`. It falls back to the built-in
+    ManhattanHeuristicBrain if the key is absent or commented out.
     """
     data = _load_toml(role, config_root)
     dotted_path = data.get("strategy", {}).get(f"{role.value}_class")

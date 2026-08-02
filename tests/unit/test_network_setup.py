@@ -44,6 +44,17 @@ def test_network_defaults_populate_all_gui_fields(tmp_path):
     assert loaded["output"] == str(tmp_path / "results" / "custom")
 
 
+def test_network_defaults_force_this_repository_to_thief_role(tmp_path):
+    raw = _defaults()
+    raw["peer"]["role"] = "cop"
+    path = tmp_path / "network_match.json"
+    path.write_text(json.dumps(raw), encoding="utf-8")
+
+    loaded = load_network_defaults(path, tmp_path)
+
+    assert loaded["role"] == "thief"
+
+
 def test_network_defaults_require_two_members_per_team(tmp_path):
     raw = _defaults()
     raw["team_2"]["members"] = ["only-one"]

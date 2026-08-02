@@ -34,7 +34,7 @@ def load_network_defaults(path: Path, project_root: Path) -> dict:
     if not output.is_absolute():
         output = project_root / output
     return {
-        "role": str(peer.get("role", "thief")),
+        "role": AgentRole.THIEF.value,
         "port": str(peer.get("local_port", 8802)),
         "opponent": str(peer.get("opponent_url", "https://opponent.example/mcp")),
         "public": str(peer.get("public_url", "https://your-tunnel.example/mcp")),
@@ -136,7 +136,7 @@ class NetworkSetupDialog:
         self.window.protocol("WM_DELETE_WINDOW", self._close)
         ttk.Label(shell, text="NETWORK MATCH", style="Title.TLabel").pack(anchor="w")
         ttk.Label(shell, text="TWO COMPUTERS  •  FASTMCP  •  SIGNED MOVES", style="Subtitle.TLabel").pack(anchor="w", pady=(0, 18))
-        self._row(shell, "This computer's role", "role", choices=("cop", "thief"))
+        self._fixed_row(shell, "This computer's role", "role")
         self._row(shell, "Local MCP port", "port")
         self._row(shell, "Opponent public URL (must end /mcp)", "opponent")
         self._row(shell, "This peer's public tunnel URL", "public")
@@ -199,6 +199,15 @@ class NetworkSetupDialog:
         state = "normal" if self.vars["email"].get() else "disabled"
         self.email_entry.configure(state=state)
 
+    def _fixed_row(self, parent, label: str, key: str) -> None:
+        ttk.Label(parent, text=label, style="Subtitle.TLabel").pack(anchor="w", pady=(8, 3))
+        tk.Entry(
+            parent, textvariable=self.vars[key], bg=COLORS["surface"],
+            fg=COLORS["muted"], disabledbackground=COLORS["surface"],
+            disabledforeground=COLORS["muted"], relief="flat", font=(FONT, 10),
+            state="disabled",
+        ).pack(fill="x", ipady=5)
+
     def _row(
         self, parent, label: str, key: str, choices: tuple[str, ...] = (),
         second_key: str | None = None, secret: bool = False,
@@ -232,7 +241,7 @@ class NetworkSetupDialog:
 
     def _start(self) -> None:
         try:
-            role = AgentRole(self.vars["role"].get())
+            role = AgentRole.THIEF
             port = int(self.vars["port"].get())
             if not 1 <= port <= 65535:
                 raise ValueError("local port must be between 1 and 65535")

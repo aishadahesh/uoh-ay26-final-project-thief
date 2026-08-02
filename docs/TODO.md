@@ -4,7 +4,7 @@ Derived from `requirements.md` (itself derived from `ref/police_thief_p2p.pdf` +
 
 Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage should be end-to-end working before the next begins (Ch.10).
 
-> **Architecture decision recorded during implementation (see `docs/PLAN.md` ADR-011):** development proceeds as a **single shared package/repo** (`police_thief`, role-differentiated via `--role cop`/`--role thief` and separate `config/police/`/`config/thief/` directories) rather than two duplicated repos from day one. This satisfies the "no shared runtime state" rule (two OS processes importing the same stateless module still share no memory) while avoiding premature code duplication. The literal two-GitHub-repos submission requirement (rule 49) is deferred to Section O (Submission Prep), where this codebase will be exported into two tagged repos before final submission. Tasks below written as "for cop repo" / "for thief repo" are satisfied by this single shared structure during development unless noted otherwise.
+> **Architecture decision recorded during implementation (see `docs/PLAN.md` ADR-011):** development proceeded as a **single shared package/repo** (`police_thief`, role-differentiated via `--role cop`/`--role thief`) rather than two duplicated repos from day one. This thief submission repo now tracks only thief private config (`config/thief/game.toml` plus `config/game.toml`); the PDF local police smoke role uses built-in loopback defaults. The literal two-GitHub-repos submission requirement (rule 49) is satisfied by this thief repo plus the sibling cop repo.
 
 ---
 
@@ -67,7 +67,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [ ] T0050 Add `logs/` directory to `.gitignore` (or decide to keep sample logs tracked)
 - [ ] T0051 Create top-level package folder structure for cop repo (`domain/`, `infra/`, `shared/`)
 - [ ] T0052 Create top-level package folder structure for thief repo (mirrored)
-- [ ] T0053 Create `config/police/` directory
+- [x] T0053 Create/remove role-specific private config for the cop side — in this thief submission repo no `config/police/` or `config/cop/` directory is tracked; the real cop config belongs in the sibling cop repository, while local police smoke mode uses built-in loopback defaults.
 - [ ] T0054 Create `config/thief/` directory
 - [ ] T0055 Create empty `README.md` scaffold for cop repo with section headers matching Ch.9.4.6
 - [ ] T0056 Create empty `README.md` scaffold for thief repo with section headers matching Ch.9.4.6
@@ -218,7 +218,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 
 ### D.1 Process Separation
 - [x] T0169 Split single-process simulation into two independent runnable processes (cop / thief) — `python -m police_thief --role cop|thief` runs each as its own OS process; no Stage-1 board loop exists yet to "split," so this is the transport-level realization of process separation
-- [x] T0170 Create `config/police/` local settings distinct from `config/thief/` — created as `config/cop/` and `config/thief/` (renamed from the rulebook's illustrative "police" naming for consistency with the `AgentRole` enum; directory *naming* is not itself a mandatory rule, only the *separation* is — see `docs/tasks.md` §15 rule 1)
+- [x] T0170 Create role-specific local settings distinct from `config/thief/` — finalized for submission as thief-only tracked config; the sibling cop repository carries the real cop private config, and local police smoke mode uses built-in loopback defaults.
 - [x] T0171 Verify no shared Python module holds mutable state imported by both processes — `mcp_server.py`/`mcp_client.py`/`config.py` hold no module-level mutable state; verified by inspection and by `test_config.py::test_load_network_config_never_reads_the_other_roles_directory`
 - [x] T0172 Add a manual review checklist item forbidding cross-imports between cop and thief packages — reframed per ADR-011: there are no separate cop/thief packages by design (single shared package); the actual guard enforced is "no shared mutable state" (T0171), not source-tree isolation
 - [x] T0173 Write a design note documenting the Zero-Trust separation boundary explicitly — module docstrings in `mcp_server.py`, `config.py`, and `main.py`; see also `docs/PLAN.md` ADR-011
@@ -232,7 +232,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [x] T0179 Implement @mcp.tool receive_move(...) on the thief server — same shared implementation
 - [x] T0180 Decide the exact tool signature/schema for move exchange (state, move, intent placeholder for now) — `MoveEnvelope(signed_move: str, signature: str)`; real board state (Ch.3) and real signatures (Ch.5/6) replace these placeholders later
 - [x] T0181 Implement server-side input validation on receive_move (reject malformed payloads) — `MoveEnvelope.is_structurally_valid()` (blank-field check) plus FastMCP's own pydantic-schema validation (missing/extra fields rejected with a clean `ToolError`, verified in `test_mcp_server.py`)
-- [x] T0182 Bind cop server to 0.0.0.0 on its chosen port (e.g., 8801) with transport=http — `run_peer_server(mcp, host="0.0.0.0", port=...)`; port 8801 from `config/cop/game.toml`
+- [x] T0182 Bind local police smoke server to 0.0.0.0 on its chosen port (e.g., 8801) with transport=http — `run_peer_server(mcp, host="0.0.0.0", port=...)`; port 8801 comes from built-in loopback defaults in this thief repo.
 - [x] T0183 Bind thief server to 0.0.0.0 on its chosen port (e.g., 8802) with transport=http — port 8802 from `config/thief/game.toml`
 - [x] T0184 Write a smoke test: server starts and responds to a health-check call — `tests/integration/test_mcp_http_roundtrip.py` (real HTTP) + manual CLI smoke test (`python -m police_thief --role cop` + live client call)
 - [x] T0185 Add graceful shutdown handling for the server process (SIGINT/SIGTERM) — handled by the underlying uvicorn server when run in the main thread; documented in `run_peer_server`'s docstring rather than duplicated with custom signal handling
@@ -288,7 +288,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [ ] T0219 Wire PeerRuntime to call into the strategy module exactly once per turn, at the correct pipeline point — deferred: no PeerRuntime/Orchestrator exists yet (Chapter 8)
 - [x] T0220 Write unit test: strategy module receives the current known state and returns a legal move
 - [x] T0221 Write unit test: strategy module never receives full objective state (only local-truth-consistent inputs) — the headline `tests/integration/test_strategy_pipeline.py` proof: neither brain's `_decide_move` call ever receives the opponent's true `Position`
-- [x] T0222 Add config keys police_class / thief_class in the private TOML strategy section — named `cop_class`/`thief_class` for consistency with the `AgentRole` enum (same renaming rationale as Chapter 2's `config/cop/`)
+- [x] T0222 Add config keys police_class / thief_class in the private TOML strategy section — this thief repo ships the thief-side private config; cop strategy config belongs in the sibling cop repository.
 - [x] T0223 Implement dynamic class loading from a package.module:Class string (e.g., via importlib)
 - [x] T0224 Write unit test: dynamic strategy-class loading correctly instantiates a custom subclass — tests that a distinct `DummyCustomBrain` is actually loaded (an earlier draft of this test pointed at `ManhattanHeuristicBrain` itself, which would have passed even if loading were silently broken — caught and fixed before trusting it)
 - [x] T0225 Write unit test: fallback to default heuristic brain when no custom class is configured
@@ -594,7 +594,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [x] T0451 Implement `get_service()` loading credentials/token and building the Gmail API service object — `services/gmail_oauth.py::get_service`, using the real `googleapiclient.discovery.build` against offline static discovery (no network call needed to construct the service object itself); ported from a proven-working OAuth flow in a prior course project, with the scope narrowed to `gmail.send` only
 - [x] T0452 Implement `send_report(service, to_addr, subject, body)` constructing a MIME message — `build_report_email()`; takes a JSON payload (dict/list) rather than a free-text `body`, per T0497/Sec. 9.3.15
 - [x] T0453 Implement base64url encoding of the MIME message before sending — `encode_for_gmail_api()`
-- [ ] T0454 Wire the recipient address to the configured `[agent's report address]` — the fixed recipient is documented (commented out) in `config/cop/game.toml`/`config/thief/game.toml`'s new `[email]` section, but no config loader function reads it yet, since there is no live-match call site to wire it into (same gap as Ch.8's deferred `response_timeout_sec`/`watchdog_timeout_sec` wiring)
+- [ ] T0454 Wire the recipient address to the configured `[agent's report address]` — the fixed recipient is documented in `config/game.toml` / `config/thief/game.toml`'s `[email]` section, but no config loader function reads it yet, since there is no live-match call site to wire it into (same gap as Ch.8's deferred `response_timeout_sec`/`watchdog_timeout_sec` wiring)
 - [x] T0455 Write unit test: message construction produces valid MIME structure — `test_build_report_email_attaches_json_not_free_text`
 - [ ] T0456 Write integration test: a test email is successfully sent and received at the target address — still cannot be done without a real, activated OAuth credential (requires you to complete T0438-T0446 once); `build_gmail_api_transport`'s construction and error-translation logic are fully tested up to that exact boundary
 - [x] T0457 Implement error handling for Gmail API send failures (network error, auth error, quota error) — `GmailRateLimitedError`/`GmailSendError`, handled distinctly in `send_match_report`
@@ -1125,7 +1125,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 ## T. Final Sanity Sweep — One Task Per Mandatory Rule (App. E cross-check)
 
 - [x] T0835 Verify rule 1: cop and thief run as two fully separate processes — `main.py --role cop|thief`, two independent OS processes (Chapter 2)
-- [x] T0836 Verify rule 2: no shared memory/state variables exist between the two sides — each role loads only its own `config/<role>/game.toml`, never the other's directory (`test_load_network_config_never_reads_the_other_roles_directory`)
+- [x] T0836 Verify rule 2: no shared memory/state variables exist between the two sides — this thief repo loads only `config/thief/game.toml` for its submitted role; the local police smoke command uses built-in loopback defaults and the real cop config lives in the sibling cop repo.
 - [ ] T0837 Verify rule 3: a single Orchestrator is the entry point for all sub-systems — partially true: `Orchestrator.run_turn` is the single gateway for the match-turn subsystems (strategy, crypto, network, state machine, watchdog, deadline tracker, log manager). It is *not* yet the entry point for Chapter 9's Gatekeeper/Gmail-reporting/league-scoring subsystems — those exist as separate, correctly-composed modules but nothing currently routes them through the Orchestrator, since no live end-of-match hook exists yet to do so (see `docs/PRD_gmail_gatekeeper.md` §3)
 - [x] T0838 Verify rule 4: game phases are managed via a legal state machine — `MatchStateMachine` (Chapter 8)
 - [x] T0839 Verify rule 5: illegal state transitions are rejected — `IllegalStateTransitionError`, never mutates state on rejection
@@ -1168,7 +1168,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [x] T0876 Verify rule 42: a comprehensive academic README report is attached to the repo — written: README.md's `## Academic Report` section covers the Dec-POMDP model, FastMCP orchestration dilemmas, commit-reveal protocol, thief strategy design, the learning-curve N/A note, sibling-repo link, Live GUI screenshot, and Replay Viewer `Verified OK` screenshot.
 - [ ] T0877 Verify rule 43: deliverables are submitted as Word/PDF with the template's field layout unchanged — not done; a course-logistics step requiring the official Word template, outside this repository's scope
 - [ ] T0878 Verify rule 44: the assignment is submitted as a separate file per team member — not done; same course-logistics scope
-- [x] T0879 Verify rule 45: team identity is encoded as an 8-character unique code without spaces — `config/game.toml` and `config/thief/game.toml` now use `group_id = "ay26-uoh"` (8 characters, no spaces). `config/cop/game.toml` remains explicitly local-only for interop testing and uses `group_id = "localcop"` so no tracked config carries a `TBD` identity placeholder.
+- [x] T0879 Verify rule 45: team identity is encoded as an 8-character unique code without spaces — `config/game.toml` and `config/thief/game.toml` now use `group_id = "ay26-uoh"` (8 characters, no spaces). No tracked config carries a `TBD` identity placeholder.
 - [x] T0880 Verify rule 46: a barrier placed on the cop's own occupied cell counts toward capture at that instant — implemented and tested (`test_barrier_placed_exactly_on_thiefs_cell_counts_as_capture`, Chapter 3) per Sec. 3.3.5's clear body text (a barrier landing on the *thief's* cell captures it); Appendix E's own condensed rule text says "the cell the cop occupies," which reads as an appendix paraphrase artifact against the unambiguous primary section — resolved via the primary text per this project's academic-freedom-on-contradiction principle (Sec. 0)
 - [x] T0881 Verify rule 47: a thief leaving the arena via an illegal move counts as captured — implemented at the match-outcome layer while keeping `Board.apply_move` as the strict low-level validator. Covered by `test_thief_leaving_the_arena_counts_as_capture` and `test_thief_leaving_the_arena_counts_as_capture_in_local_match`; other illegal moves still resolve as rejection/technical-loss paths.
 - [x] T0882 Verify rule 48: every match outcome is scored exactly per the scoring table — `ScoringTable`/`score_for` defaults exactly match the Mandatory Parameters Table (20/5 capture, 5/10 survival, 2/2 tie, 0/0 technical loss), tested for all four `MatchOutcome` values

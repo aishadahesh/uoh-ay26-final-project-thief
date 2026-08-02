@@ -17,8 +17,10 @@ the course submission system.
   - `uv run python -m police_thief replay --log-file path/to/log.json`
 - [x] This repository defaults to the thief role.
 - [x] `police` / `cop` mode is marked and warned as local opponent testing only.
-- [x] Two separate runtime config directories exist for local process isolation:
-  `config/cop/` and `config/thief/`.
+- [x] This thief repository tracks only thief private config:
+  `config/thief/game.toml` and submission-facing `config/game.toml`.
+- [x] The PDF local `peer --role police` smoke command remains supported by
+  built-in loopback defaults, without tracking a `config/cop/` directory.
 - [x] A submission-facing private TOML exists at `config/game.toml`.
 - [x] `config/game.toml` mirrors `config/thief/game.toml` for the thief peer.
 - [x] The shared signed game constitution exists at `config/game.json`.

@@ -11,8 +11,8 @@ Final project for the University of Haifa "Orchestration of AI Agents" course (A
 This repository is submitted as the **thief** side only. The sibling repo linked above is the real **cop** submission.
 
 - `uv run python -m police_thief serve` starts the **thief** peer by default (`--role` defaults to `thief`).
-- `--role cop` still works — the shared `police_thief` package can run either role's logic (see [ADR-011](docs/PLAN.md#adr-011-single-shared-package-during-development-split-into-two-repos-at-submission)) — but it exists **only** to run a local opponent peer for protocol/interop testing on your own machine. It is not a submission-grade cop implementation, prints a one-line notice to that effect every time it's used, and must never be presented as this repo's submission.
-- Everywhere else in this codebase that models "cop" (the `AgentRole.COP` enum member, `config/cop/`, cop-branch logic in shared modules like scoring/board/replay/commit-reveal) is required, not incidental: this thief agent has to validate the cop's moves, verify its commit-reveal proofs, score matches against it, and replay its logs, which means genuinely understanding and exercising the cop side of the protocol. None of that makes this repo a cop submission — it makes the thief submission correct.
+- `--role cop` / `--role police` still works only for the PDF's local two-terminal smoke command. It uses built-in loopback defaults, prints a one-line warning every time, and is not backed by a tracked `config/cop/` directory.
+- Everywhere else in this codebase that models "cop" (the `AgentRole.COP` enum member and cop-branch logic in shared modules like scoring/board/replay/commit-reveal) is required, not incidental: this thief agent has to validate the cop's moves, verify its commit-reveal proofs, score matches against it, and replay its logs. None of that makes this repo a cop submission — it makes the thief submission correct.
 
 ## Academic Report
 
@@ -145,15 +145,16 @@ remains fully offline.
 
 ### Agent vs Agent on two computers (MCP)
 
-Choose **Agent vs Agent (Two Computers)** from the same `play` launcher on
-both computers. Each side selects a different role (`cop` / `thief`) and runs
-an ngrok or Localtonet HTTP tunnel to the local port shown in the setup screen.
+Choose **Agent vs Agent (Two Computers)** from the same `play` launcher. In
+this thief repository, the network role is fixed to `thief` in the setup
+dialog. The sibling cop repository should run the cop side. Each machine runs
+an ngrok or Localtonet HTTP tunnel to the local port shown in its setup screen.
 
 The launcher pre-fills every field from `config/network_match.json`. Edit that
-file before launching to set the peer role and URLs, game ID, both teams and
-members, four repository URLs, output directory, and email defaults. Do not
-put Gemini keys or Gmail OAuth tokens in this file; those remain in `.env`,
-`credentials.json`, and `token.json`.
+file before launching to set URLs, game ID, both teams and members, four
+repository URLs, output directory, and email defaults. The peer role is always
+forced to `thief` in this repo. Do not put Gemini keys or Gmail OAuth tokens in
+this file; those remain in `.env`, `credentials.json`, and `token.json`.
 
 - Put the **other computer's public URL** in **Opponent public URL**. It must
   include the FastMCP route, for example `https://abc123.ngrok.app/mcp`.
@@ -216,9 +217,9 @@ uv run python -m police_thief serve --role thief
 
 `--role police` / `--role cop` prints a one-line stderr notice every time,
 since it is never a submission-grade cop peer in this repo — only a local
-stand-in for the real cop process, which lives in the sibling repo. Each
-loads only its own `config/cop/game.toml` or `config/thief/game.toml` — never
-the other's.
+stand-in for the real cop process, which lives in the sibling repo. This repo
+does not track `config/cop/`; the local police smoke process uses built-in
+loopback defaults while the thief peer loads `config/thief/game.toml`.
 
 **Replay a saved, cryptographically-sealed match log:**
 
@@ -248,7 +249,6 @@ config/
   game.json           # shared, signed match config (both sides must load byte-identical)
   game.toml           # submission-facing private config for this thief peer
   thief/               # this repo's real, submitted private config
-  cop/                 # local opponent-peer config for interop testing only — not a submission config
 docs/
   tasks.md            # full rulebook extraction (single source of truth for requirements)
   PRD.md, PLAN.md      # master design documents

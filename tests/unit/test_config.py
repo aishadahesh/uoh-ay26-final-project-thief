@@ -1,5 +1,8 @@
 """Unit tests for per-peer config loading (Chapter 2 environment separation)."""
 
+import tomllib
+from pathlib import Path
+
 import pytest
 
 from police_thief.shared.config import ConfigError, config_dir_for, load_network_config
@@ -68,3 +71,18 @@ def test_load_network_config_never_reads_the_other_roles_directory(tmp_path):
     _write_config(tmp_path, AgentRole.COP, VALID_TOML)
     with pytest.raises(ConfigError):
         load_network_config(AgentRole.THIEF, tmp_path)
+
+
+def test_submission_game_toml_mirrors_thief_private_config():
+    """The rulebook names config/game.toml; runtime keeps config/thief/game.toml."""
+    root = Path(__file__).resolve().parents[2]
+    submission = tomllib.loads((root / "config" / "game.toml").read_text(encoding="utf-8"))
+    thief = tomllib.loads((root / "config" / "thief" / "game.toml").read_text(encoding="utf-8"))
+
+    assert submission["game"] == thief["game"]
+    assert submission["network"] == thief["network"]
+    assert submission["trash_talk"] == thief["trash_talk"]
+    assert submission["llm"] == thief["llm"]
+    assert submission["email"] == thief["email"]
+    assert len(submission["game"]["group_id"]) == 8
+    assert " " not in submission["game"]["group_id"]

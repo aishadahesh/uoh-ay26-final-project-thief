@@ -1,12 +1,13 @@
 version = "1.10"
 
-# Private, per-peer settings ONLY — never shared with, or read by, the cop
-# process. See docs/tasks.md Chapter 2 ("Total Separation of Working
-# Environments") and Appendix B (private vs. shared config files).
+# Submission-facing private per-peer TOML for this THIEF repository.
+# The runtime also keeps the same values under config/thief/game.toml so
+# local interop tests can preserve the role-separated config directory layout
+# required by the P2P rulebook.
 
 [game]
-group_name = "uoh-ay26"
-group_id = "uoh-ay26"
+group_name = "Aisha-Yosef"
+group_id = "ay26-uoh"
 sub_game_number = 1
 members = ["Aisha Abu Dahesh", "Yousef Asadi"]
 repos = { cop = "https://github.com/aishadahesh/uoh-ay26-final-project-cop", thief = "https://github.com/aishadahesh/uoh-ay26-final-project-thief" }
@@ -36,5 +37,5 @@ step_deadline_seconds = 30
 # `recipient` is fixed by the rulebook's [agent's report address], never a
 # per-team choice. Use dry_run until the real OAuth credentials.json/token.json
 # setup is completed locally.
-recipient = "assdiyousef@gmail.com"
+recipient = "rmisegal+uoh26finalgame@gmail.com"
 mode = "dry_run"

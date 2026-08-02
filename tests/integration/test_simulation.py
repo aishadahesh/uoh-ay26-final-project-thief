@@ -6,7 +6,7 @@ scoring wired together and proven to run a complete match with no crash.
 
 from pathlib import Path
 
-from police_thief.domain.board import BoardConfig, Position
+from police_thief.domain.board import BoardConfig, Move, Position
 from police_thief.domain.scent import ScentConfig
 from police_thief.domain.scoring import MatchOutcome, ScoringTable
 from police_thief.domain.simulation import run_local_match
@@ -42,6 +42,50 @@ def test_cop_adjacent_to_thief_captures_on_the_first_turn():
     result = run_local_match(params)
     assert result.outcome is MatchOutcome.CAPTURE
     assert (result.cop_score, result.thief_score) == (20, 5)
+    assert result.turns_played == 1
+
+
+def test_thief_leaving_the_arena_counts_as_capture_in_local_match():
+    params = MatchParameters(
+        board=BoardConfig(grid_size=7, max_barriers=14),
+        scoring=ScoringTable(),
+        scent=ScentConfig(),
+        cop_start=Position(6, 6),
+        thief_start=Position(0, 0),
+        max_moves=35,
+        survival_threshold=35,
+    )
+
+    result = run_local_match(
+        params,
+        cop_policy=lambda _board, _own, _target: Move.STAY,
+        thief_policy=lambda _board, _own, _target: Move.NORTH,
+    )
+
+    assert result.outcome is MatchOutcome.CAPTURE
+    assert (result.cop_score, result.thief_score) == (20, 5)
+    assert result.turns_played == 1
+
+
+def test_cop_illegal_move_counts_as_technical_loss_in_local_match():
+    params = MatchParameters(
+        board=BoardConfig(grid_size=7, max_barriers=14),
+        scoring=ScoringTable(),
+        scent=ScentConfig(),
+        cop_start=Position(0, 0),
+        thief_start=Position(6, 6),
+        max_moves=35,
+        survival_threshold=35,
+    )
+
+    result = run_local_match(
+        params,
+        cop_policy=lambda _board, _own, _target: Move.NORTH,
+        thief_policy=lambda _board, _own, _target: Move.STAY,
+    )
+
+    assert result.outcome is MatchOutcome.TECHNICAL_LOSS
+    assert (result.cop_score, result.thief_score) == (0, 0)
     assert result.turns_played == 1
 
 

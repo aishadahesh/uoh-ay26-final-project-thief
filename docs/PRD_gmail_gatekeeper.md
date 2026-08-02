@@ -54,7 +54,7 @@ Second, **automated Gmail reporting is a genuine liability, not a convenience.**
 
 ## 4. Success Criteria & Test Scenarios
 
-All satisfied, per `tests/unit/test_token_bucket.py`, `test_quota_manager.py`, `test_anomaly_detector.py`, `test_gatekeeper.py`, `test_match_reports.py`, `test_gmail_report_sender.py`, `test_gmail_oauth.py`, `test_league.py`, and `test_game_config.py` (67 new/updated tests directly on this mechanism; 380 tests total project-wide, 99.58% coverage, zero ruff violations, 90%+ on every file this chapter touches):
+All satisfied, per `tests/unit/test_token_bucket.py`, `test_quota_manager.py`, `test_anomaly_detector.py`, `test_gatekeeper.py`, `test_match_reports.py`, `test_gmail_report_sender.py`, `test_gmail_oauth.py`, `test_league.py`, and `test_game_config.py` (67 new/updated tests directly on this mechanism; the current project-wide gate is `uv run pytest --cov` with the configured 85% coverage floor, plus zero Ruff violations):
 
 1. The Token Bucket starts full, spends exactly one token per `allow()`, refuses once empty, and refills proportionally to elapsed time without ever exceeding capacity — reproducing Sec. 9.3.10's formula exactly via a fake, injectable clock (no real sleeping in any test).
 2. The Quota Manager blocks once the daily threshold is reached (even for a single additional request), survives a simulated process restart via its persisted JSON file, and resets correctly at a simulated day boundary.

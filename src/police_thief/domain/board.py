@@ -16,8 +16,9 @@ class MoveRejectedError(ValueError):
     """Raised whenever an attempted move or barrier placement is illegal.
 
     docs/tasks.md Sec. 3.3.2/3.3.9: an illegal move must be rejected, never
-    silently executed. Callers (the future turn loop / Orchestrator, Ch.8)
-    catch this and turn it into a technical-loss outcome.
+    silently executed. Match-level callers convert the rejection into the
+    required outcome, including the appendix rule that a thief leaving the
+    arena counts as captured.
     """
 
 

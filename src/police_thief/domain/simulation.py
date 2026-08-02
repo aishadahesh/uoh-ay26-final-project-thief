@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from police_thief.domain.board import Board, Move, Position
+from police_thief.domain.board import Board, Move, MoveRejectedError, Position
 from police_thief.domain.capture import check_capture, is_boxed_in
 from police_thief.domain.heuristics import greedy_manhattan_move
 from police_thief.domain.scent import ScentField
@@ -20,6 +20,10 @@ from police_thief.domain.scoring import MatchOutcome, ScoringTable, score_for
 from police_thief.shared.game_config import MatchParameters
 
 Policy = Callable[[Board, Position, Position], Move]
+
+
+def _is_out_of_bounds_rejection(exc: MoveRejectedError) -> bool:
+    return "leaves the board" in str(exc)
 
 
 @dataclass(frozen=True)
@@ -91,7 +95,10 @@ def run_local_match(
         return MatchResult(outcome, cop_score, thief_score, turn, cop_scent, thief_scent)
 
     for turn in range(1, params.max_moves + 1):
-        cop_pos = board.apply_move(cop_pos, cop_policy(board, cop_pos, thief_pos))
+        try:
+            cop_pos = board.apply_move(cop_pos, cop_policy(board, cop_pos, thief_pos))
+        except MoveRejectedError:
+            return finish(MatchOutcome.TECHNICAL_LOSS, turn)
         cop_scent.decay()
         cop_scent.emit(cop_pos)
         if check_capture(cop_pos, thief_pos):
@@ -106,7 +113,12 @@ def run_local_match(
         # itself is correct in isolation.
         if is_boxed_in(board, thief_pos):
             return finish(MatchOutcome.CAPTURE, turn)
-        thief_pos = board.apply_move(thief_pos, thief_policy(board, thief_pos, cop_pos))
+        try:
+            thief_pos = board.apply_move(thief_pos, thief_policy(board, thief_pos, cop_pos))
+        except MoveRejectedError as exc:
+            if _is_out_of_bounds_rejection(exc):
+                return finish(MatchOutcome.CAPTURE, turn)
+            return finish(MatchOutcome.TECHNICAL_LOSS, turn)
         thief_scent.decay()
         thief_scent.emit(thief_pos)
         if check_capture(cop_pos, thief_pos):

@@ -33,7 +33,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 
 from police_thief.domain.belief import BeliefMap
-from police_thief.domain.board import Board, Move, Position
+from police_thief.domain.board import Board, Move, MoveRejectedError, Position
 from police_thief.domain.capture import check_capture, is_boxed_in
 from police_thief.domain.heuristics import greedy_manhattan_move
 from police_thief.domain.scent import ScentConfig, ScentField
@@ -84,6 +84,10 @@ def controller_for(mode: GameMode, role: AgentRole) -> PlayerType:
 
 def _other_role(role: AgentRole) -> AgentRole:
     return AgentRole.THIEF if role is AgentRole.COP else AgentRole.COP
+
+
+def _is_out_of_bounds_rejection(exc: MoveRejectedError) -> bool:
+    return "leaves the board" in str(exc)
 
 
 @dataclass(frozen=True)
@@ -181,13 +185,22 @@ class InteractiveMatch:
     def apply_move(self, move: Move) -> None:
         """Apply `move` for the current role: update position, scent, the
         opponent's belief, then advance the turn. Raises `MoveRejectedError`
-        for an illegal move -- the caller must check `legal_moves()` first.
+        for most illegal moves -- the caller must check `legal_moves()` first.
+        Per the appendix completion rule, a thief attempt to leave the arena
+        is converted to a capture outcome at the match layer.
         """
         if self.is_finished:
             raise RuntimeError("match already finished")
         role = self.current_role
         opponent = _other_role(role)
-        self.positions[role] = self.board.apply_move(self.positions[role], move)
+        try:
+            self.positions[role] = self.board.apply_move(self.positions[role], move)
+        except MoveRejectedError as exc:
+            if role is AgentRole.THIEF and _is_out_of_bounds_rejection(exc):
+                self.outcome = MatchOutcome.CAPTURE
+                self.turns_played += 1
+                return
+            raise
 
         self.scent[role].decay()
         self.scent[role].emit(self.positions[role])

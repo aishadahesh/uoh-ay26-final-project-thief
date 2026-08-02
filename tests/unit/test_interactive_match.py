@@ -95,6 +95,17 @@ def test_apply_move_rejects_an_illegal_move():
         match.apply_move(Move.NORTH)  # leaves the board
 
 
+def test_thief_leaving_the_arena_counts_as_capture():
+    """Appendix completion rule: a thief out-of-bounds move is captured."""
+    match = _match(GameMode.HUMAN_VS_HUMAN, cop=Position(6, 6), thief=Position(0, 0))
+    match.apply_move(Move.STAY)  # cop turn; now the thief is active at the top edge
+
+    match.apply_move(Move.NORTH)
+
+    assert match.outcome is MatchOutcome.CAPTURE
+    assert match.is_finished is True
+
+
 def test_apply_move_updates_the_opponents_belief_from_the_movers_scent():
     match = _match(GameMode.AGENT_VS_AGENT)
     thief_belief_before = match.belief[AgentRole.THIEF].arg_max()

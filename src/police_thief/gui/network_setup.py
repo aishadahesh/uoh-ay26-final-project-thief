@@ -34,8 +34,8 @@ def load_network_defaults(path: Path, project_root: Path) -> dict:
     if not output.is_absolute():
         output = project_root / output
     return {
-        "role": str(peer.get("role", "cop")),
-        "port": str(peer.get("local_port", 8801)),
+        "role": str(peer.get("role", "thief")),
+        "port": str(peer.get("local_port", 8802)),
         "opponent": str(peer.get("opponent_url", "https://opponent.example/mcp")),
         "public": str(peer.get("public_url", "https://your-tunnel.example/mcp")),
         "game": str(match.get("game_id", "G001")),
@@ -86,8 +86,8 @@ class NetworkSetupDialog:
         window_height = min(820, max(600, screen_height - 120))
         self.window.geometry(f"800x{window_height}")
         self.vars = {
-            "role": tk.StringVar(value=defaults.get("role", "cop")),
-            "port": tk.StringVar(value=defaults.get("port", "8801")),
+            "role": tk.StringVar(value=defaults.get("role", "thief")),
+            "port": tk.StringVar(value=defaults.get("port", "8802")),
             "opponent": tk.StringVar(value=defaults.get("opponent", "https://opponent.example/mcp")),
             "public": tk.StringVar(value=defaults.get("public", "https://your-tunnel.example/mcp")),
             "game": tk.StringVar(value=defaults.get("game", "G001")),

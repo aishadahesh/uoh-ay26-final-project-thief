@@ -1,4 +1,4 @@
-version = "1.00"
+version = "1.10"
 
 # NOT A SUBMISSION-GRADE CONFIG. This repository is the THIEF submission
 # repo (see README.md). This file exists only so a single machine can run
@@ -11,27 +11,34 @@ version = "1.00"
 # Environments") and Appendix B (private vs. shared config files).
 
 [game]
-group_name = "TBD"
-group_id = "TBD"
+group_name = "Local-Opponent"
+group_id = "localcop"
+sub_game_number = 1
+members = ["Local Opponent", "Interop Test"]
+repos = { cop = "https://github.com/aishadahesh/uoh-ay26-final-project-cop", thief = "https://github.com/aishadahesh/uoh-ay26-final-project-thief" }
 
 [network]
 my_port = 8801
 opponent_url = "http://127.0.0.1:8802/mcp"
-turn_timeout_seconds = 30
+turn_timeout_seconds = 180
 
-# [strategy] -- optional: point at YOUR brain subclass (else the shipped
+[strategy]
+# Optional: point at YOUR brain subclass (else the shipped
 # ManhattanHeuristicBrain heuristic runs -- see docs/PLAN.md ADR-010).
 # cop_class = "my_team.strategy:MyCopBrain"
 
-# [trash_talk] -- optional: HOW the verbal bluff/hint text is produced.
+[trash_talk]
+# Optional: HOW the verbal bluff/hint text is produced.
 # The MOVE decision is always pure Python (Sec. 6.4.1) -- this only
 # affects hint phrasing. "template" (default) costs zero tokens.
-# provider = "template"
+provider = "template"
 
-# [email] -- Gmail end-of-match reporting (Ch.9, Sec. 9.3.2-9.3.3).
-# `recipient` is fixed by the rulebook's [agent's report address], never a
-# per-team choice. Real sending requires a Google Cloud OAuth setup this
-# session cannot perform (see docs/PRD_gmail_gatekeeper.md Sec.3) --
-# left commented out until a team completes that manual setup themselves.
-# recipient = "rmisegal+uoh26finalgame@gmail.com"
-# mode = "real"  # or "dry_run" while OAuth credentials aren't set up yet
+[llm]
+model = "gemini-3.6-flash"
+step_deadline_seconds = 30
+
+[email]
+# Gmail end-of-match reporting (Ch.9, Sec. 9.3.2-9.3.3).
+# Local opponent mode never sends official reports; keep dry_run.
+recipient = "rmisegal+uoh26finalgame@gmail.com"
+mode = "dry_run"

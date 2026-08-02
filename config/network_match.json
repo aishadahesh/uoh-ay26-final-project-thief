@@ -1,8 +1,8 @@
 {
   "schema_version": "1.00",
   "peer": {
-    "role": "cop",
-    "local_port": 8801,
+    "role": "thief",
+    "local_port": 8802,
     "opponent_url": "https://opponent.example/mcp",
     "public_url": "https://your-tunnel.example/mcp"
   },
@@ -16,8 +16,8 @@
     "name": "uoh-ay26",
     "members": ["Aisha Abu Dahesh", "Yousef Asadi"],
     "repos": {
-      "cop": "https://github.com/aishadahesh/uoh-ay26-final-project",
-      "thief": "https://github.com/aishadahesh/uoh-ay26-final-project"
+      "cop": "https://github.com/aishadahesh/uoh-ay26-final-project-cop",
+      "thief": "https://github.com/aishadahesh/uoh-ay26-final-project-thief"
     }
   },
   "team_2": {

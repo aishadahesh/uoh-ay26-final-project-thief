@@ -9,20 +9,23 @@ stderr saying so every time it's used, so it's never silently mistaken for
 supported behavior in this repo.
 
 Commands:
-  serve [--role thief|cop] Start this peer's FastMCP server (Chapter 2).
-                           Defaults to --role thief. --role cop is for local
-                           opponent-peer testing only -- see the module
-                           docstring above.
+  peer [--role thief|police] PDF-compatible alias for `serve`.
+  serve [--role thief|cop|police]
+                           Start this peer's FastMCP server (Chapter 2).
+                           Defaults to --role thief. --role cop/police is
+                           for local opponent-peer testing only -- see the
+                           module docstring above.
   simulate                 Run a single-process local match with placeholder
                            policies and print the result (Chapter 3).
-  replay --log-file PATH   Launch the Replay Viewer against a saved match
+  replay --log PATH        Launch the Replay Viewer against a saved match
                            log (Chapter 7) -- runs standalone, independent
                            of any live match code (docs/tasks.md T0437).
-  demo                     Open a standalone Live GUI window: the cop chases
-                           a fleeing thief using scent + belief-map inference
-                           (Chapter 4/6/7), rendered live. Single-process, no
-                           networking or crypto layer -- just a quick way to
-                           see the Live GUI in action.
+  demo [--role thief|police]
+                           Open a standalone local-truth Live GUI window for
+                           one side's view. Defaults to thief in this thief
+                           submission repo. Single-process, no networking or
+                           crypto layer -- just a quick way to see the Live
+                           GUI in action.
   play                     Open the interactive, mode-selectable play window:
                            choose Agent vs Agent, Human (either side) vs
                            Agent, or Human vs Human, then play with a move
@@ -62,6 +65,31 @@ from police_thief.shared.game_config import load_match_parameters
 
 DEFAULT_CONFIG_ROOT = Path(__file__).resolve().parents[2] / "config"
 DEFAULT_GAME_CONFIG = DEFAULT_CONFIG_ROOT / "game.json"
+ROLE_ALIASES = {
+    AgentRole.COP.value: AgentRole.COP,
+    "police": AgentRole.COP,
+    AgentRole.THIEF.value: AgentRole.THIEF,
+}
+
+
+def _coerce_role(value: str) -> AgentRole:
+    return ROLE_ALIASES[value]
+
+
+def _add_peer_command(subparsers: argparse._SubParsersAction, name: str, help_text: str) -> None:
+    command = subparsers.add_parser(name, help=help_text)
+    command.add_argument(
+        "--role",
+        default=AgentRole.THIEF.value,
+        choices=sorted(ROLE_ALIASES),
+        help=(
+            "Peer role to run. Defaults to 'thief' -- the only role this "
+            "repository submits as. 'police'/'cop' runs a local opponent peer "
+            "for interop testing only; see the sibling cop repository for the "
+            "real police/cop submission."
+        ),
+    )
+    command.add_argument("--config-root", type=Path, default=DEFAULT_CONFIG_ROOT)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -69,27 +97,22 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="police_thief")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    serve = subparsers.add_parser("serve", help="Start this peer's FastMCP server")
-    serve.add_argument(
-        "--role",
-        default=AgentRole.THIEF.value,
-        choices=[role.value for role in AgentRole],
-        help=(
-            "Peer role to run. Defaults to 'thief' -- the only role this "
-            "repository submits as. 'cop' runs a local opponent peer for "
-            "interop testing only; see the sibling cop repository for the "
-            "real cop submission."
-        ),
-    )
-    serve.add_argument("--config-root", type=Path, default=DEFAULT_CONFIG_ROOT)
+    _add_peer_command(subparsers, "serve", "Start this peer's FastMCP server")
+    _add_peer_command(subparsers, "peer", "PDF-compatible alias for serve")
 
     simulate = subparsers.add_parser("simulate", help="Run a local placeholder-policy match")
     simulate.add_argument("--game-config", type=Path, default=DEFAULT_GAME_CONFIG)
 
     replay = subparsers.add_parser("replay", help="Launch the Replay Viewer on a saved match log")
-    replay.add_argument("--log-file", required=True, type=Path)
+    replay.add_argument("--log-file", "--log", dest="log_file", required=True, type=Path)
 
     demo = subparsers.add_parser("demo", help="Open a standalone Live GUI demo (no networking)")
+    demo.add_argument(
+        "--role",
+        default=AgentRole.THIEF.value,
+        choices=sorted(ROLE_ALIASES),
+        help="Local-truth view to render. Defaults to thief in this thief submission repo.",
+    )
     demo.add_argument("--turns", type=int, default=25)
     demo.add_argument("--delay-ms", type=int, default=500)
 
@@ -99,13 +122,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def _serve(args: argparse.Namespace) -> None:
-    role = AgentRole(args.role)
+    role = _coerce_role(args.role)
     if role is AgentRole.COP:
         print(
-            "NOTE: 'cop' is not a supported submission role in this (thief) "
-            "repository -- this process is a local opponent peer for interop "
-            "testing only. The real cop submission lives in the sibling cop "
-            "repository (see README.md).",
+            "NOTE: 'police'/'cop' is not a supported submission role in this "
+            "(thief) repository -- this process is a local opponent peer for "
+            "interop testing only. The real police/cop submission lives in the "
+            "sibling cop repository (see README.md).",
             file=sys.stderr,
         )
     network = load_network_config(role, args.config_root)
@@ -131,46 +154,61 @@ def _replay(args: argparse.Namespace) -> None:
 
 
 def _demo(args: argparse.Namespace) -> None:
-    """A standalone Live GUI demo: cop vs. fleeing thief, single-process.
+    """A standalone Live GUI demo: one selected side's local-truth view.
 
     Not a real match -- no networking, no commit-reveal, no strategy module
     (Chapter 6's ManhattanHeuristicBrain isn't even used here). This is just
     the Chapter 4 scent field + Chapter 6 belief map + Chapter 3 greedy
-    Manhattan search, wired to the real Chapter 7 LiveGUI so it's runnable
-    without first building a full live match loop (Chapter 8's still-open
-    gap -- see docs/PRD_reliability_layer.md).
+    Manhattan search, wired to the real Chapter 7 LiveGUI for screenshot and
+    smoke-test use.
     """
+    view_role = _coerce_role(args.role)
     board = Board(BoardConfig(grid_size=7, max_barriers=14))
     cop_pos = Position(0, 0)
     thief_pos = Position(3, 4)  # off-center: avoids the thief camping in a
     # corner for several turns maximizing distance from the cop, which would
     # otherwise build up one dominant scent blob and make the belief's guess
     # look artificially "stuck" instead of visibly tracking the chase
-    scent = ScentField(grid_size=board.config.grid_size, config=ScentConfig())
-    belief = BeliefMap(board)
-    visited: set[Position] = {cop_pos}
+    scent = {
+        AgentRole.COP: ScentField(grid_size=board.config.grid_size, config=ScentConfig()),
+        AgentRole.THIEF: ScentField(grid_size=board.config.grid_size, config=ScentConfig()),
+    }
+    belief = {AgentRole.COP: BeliefMap(board), AgentRole.THIEF: BeliefMap(board)}
+    visited: set[Position] = {thief_pos if view_role is AgentRole.THIEF else cop_pos}
 
     root = tk.Tk()
-    root.title("Live GUI Demo - Cop's View")
+    root.title(f"Live GUI Demo - {view_role.value.title()}'s View")
     gui = LiveGUI(root, grid_size=board.config.grid_size)
 
     def step(turn: int) -> None:
         nonlocal cop_pos, thief_pos
         if turn >= args.turns or cop_pos == thief_pos:
             return
+        thief_guess = belief[AgentRole.THIEF].arg_max()
         thief_pos = board.apply_move(
-            thief_pos, greedy_manhattan_move(board, thief_pos, cop_pos, chase=False)
+            thief_pos, greedy_manhattan_move(board, thief_pos, thief_guess, chase=False)
         )
-        scent.decay()
-        scent.emit(thief_pos)
-        belief.update_from_scent(scent)
-        guess = belief.arg_max()
-        cop_pos = board.apply_move(cop_pos, greedy_manhattan_move(board, cop_pos, guess, chase=True))
-        visited.add(cop_pos)
+        scent[AgentRole.THIEF].decay()
+        scent[AgentRole.THIEF].emit(thief_pos)
+        belief[AgentRole.COP].update_from_scent(scent[AgentRole.THIEF])
+
+        cop_guess = belief[AgentRole.COP].arg_max()
+        cop_pos = board.apply_move(cop_pos, greedy_manhattan_move(board, cop_pos, cop_guess, chase=True))
+        scent[AgentRole.COP].decay()
+        scent[AgentRole.COP].emit(cop_pos)
+        belief[AgentRole.THIEF].update_from_scent(scent[AgentRole.COP])
+
+        own_pos = thief_pos if view_role is AgentRole.THIEF else cop_pos
+        visited.add(own_pos)
 
         turn_state = TurnState.YOUR_TURN if turn % 2 == 0 else TurnState.LOCKED
         view_model = build_live_view_model(
-            cop_pos, belief, board, turn_state, role_label="C", visited=frozenset(visited)
+            own_pos,
+            belief[view_role],
+            board,
+            turn_state,
+            role_label=view_role.value[:1].upper(),
+            visited=frozenset(visited),
         )
         gui.render(view_model)
         root.after(args.delay_ms, step, turn + 1)
@@ -270,7 +308,7 @@ def _play(args: argparse.Namespace) -> None:
 def main(argv: list[str] | None = None) -> None:
     """Dispatch to `serve`, `simulate`, `replay`, `demo`, or `play` based on the parsed subcommand."""
     args = parse_args(argv)
-    if args.command == "serve":
+    if args.command in {"serve", "peer"}:
         _serve(args)
     elif args.command == "simulate":
         _simulate(args)

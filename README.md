@@ -4,7 +4,7 @@ Final project for the University of Haifa "Orchestration of AI Agents" course (A
 
 > **This is the THIEF repo.** Sibling (cop) repo: https://github.com/aishadahesh/uoh-ay26-final-project-cop
 
-> **Status: practical overview**, followed by the required Academic Report (see [Academic Report](#academic-report) below). The one remaining gap is the mandatory screenshots — see `docs/TODO.md` Section O.6 / rule 42.
+> **Status: practical overview**, followed by the required Academic Report (see [Academic Report](#academic-report) below). The mandatory README screenshots are now captured; remaining submission-time actions are listed near the end.
 
 ## Role support in this repository
 
@@ -58,11 +58,15 @@ Not applicable in this build: reinforcement learning was evaluated and deliberat
 
 ### Screenshots
 
-**Live GUI (belief heatmap + turn banner):** *pending — capture from `uv run python -m police_thief demo` or a live `serve` match and insert here before submission.*
+**Live GUI (belief heatmap + turn banner):**
 
-**Replay Viewer — `Verified OK`:** *pending — capture from `uv run python -m police_thief replay --log-file <a completed match log>` and insert here before submission.*
+![Live GUI thief local-truth heatmap](assets/live_gui_thief.png)
 
-(The underlying behavior for both is proven by real widget-state assertions in `tests/unit/test_gui.py` / `tests/unit/test_replay.py`; only the screenshot image itself is outstanding — there's no native window-capture tool in this development environment.)
+**Replay Viewer — `Verified OK`:**
+
+![Replay Viewer verified OK](assets/replay_verified_ok.png)
+
+(The underlying behavior for both is also proven by real widget-state assertions in `tests/unit/test_gui.py` / `tests/unit/test_replay.py`.)
 
 ### Sibling repository
 
@@ -111,7 +115,7 @@ uv sync --extra email      # add if you want the real Gmail OAuth transport (opt
 **See the belief-map GUI live** (no networking, just the scent/belief mechanics driving a chase):
 
 ```bash
-uv run python -m police_thief demo
+uv run python -m police_thief demo --role thief
 ```
 
 **Run a full local match** (single process, placeholder policies, prints the result):
@@ -163,8 +167,9 @@ put Gemini keys or Gmail OAuth tokens in this file; those remain in `.env`,
 
 For the lower-level `serve` command, the same opponent address belongs in
 `[network].opponent_url` inside the private role file
-`config/cop/game.toml` or `config/thief/game.toml`; never put it in the shared
-`config/game.json`.
+`config/thief/game.toml`; a submission-facing copy of this thief private config
+also exists at `config/game.toml`, matching the rulebook's private-file name.
+Never put the opponent URL in the shared `config/game.json`.
 
 Both peers act as MCP server and client simultaneously. Every move is
 commit-verified. The final score and log hash are authenticated and compared
@@ -191,28 +196,40 @@ uv run python -m police_thief serve                # --role defaults to thief
 ```
 
 **For local interop/protocol testing only**, you can also run a second process
-pretending to be the opponent on the same machine (two terminals):
+pretending to be the opponent on the same machine. The first form below is
+the exact PDF-compatible "How to Run" form:
 
 ```bash
-uv run python -m police_thief serve --role cop      # local opponent peer only — see "Role support" above
+# Terminal 1
+uv run python -m police_thief peer --role police    # local opponent peer only
+
+# Terminal 2
+uv run python -m police_thief peer --role thief
+```
+
+The existing `serve` command remains supported as the same operation:
+
+```bash
+uv run python -m police_thief serve --role cop
 uv run python -m police_thief serve --role thief
 ```
 
-`--role cop` prints a one-line stderr notice every time, since it is never a
-submission-grade cop peer in this repo — only a local stand-in for the real
-cop process, which lives in the sibling repo. Each loads only its own
-`config/cop/game.toml` or `config/thief/game.toml` — never the other's.
+`--role police` / `--role cop` prints a one-line stderr notice every time,
+since it is never a submission-grade cop peer in this repo — only a local
+stand-in for the real cop process, which lives in the sibling repo. Each
+loads only its own `config/cop/game.toml` or `config/thief/game.toml` — never
+the other's.
 
 **Replay a saved, cryptographically-sealed match log:**
 
 ```bash
-uv run python -m police_thief replay --log-file path/to/log.json
+uv run python -m police_thief replay --log path/to/log.json
 ```
 
 ## Testing & quality gates
 
 ```bash
-uv run pytest --cov     # 380 tests, 99%+ coverage (85% required, pyproject.toml)
+uv run pytest --cov     # 441 tests, 85%+ coverage required by pyproject.toml
 uv run ruff check .     # zero violations required
 ```
 
@@ -229,6 +246,7 @@ src/police_thief/
   main.py       # CLI: serve / simulate / demo / replay
 config/
   game.json           # shared, signed match config (both sides must load byte-identical)
+  game.toml           # submission-facing private config for this thief peer
   thief/               # this repo's real, submitted private config
   cop/                 # local opponent-peer config for interop testing only — not a submission config
 docs/
@@ -245,9 +263,12 @@ ProgressDoc.md    # the chapter-by-chapter development log
 
 Tracked in detail in `docs/TODO.md` and `ProgressDoc.md`'s Chapter 11 entry — the short version:
 
-- The two mandatory screenshots in the [Academic Report](#academic-report) section above (Live GUI, Replay Viewer `Verified OK`) — everything else that section requires is written; only the images are pending.
+- The mandatory screenshots in the [Academic Report](#academic-report) section above have been captured and inserted.
 - A real Google Cloud OAuth consent flow (the code is ready; someone needs to create the project and run it once).
 - A real `ngrok`/tunnel session for cross-machine play against the sibling cop repo.
-- Actual league matches against other teams' agents, and this repo's real GitHub URL, group name, and 8-character group ID (currently placeholder `"TBD"` in `config/thief/game.toml`).
+- Actual league matches against other teams' agents, plus final human confirmation
+  that the GitHub URLs, group name, and 8-character group ID in
+  `config/game.toml`, `config/thief/game.toml`, and `config/network_match.json`
+  are the exact values the team wants to submit.
 - The annotated `v1.0-submission` Git tag (command above) — created only at actual submission time, in both repos.
 - One open rulebook-interpretation question found during the Chapter 11 sanity sweep (rule 47 — see `docs/TODO.md`).

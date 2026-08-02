@@ -43,7 +43,7 @@ The one deliberately interesting theoretical wrinkle: in any mode with at least 
 
 ## 4. Success Criteria & Test Scenarios
 
-All satisfied, per `tests/unit/test_board.py` (new `legal_moves` tests), `test_interactive_match.py`, `test_board_canvas.py` (click/highlight additions), `test_mode_select.py`, and `test_play_app.py` (68 new tests directly on this mechanism; 434 tests total project-wide, 99%+ coverage, zero ruff violations, 100% coverage on every file this mechanism touches):
+All satisfied, per `tests/unit/test_board.py` (new `legal_moves` tests), `test_interactive_match.py`, `test_board_canvas.py` (click/highlight additions), `test_mode_select.py`, and `test_play_app.py` (68 new tests directly on this mechanism; project-wide validation is tracked through `uv run pytest --cov` and `uv run ruff check .`):
 
 1. `Board.legal_moves()` correctly includes all five moves in open space, excludes off-board directions at a corner, excludes a blocked neighbor, and still offers `STAY` even when fully boxed in.
 2. `controller_for()` correctly maps every role in every one of the four modes to the intended `PlayerType`; `is_human_turn()` tracks the current role correctly as turns alternate.

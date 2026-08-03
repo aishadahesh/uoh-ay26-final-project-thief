@@ -45,6 +45,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import threading
 import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox
@@ -57,9 +58,11 @@ from police_thief.domain.replay import ReplaySession, load_log
 from police_thief.domain.scent import ScentConfig, ScentField
 from police_thief.domain.simulation import run_local_match
 from police_thief.gui.live_gui import LiveGUI
+from police_thief.gui.network_setup import load_network_defaults, validate_mcp_url
 from police_thief.gui.replay_gui import ReplayGUI
 from police_thief.services.doctor import render_text, run_doctor, save_json_report
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
+from police_thief.services.network_match import NetworkMatchSeriesRunner, NetworkMatchSettings
 from police_thief.shared.config import load_network_config
 from police_thief.shared.constants import AgentRole
 from police_thief.shared.game_config import load_match_parameters
@@ -162,8 +165,81 @@ def _serve(args: argparse.Namespace) -> None:
             file=sys.stderr,
         )
     network = load_network_config(role, args.config_root)
-    mcp = build_peer_server(role.value, PeerInboxes())
-    run_peer_server(mcp, host="0.0.0.0", port=network.my_port)
+    project_root = args.config_root.parent
+    defaults = load_network_defaults(args.config_root / "network_match.json", project_root)
+    validate_mcp_url(network.opponent_url)
+    required = (
+        "public",
+        "game",
+        "secret",
+        "team1_name",
+        "team1_member1",
+        "team1_member2",
+        "team2_name",
+        "team2_member1",
+        "team2_member2",
+        "own_cop",
+        "own_thief",
+        "opponent_cop",
+        "opponent_thief",
+    )
+    missing = [key for key in required if not str(defaults.get(key, "")).strip()]
+    if missing:
+        raise SystemExit(
+            "Cannot start the network agent: incomplete network_match.json fields: "
+            + ", ".join(missing)
+        )
+
+    from dotenv import load_dotenv
+
+    from police_thief.services.gemini_agent import GeminiAgentAdvisor, GeminiConfigurationError
+
+    load_dotenv(project_root / ".env")
+    gemini_advisor = None
+    if not args.smoke_test:
+        try:
+            gemini_advisor = GeminiAgentAdvisor()
+        except GeminiConfigurationError as exc:
+            raise SystemExit(f"Cannot start the network agent: {exc}") from exc
+    settings = NetworkMatchSettings(
+        role=role,
+        local_port=network.my_port,
+        opponent_url=network.opponent_url,
+        public_url=defaults["public"],
+        game_id=defaults["game"],
+        sub_game_number=int(defaults["subgame"]),
+        shared_config=args.config_root / "game.json",
+        output_dir=Path(defaults["output"]),
+        team_name=defaults["team1_name"],
+        members=(defaults["team1_member1"], defaults["team1_member2"]),
+        opponent_team_name=defaults["team2_name"],
+        opponent_members=(defaults["team2_member1"], defaults["team2_member2"]),
+        own_cop_repo=defaults["own_cop"],
+        own_thief_repo=defaults["own_thief"],
+        opponent_cop_repo=defaults["opponent_cop"],
+        opponent_thief_repo=defaults["opponent_thief"],
+        shared_key=defaults["secret"].encode(),
+        email_mode="real" if defaults["email"] else "dry_run",
+        email_recipient=defaults["email_recipient"],
+        credentials_path=project_root / "credentials.json",
+        token_path=project_root / "token.json",
+        llm_model=gemini_advisor.model if gemini_advisor else "deterministic-smoke",
+    )
+    inboxes = PeerInboxes()
+    mcp = build_peer_server(role.value, inboxes)
+    threading.Thread(
+        target=run_peer_server,
+        args=(mcp, "0.0.0.0", network.my_port),
+        daemon=True,
+        name="mcp-peer-server",
+    ).start()
+    print(f"MCP server listening on 0.0.0.0:{network.my_port}/mcp")
+    result_path = NetworkMatchSeriesRunner(
+        settings,
+        inboxes,
+        gemini_advisor=gemini_advisor,
+    ).run(threading.Event(), emit=print)
+    print(f"Match series complete -- result saved to {result_path}")
 
 
 def _doctor(args: argparse.Namespace) -> None:

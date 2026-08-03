@@ -24,26 +24,39 @@ def _settings(**overrides):
     return NetworkMatchSettings(**defaults)
 
 
-def test_official_terms_serialize_counted_series_without_smoke_flag():
+def test_official_terms_match_the_reference_wire_contract_exactly():
     settings = _settings(series_id="SERIES-A", game_index=2, counted=True, smoke_test=False)
     runner = NetworkMatchRunner(settings, PeerInboxes())
     params = load_match_parameters(settings.shared_config)
     terms = runner._terms(params)
 
-    assert terms["series_id"] == "SERIES-A"
-    assert terms["game_index"] == 2
-    assert terms["counted"] is True
-    assert terms["smoke_test"] is False
-    assert terms["num_games_declared"] == 6
+    assert terms == {
+        "board_size": 7,
+        "smell_grid_size": 5,
+        "decay_per_step": 0.1,
+        "emit_intensity": 0.9,
+        "min_center_intensity": 0.5,
+        "max_steps": 35,
+        "barriers_max": 14,
+        "setting": "New York",
+        "hint_max_words": 15,
+        "axis_origin_corner": "top-left",
+        "axis_start_index": 0,
+        "thief_start": [3, 3],
+        "cop_start": [0, 0],
+        "num_games": 6,
+    }
 
 
-def test_smoke_terms_are_non_counted_without_changing_shared_num_games():
+def test_local_smoke_metadata_does_not_change_signed_public_terms():
     settings = _settings(counted=True, smoke_test=True)
     runner = NetworkMatchRunner(settings, PeerInboxes())
     params = load_match_parameters(settings.shared_config)
     terms = runner._terms(params)
 
-    assert terms["counted"] is False
-    assert terms["smoke_test"] is True
-    assert terms["num_games_declared"] == 6
+    assert "counted" not in terms
+    assert "smoke_test" not in terms
+    assert "series_id" not in terms
+    assert "game_index" not in terms
+    assert terms["num_games"] == 6
     assert params.network_league.num_games == 6

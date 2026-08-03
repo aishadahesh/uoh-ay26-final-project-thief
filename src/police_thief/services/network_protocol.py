@@ -103,7 +103,16 @@ def verify_agreement(message: dict, expected_terms: dict) -> dict:
     except (KeyError, TypeError, ValueError) as exc:
         raise NetworkProtocolError(f"malformed negotiation message: {exc}") from exc
     if terms != expected_terms:
-        raise NetworkProtocolError("opponent game terms do not match local signed terms")
+        differing = sorted(
+            key
+            for key in set(terms) | set(expected_terms)
+            if terms.get(key) != expected_terms.get(key)
+        )
+        details = ", ".join(
+            f"{key}: local={expected_terms.get(key)!r}, opponent={terms.get(key)!r}"
+            for key in differing
+        )
+        raise NetworkProtocolError(f"opponent game terms do not match: {details}")
     if not secrets.compare_digest(signature, _digest(terms, nonce)):
         raise NetworkProtocolError("opponent negotiation signature is invalid")
     return identity
@@ -277,7 +286,20 @@ class TurnMessage:
     message_type: str = "turn"
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        # Lecturer reference v3 accepts this exact public turn shape. Keep
+        # local reliability metadata out of the cross-team wire contract.
+        return {
+            "step": self.step,
+            "sender": self.sender,
+            "hint": self.hint,
+            "smell_grid": self.smell_grid,
+            "commit": self.commit,
+            "timestamp": self.timestamp,
+            "barrier_placed": self.barrier_placed,
+            "capture_claim": self.capture_claim,
+            "claim_response": self.claim_response,
+            "win_claim": self.win_claim,
+        }
 
     @classmethod
     def from_dict(cls, data: dict) -> TurnMessage:
@@ -349,15 +371,30 @@ def audit_records(
     expected_commits: dict[int, str],
     *,
     match_id: str | None = None,
+    require_step0: bool = False,
 ) -> tuple[bool, list[int]]:
     failed: list[int] = []
     seen: set[int] = set()
+    saw_step0 = False
     for record in records:
         try:
             step = int(record["payload"]["step"])
             commit = str(record["commit"])
         except (KeyError, TypeError, ValueError):
             failed.append(-1)
+            continue
+        if step == 0:
+            valid_step0 = (
+                not saw_step0
+                and record["payload"].get("type") == "system_spec"
+                and verify_record(record)
+            )
+            saw_step0 = True
+            if not valid_step0:
+                failed.append(0)
+            continue
+        if step in seen:
+            failed.append(step)
             continue
         seen.add(step)
         record_match_id = record.get("payload", {}).get("match_id")
@@ -368,4 +405,6 @@ def audit_records(
         ):
             failed.append(step)
     failed.extend(sorted(set(expected_commits) - seen))
+    if require_step0 and not saw_step0:
+        failed.append(0)
     return not failed, failed

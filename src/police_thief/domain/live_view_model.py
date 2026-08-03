@@ -107,7 +107,9 @@ def build_live_view_model(
     cells = tuple(
         CellView(
             position=p,
-            color=_BARRIER_COLOR if board.is_blocked(p) else belief_to_color(belief.belief_at(p), max_intensity),
+            color=_BARRIER_COLOR
+            if board.is_blocked(p)
+            else belief_to_color(belief.belief_at(p), max_intensity),
             is_own_position=(p == own_position),
             is_blocked=board.is_blocked(p),
         )

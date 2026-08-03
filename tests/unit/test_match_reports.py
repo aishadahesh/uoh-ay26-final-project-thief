@@ -48,7 +48,9 @@ def _log_entries(n: int = 2) -> list[LogEntry]:
     entries = []
     for i in range(n):
         c = commit(state={"turn": i}, move="N", intent=True)
-        entries.append(LogEntry(state={"turn": i}, move="N", intent=True, nonce=c.nonce, h_commit=c.h_commit))
+        entries.append(
+            LogEntry(state={"turn": i}, move="N", intent=True, nonce=c.nonce, h_commit=c.h_commit)
+        )
     return entries
 
 
@@ -101,7 +103,11 @@ def test_sha256_of_log_is_stable_and_detects_any_change():
 
     tampered = list(entries)
     tampered[0] = LogEntry(
-        state={"turn": 999}, move="N", intent=True, nonce=entries[0].nonce, h_commit=entries[0].h_commit
+        state={"turn": 999},
+        move="N",
+        intent=True,
+        nonce=entries[0].nonce,
+        h_commit=entries[0].h_commit,
     )
     assert sha256_of_log(tampered) != digest_a
 
@@ -111,7 +117,10 @@ def test_match_result_round_trips_and_includes_all_four_repo_links(tmp_path):
     tokens = TokenUsage()
     tokens.add(100, 50)
     links = RepoCrossLinks(
-        team_a_cop_repo="a-cop", team_a_thief_repo="a-thief", team_b_cop_repo="b-cop", team_b_thief_repo="b-thief"
+        team_a_cop_repo="a-cop",
+        team_a_thief_repo="a-thief",
+        team_b_cop_repo="b-cop",
+        team_b_thief_repo="b-thief",
     )
     result = build_match_result("G001", 1, 20, 5, "capture", True, entries, tokens, links)
     save_match_result(result, tmp_path)
@@ -120,6 +129,7 @@ def test_match_result_round_trips_and_includes_all_four_repo_links(tmp_path):
     assert loaded["cop_score"] == 20
     assert loaded["thief_score"] == 5
     assert loaded["total_tokens_used"] == 150
+    assert loaded["token_usage_available"] is True
     assert loaded["repo_links"] == {
         "team_a_cop_repo": "a-cop",
         "team_a_thief_repo": "a-thief",
@@ -136,6 +146,26 @@ def test_results_agree_true_for_matching_reports():
     own = build_match_result("G001", 1, 20, 5, "capture", True, entries, tokens, links)
     opponent = build_match_result("G001", 1, 20, 5, "capture", True, entries, tokens, links)
     assert results_agree(own, opponent) is True
+
+
+def test_match_result_marks_unavailable_token_usage_explicitly(tmp_path):
+    entries = _log_entries(1)
+    result = build_match_result(
+        "G-TOKENS",
+        1,
+        5,
+        10,
+        "survival",
+        True,
+        entries,
+        TokenUsage(),
+        RepoCrossLinks("a", "b", "c", "d"),
+    )
+    save_match_result(result, tmp_path)
+
+    loaded = load_match_result_dict(tmp_path, "G-TOKENS")
+    assert loaded["total_tokens_used"] == 0
+    assert loaded["token_usage_available"] is False
 
 
 def test_results_agree_false_on_a_score_disagreement():

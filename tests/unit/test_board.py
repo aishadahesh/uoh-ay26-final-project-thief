@@ -110,6 +110,12 @@ def test_place_barrier_fails_once_budget_exhausted():
 def test_barrier_is_permanent_for_the_rest_of_the_match(board):
     board.place_barrier(Position(3, 3), Position(2, 3))
     assert board.is_blocked(Position(2, 3))
+
+
+def test_place_barrier_rejects_duplicate_target(board):
+    board.place_barrier(Position(3, 3), Position(2, 3))
+    with pytest.raises(MoveRejectedError, match="already blocked"):
+        board.place_barrier(Position(3, 3), Position(2, 3))
     # No API exists to unblock it -- the only assertion possible is that it
     # stays blocked no matter how many times we check.
     assert board.is_blocked(Position(2, 3))

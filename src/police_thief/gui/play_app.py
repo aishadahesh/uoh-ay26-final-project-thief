@@ -21,11 +21,19 @@ _ROLE_LABEL = {AgentRole.COP: "C", AgentRole.THIEF: "T"}
 _ROLE_FILL = {AgentRole.COP: COLORS["cop"], AgentRole.THIEF: COLORS["thief"]}
 _BARRIER_COLOR = COLORS["barrier"]
 _DIRECTIONS = [
-    ("N", "NORTH", "↑"), ("S", "SOUTH", "↓"), ("E", "EAST", "→"),
-    ("W", "WEST", "←"), ("HOLD", "STAY", "•"),
+    ("N", "NORTH", "↑"),
+    ("S", "SOUTH", "↓"),
+    ("E", "EAST", "→"),
+    ("W", "WEST", "←"),
+    ("HOLD", "STAY", "•"),
 ]
-_KEY_MOVES = {"<Up>": Move.NORTH, "<Down>": Move.SOUTH, "<Right>": Move.EAST,
-              "<Left>": Move.WEST, "<space>": Move.STAY}
+_KEY_MOVES = {
+    "<Up>": Move.NORTH,
+    "<Down>": Move.SOUTH,
+    "<Right>": Move.EAST,
+    "<Left>": Move.WEST,
+    "<space>": Move.STAY,
+}
 _OUTCOME_TEXT = {MatchOutcome.CAPTURE: "Capture!", MatchOutcome.SURVIVAL: "The thief survives!"}
 
 
@@ -57,19 +65,34 @@ class PlayApp:
         title_box = ttk.Frame(header, style="App.TFrame")
         title_box.pack(side="left")
         ttk.Label(title_box, text="SHADOWGRID", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(title_box, text=MODE_LABELS[match.mode].upper(), style="Subtitle.TLabel").pack(anchor="w")
+        ttk.Label(title_box, text=MODE_LABELS[match.mode].upper(), style="Subtitle.TLabel").pack(
+            anchor="w"
+        )
         header_actions = ttk.Frame(header, style="App.TFrame")
         header_actions.pack(side="right")
         self.new_game_button = tk.Button(
-            header_actions, text="↻  NEW GAME", command=self._request_new_game,
-            bg=COLORS["surface"], fg=COLORS["text"], activebackground=COLORS["border"],
-            activeforeground=COLORS["text"], relief="flat", bd=0, padx=14, pady=10,
-            font=(FONT, 9, "bold"), cursor="hand2",
+            header_actions,
+            text="↻  NEW GAME",
+            command=self._request_new_game,
+            bg=COLORS["surface"],
+            fg=COLORS["text"],
+            activebackground=COLORS["border"],
+            activeforeground=COLORS["text"],
+            relief="flat",
+            bd=0,
+            padx=14,
+            pady=10,
+            font=(FONT, 9, "bold"),
+            cursor="hand2",
         )
         self.new_game_button.pack(side="left", padx=(0, 10))
         self.status_label = tk.Label(
-            header_actions, font=(FONT, 12, "bold"), bg=COLORS["surface_alt"],
-            fg=COLORS["accent"], padx=18, pady=10,
+            header_actions,
+            font=(FONT, 12, "bold"),
+            bg=COLORS["surface_alt"],
+            fg=COLORS["accent"],
+            padx=18,
+            pady=10,
         )
         self.status_label.pack(side="right")
 
@@ -80,7 +103,8 @@ class PlayApp:
         board_card = ttk.Frame(content, style="Card.TFrame", padding=18)
         ttk.Label(board_card, text="TACTICAL MAP", style="CardTitle.TLabel").pack(anchor="w")
         ttk.Label(
-            board_card, text="Select a glowing legal cell or use the movement console.",
+            board_card,
+            text="Select a glowing legal cell or use the movement console.",
             style="CardText.TLabel",
         ).pack(anchor="w", pady=(2, 12))
         board_wrap = tk.Frame(board_card, bg=COLORS["surface"])
@@ -103,8 +127,13 @@ class PlayApp:
         self.barriers_label = ttk.Label(telemetry, style="Telemetry.TLabel")
         self.barriers_label.pack(fill="x")
         self.gemini_label = tk.Label(
-            sidebar, text="GEMINI  OFFLINE", bg=COLORS["surface"], fg=COLORS["muted"],
-            font=(MONO_FONT, 8, "bold"), justify="left", wraplength=250,
+            sidebar,
+            text="GEMINI  OFFLINE",
+            bg=COLORS["surface"],
+            fg=COLORS["muted"],
+            font=(MONO_FONT, 8, "bold"),
+            justify="left",
+            wraplength=250,
         )
         self.gemini_label.pack(fill="x", pady=(0, 18))
 
@@ -112,31 +141,57 @@ class PlayApp:
         pad = ttk.Frame(sidebar, style="Card.TFrame")
         pad.pack(pady=10)
         self.move_buttons: dict[Move, tk.Button] = {}
-        positions = {Move.NORTH: (0, 1), Move.WEST: (1, 0), Move.STAY: (1, 1),
-                     Move.EAST: (1, 2), Move.SOUTH: (2, 1)}
+        positions = {
+            Move.NORTH: (0, 1),
+            Move.WEST: (1, 0),
+            Move.STAY: (1, 1),
+            Move.EAST: (1, 2),
+            Move.SOUTH: (2, 1),
+        }
         for label, move_name, icon in _DIRECTIONS:
             move = Move[move_name]
             button = tk.Button(
-                pad, text=f"{icon}\n{label}", width=7, bg=COLORS["surface_alt"],
-                fg=COLORS["text"], activebackground=COLORS["border"],
-                activeforeground=COLORS["text"], disabledforeground=COLORS["muted"],
-                relief="flat", bd=0, padx=7, pady=7, font=(FONT, 9, "bold"),
+                pad,
+                text=f"{icon}\n{label}",
+                width=7,
+                bg=COLORS["surface_alt"],
+                fg=COLORS["text"],
+                activebackground=COLORS["border"],
+                activeforeground=COLORS["text"],
+                disabledforeground=COLORS["muted"],
+                relief="flat",
+                bd=0,
+                padx=7,
+                pady=7,
+                font=(FONT, 9, "bold"),
                 command=lambda m=move: self._on_human_move(m),
             )
             button.grid(row=positions[move][0], column=positions[move][1], padx=3, pady=3)
             self.move_buttons[move] = button
 
         self.barrier_button = tk.Button(
-            sidebar, text="＋  DEPLOY BARRIER", bg=COLORS["accent"], fg=COLORS["bg"],
-            activebackground=COLORS["accent_hover"], activeforeground=COLORS["bg"],
-            disabledforeground=COLORS["muted"], relief="flat", bd=0, padx=12, pady=10,
+            sidebar,
+            text="＋  DEPLOY BARRIER",
+            bg=COLORS["accent"],
+            fg=COLORS["bg"],
+            activebackground=COLORS["accent_hover"],
+            activeforeground=COLORS["bg"],
+            disabledforeground=COLORS["muted"],
+            relief="flat",
+            bd=0,
+            padx=12,
+            pady=10,
             font=(FONT, 10, "bold"),
             command=self._toggle_barrier_mode,
         )
         self.barrier_button.pack(fill="x", pady=(12, 8))
         self.hint_label = tk.Label(
-            sidebar, text="ARROWS move  •  SPACE holds\nB toggles barrier placement",
-            bg=COLORS["surface"], fg=COLORS["muted"], font=(MONO_FONT, 8), justify="left",
+            sidebar,
+            text="ARROWS move  •  SPACE holds\nB toggles barrier placement",
+            bg=COLORS["surface"],
+            fg=COLORS["muted"],
+            font=(MONO_FONT, 8),
+            justify="left",
         )
         self.hint_label.pack(anchor="w", pady=(10, 0))
         for sequence, move in _KEY_MOVES.items():
@@ -163,9 +218,13 @@ class PlayApp:
         self._agent_after_id = None
         if self._closed or self._paused or self.match.is_finished:
             return
-        self.status_label.config(text=f"◌  {self.match.current_role.value.upper()} / GEMINI THINKING")
+        self.status_label.config(
+            text=f"◌  {self.match.current_role.value.upper()} / GEMINI THINKING"
+        )
         self.master.update_idletasks()
-        self.match.apply_move(self.match.agent_move(self._gemini_move if self.gemini_advisor else None))
+        self.match.apply_move(
+            self.match.agent_move(self._gemini_move if self.gemini_advisor else None)
+        )
         self._advance()
 
     def _request_new_game(self) -> None:
@@ -224,14 +283,22 @@ class PlayApp:
         return decision.move
 
     def _on_human_move(self, move: Move) -> None:
-        if self.match.is_finished or not self.match.is_human_turn() or move not in self.match.legal_moves():
+        if (
+            self.match.is_finished
+            or not self.match.is_human_turn()
+            or move not in self.match.legal_moves()
+        ):
             return
         self._barrier_mode = False
         self.match.apply_move(move)
         self._advance()
 
     def _toggle_barrier_mode(self) -> None:
-        if self.match.is_finished or not self.match.is_human_turn() or self.match.current_role is not AgentRole.COP:
+        if (
+            self.match.is_finished
+            or not self.match.is_human_turn()
+            or self.match.current_role is not AgentRole.COP
+        ):
             return
         self._barrier_mode = not self._barrier_mode
         self._render()
@@ -274,7 +341,9 @@ class PlayApp:
         turn_word = "YOUR" if human_turn else "AGENT"
         role_name = view.own_role.value.upper()
         self.status_label.config(text=f"●  {role_name} / {turn_word} TURN")
-        self.turn_label.config(text=f"TURN      {self.match.turns_played + 1:02} / {self.match.max_moves:02}")
+        self.turn_label.config(
+            text=f"TURN      {self.match.turns_played + 1:02} / {self.match.max_moves:02}"
+        )
         self.role_label.config(text=f"ACTIVE    {role_name}")
         barriers_used = (
             self.match.board.config.max_barriers - self.match.board.remaining_barrier_budget
@@ -282,32 +351,55 @@ class PlayApp:
         self.barriers_label.config(
             text=f"BARRIERS  {barriers_used:02} / {self.match.board.config.max_barriers:02}"
         )
-        self.barrier_button.config(text="CANCEL PLACEMENT" if self._barrier_mode else "＋  DEPLOY BARRIER")
+        self.barrier_button.config(
+            text="CANCEL PLACEMENT" if self._barrier_mode else "＋  DEPLOY BARRIER"
+        )
         self.canvas.clear_markers()
-        legal_cells = ({(p.row, p.col) for p in self.match.legal_moves().values()}
-                       if human_turn and not self._barrier_mode else set())
+        legal_cells = (
+            {(p.row, p.col) for p in self.match.legal_moves().values()}
+            if human_turn and not self._barrier_mode
+            else set()
+        )
         self.canvas.highlight_legal_cells(legal_cells)
         if view.belief is not None:
             vm = build_live_view_model(
-                view.own_position, view.belief, self.match.board,
+                view.own_position,
+                view.belief,
+                self.match.board,
                 TurnState.YOUR_TURN if human_turn else TurnState.LOCKED,
                 role_label=_ROLE_LABEL[view.own_role],
             )
             for cell in vm.cells:
                 self.canvas.set_cell_color(cell.position.row, cell.position.col, cell.color)
-            self.canvas.draw_agent(view.own_position.row, view.own_position.col,
-                                   _ROLE_LABEL[view.own_role], _ROLE_FILL[view.own_role])
+            self.canvas.draw_agent(
+                view.own_position.row,
+                view.own_position.col,
+                _ROLE_LABEL[view.own_role],
+                _ROLE_FILL[view.own_role],
+            )
         else:
             for row in range(self.match.board.config.grid_size):
                 for col in range(self.match.board.config.grid_size):
                     pos = Position(row, col)
-                    self.canvas.set_cell_color(row, col, _BARRIER_COLOR if self.match.board.is_blocked(pos) else COLORS["cell"])
-            self.canvas.draw_agent(view.own_position.row, view.own_position.col,
-                                   _ROLE_LABEL[view.own_role], _ROLE_FILL[view.own_role])
+                    self.canvas.set_cell_color(
+                        row,
+                        col,
+                        _BARRIER_COLOR if self.match.board.is_blocked(pos) else COLORS["cell"],
+                    )
+            self.canvas.draw_agent(
+                view.own_position.row,
+                view.own_position.col,
+                _ROLE_LABEL[view.own_role],
+                _ROLE_FILL[view.own_role],
+            )
             if view.opponent_position is not None:
                 other = AgentRole.THIEF if view.own_role is AgentRole.COP else AgentRole.COP
-                self.canvas.draw_agent(view.opponent_position.row, view.opponent_position.col,
-                                       _ROLE_LABEL[other], _ROLE_FILL[other])
+                self.canvas.draw_agent(
+                    view.opponent_position.row,
+                    view.opponent_position.col,
+                    _ROLE_LABEL[other],
+                    _ROLE_FILL[other],
+                )
 
     def _show_result(self) -> None:
         self._disable_human_controls()

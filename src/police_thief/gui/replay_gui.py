@@ -39,7 +39,11 @@ _MARKER_LABEL = "•"
 def _extract_position(state: Any) -> tuple[int, int] | None:
     """Recognize only `{"row": int, "col": int}` -- any other shape means
     "nothing to draw here", never a guess."""
-    if isinstance(state, dict) and isinstance(state.get("row"), int) and isinstance(state.get("col"), int):
+    if (
+        isinstance(state, dict)
+        and isinstance(state.get("row"), int)
+        and isinstance(state.get("col"), int)
+    ):
         return state["row"], state["col"]
     return None
 
@@ -47,7 +51,9 @@ def _extract_position(state: Any) -> tuple[int, int] | None:
 class ReplayGUI:
     """Prev/Next/Play-driven scrubber over a ReplaySession, with a status stamp."""
 
-    def __init__(self, master: tk.Misc, session: ReplaySession, grid_size: int = _DEFAULT_GRID_SIZE) -> None:
+    def __init__(
+        self, master: tk.Misc, session: ReplaySession, grid_size: int = _DEFAULT_GRID_SIZE
+    ) -> None:
         self.master = master
         self.session = session
         self._playing = False
@@ -55,12 +61,24 @@ class ReplayGUI:
         configure_window(master, title="ShadowGrid | Integrity Replay", min_size=(760, 560))
         install_styles(master)
         master.configure(bg=COLORS["bg"])
-        tk.Label(master, text="INTEGRITY REPLAY", bg=COLORS["bg"], fg=COLORS["text"],
-                 font=(FONT, 19, "bold")).pack(anchor="w", padx=24, pady=(20, 0))
-        tk.Label(master, text="CRYPTOGRAPHIC WITNESS  •  COMMIT / REVEAL AUDIT",
-                 bg=COLORS["bg"], fg=COLORS["muted"], font=(FONT, 9)).pack(anchor="w", padx=24)
+        tk.Label(
+            master,
+            text="INTEGRITY REPLAY",
+            bg=COLORS["bg"],
+            fg=COLORS["text"],
+            font=(FONT, 19, "bold"),
+        ).pack(anchor="w", padx=24, pady=(20, 0))
+        tk.Label(
+            master,
+            text="CRYPTOGRAPHIC WITNESS  •  COMMIT / REVEAL AUDIT",
+            bg=COLORS["bg"],
+            fg=COLORS["muted"],
+            font=(FONT, 9),
+        ).pack(anchor="w", padx=24)
 
-        self.step_label = tk.Label(master, bg=COLORS["bg"], fg=COLORS["muted"], font=(FONT, 11, "bold"))
+        self.step_label = tk.Label(
+            master, bg=COLORS["bg"], fg=COLORS["muted"], font=(FONT, 11, "bold")
+        )
         self.step_label.pack(pady=(14, 0))
         self.status_label = tk.Label(master, bg=COLORS["bg"], font=(FONT, 16, "bold"))
         self.status_label.pack(pady=(2, 8))
@@ -68,8 +86,15 @@ class ReplayGUI:
         self.canvas = BoardCanvas(master, grid_size)
         self.canvas.pack()
 
-        self.detail_label = tk.Label(master, bg=COLORS["surface"], fg=COLORS["text"],
-                                     font=(MONO_FONT, 9), justify="left", padx=16, pady=10)
+        self.detail_label = tk.Label(
+            master,
+            bg=COLORS["surface"],
+            fg=COLORS["text"],
+            font=(MONO_FONT, 9),
+            justify="left",
+            padx=16,
+            pady=10,
+        )
         self.detail_label.pack(fill="x", padx=24, pady=10)
 
         buttons = tk.Frame(master)
@@ -139,9 +164,7 @@ class ReplayGUI:
     def _render_current(self) -> None:
         step = self.session.current_step
         self.step_label.config(text=f"Step {step.index + 1} / {self.session.total_steps}")
-        self.status_label.config(
-            text=_STATUS_TEXT[step.status], fg=_STATUS_COLOR[step.status]
-        )
+        self.status_label.config(text=_STATUS_TEXT[step.status], fg=_STATUS_COLOR[step.status])
         self.detail_label.config(
             text=f"move={step.entry.move!r}\nintent={step.entry.intent!r}\nh_commit={step.entry.h_commit[:16]}..."
         )

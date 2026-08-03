@@ -72,8 +72,14 @@ _MODE_CONTROL: dict[GameMode, dict[AgentRole, PlayerType]] = {
         AgentRole.COP: PlayerType.AGENT,
         AgentRole.THIEF: PlayerType.AGENT,
     },
-    GameMode.HUMAN_COP_VS_AGENT: {AgentRole.COP: PlayerType.HUMAN, AgentRole.THIEF: PlayerType.AGENT},
-    GameMode.AGENT_VS_HUMAN_THIEF: {AgentRole.COP: PlayerType.AGENT, AgentRole.THIEF: PlayerType.HUMAN},
+    GameMode.HUMAN_COP_VS_AGENT: {
+        AgentRole.COP: PlayerType.HUMAN,
+        AgentRole.THIEF: PlayerType.AGENT,
+    },
+    GameMode.AGENT_VS_HUMAN_THIEF: {
+        AgentRole.COP: PlayerType.AGENT,
+        AgentRole.THIEF: PlayerType.HUMAN,
+    },
     GameMode.HUMAN_VS_HUMAN: {AgentRole.COP: PlayerType.HUMAN, AgentRole.THIEF: PlayerType.HUMAN},
 }
 
@@ -131,7 +137,9 @@ class InteractiveMatch:
             AgentRole.COP: BeliefMap(board),
             AgentRole.THIEF: BeliefMap(board),
         }
-        self.current_role: AgentRole = AgentRole.COP  # an arbitrary, documented choice -- no rule mandates who moves first
+        self.current_role: AgentRole = (
+            AgentRole.COP
+        )  # an arbitrary, documented choice -- no rule mandates who moves first
         self.turns_played = 0
         self.outcome: MatchOutcome | None = None
 
@@ -150,11 +158,20 @@ class InteractiveMatch:
         own_pos = self.positions[role]
         if self.mode is GameMode.HUMAN_VS_HUMAN:
             return VisibleView(
-                own_position=own_pos, own_role=role, belief=None, opponent_position=self.positions[_other_role(role)]
+                own_position=own_pos,
+                own_role=role,
+                belief=None,
+                opponent_position=self.positions[_other_role(role)],
             )
-        return VisibleView(own_position=own_pos, own_role=role, belief=self.belief[role], opponent_position=None)
+        return VisibleView(
+            own_position=own_pos, own_role=role, belief=self.belief[role], opponent_position=None
+        )
 
-    def agent_move(self, advisor: Callable[[AgentRole, Position, Position, tuple[Move, ...], Move], Move] | None = None) -> Move:
+    def agent_move(
+        self,
+        advisor: Callable[[AgentRole, Position, Position, tuple[Move, ...], Move], Move]
+        | None = None,
+    ) -> Move:
         """The move the built-in Manhattan heuristic (Chapter 6) would make
         for the current, agent-controlled role: the cop chases its belief's
         best guess, the thief flees from it."""
@@ -172,7 +189,9 @@ class InteractiveMatch:
     def _record_move_and_advance(self) -> None:
         """Shared bookkeeping after any legal action (move or barrier):
         capture/boxed-in/max-moves checks, then hand the turn over."""
-        if not self.is_finished and check_capture(self.positions[AgentRole.COP], self.positions[AgentRole.THIEF]):
+        if not self.is_finished and check_capture(
+            self.positions[AgentRole.COP], self.positions[AgentRole.THIEF]
+        ):
             self.outcome = MatchOutcome.CAPTURE
         if not self.is_finished and is_boxed_in(self.board, self.positions[AgentRole.THIEF]):
             self.outcome = MatchOutcome.CAPTURE

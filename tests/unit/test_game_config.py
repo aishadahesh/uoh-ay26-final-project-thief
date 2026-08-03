@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from police_thief.domain.board import Position
-from police_thief.shared.game_config import GameConfigError, load_match_parameters
+from police_thief.shared.game_config import FIXED_NUM_GAMES, GameConfigError, load_match_parameters
 
 VALID_CONFIG: dict = {
     "schema_version": "1.00",
@@ -45,7 +45,7 @@ VALID_CONFIG: dict = {
     "network_and_league": {
         "response_timeout_sec": 30,
         "watchdog_timeout_sec": 60,
-        "num_games": 1,
+        "num_games": 6,
         "diversity_reward": 10,
         "min_games_to_pass": 2,
         "max_games_per_team": 10,
@@ -88,6 +88,7 @@ def test_load_match_parameters_parses_a_valid_config(tmp_path):
     assert params.world.hint_max_words == 15
     assert params.network_league.response_timeout_sec == 30
     assert params.network_league.watchdog_timeout_sec == 60
+    assert params.network_league.num_games == FIXED_NUM_GAMES
     assert params.network_league.token_budget_per_series == 200000
     assert params.rate_limiter.requests_per_minute == 30
     assert params.rate_limiter.queue_depth == 100
@@ -96,7 +97,7 @@ def test_load_match_parameters_parses_a_valid_config(tmp_path):
 @pytest.mark.parametrize(
     ("field", "bad_value"),
     [
-        ("num_games", 2),
+        ("num_games", 1),
         ("diversity_reward", 5),
         ("min_games_to_pass", 1),
         ("max_games_per_team", 20),
@@ -110,6 +111,12 @@ def test_load_match_parameters_rejects_non_fixed_network_league_values(tmp_path,
         load_match_parameters(_write(tmp_path, data))
 
 
+def test_authoritative_appendix_f_num_games_value_is_accepted(tmp_path):
+    data = json.loads(json.dumps(VALID_CONFIG))
+    data["network_and_league"]["num_games"] = FIXED_NUM_GAMES
+    assert load_match_parameters(_write(tmp_path, data)).network_league.num_games == 6
+
+
 @pytest.mark.parametrize(
     ("field", "bad_value", "floor_name"),
     [
@@ -120,7 +127,9 @@ def test_load_match_parameters_rejects_non_fixed_network_league_values(tmp_path,
         ("queue_depth", 10, "queue_depth"),
     ],
 )
-def test_load_match_parameters_rejects_rate_limiter_values_below_floor(tmp_path, field, bad_value, floor_name):
+def test_load_match_parameters_rejects_rate_limiter_values_below_floor(
+    tmp_path, field, bad_value, floor_name
+):
     """App. F Table 19: every rate-limiter field is a MINIMUM, never lowered."""
     data = json.loads(json.dumps(VALID_CONFIG))
     data["rate_limiter_gatekeeper"][field] = bad_value

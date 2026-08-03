@@ -34,7 +34,7 @@ MIN_CONCURRENT_REQUESTS = 2
 MIN_RETRY_BACKOFF_SEC = 5
 MIN_MAX_RETRIES = 3
 MIN_QUEUE_DEPTH = 100
-FIXED_NUM_GAMES = 1
+FIXED_NUM_GAMES = 6
 FIXED_DIVERSITY_REWARD = 10
 FIXED_MIN_GAMES_TO_PASS = 2
 FIXED_MAX_GAMES_PER_TEAM = 10
@@ -122,21 +122,33 @@ def _validate_fixed_network_league_config(network_league: NetworkLeagueConfig, p
     if network_league.num_games != FIXED_NUM_GAMES:
         raise GameConfigError(f"num_games must be exactly {FIXED_NUM_GAMES} at {path}")
     if network_league.diversity_reward != FIXED_DIVERSITY_REWARD:
-        raise GameConfigError(f"diversity_reward must be exactly {FIXED_DIVERSITY_REWARD} at {path}")
+        raise GameConfigError(
+            f"diversity_reward must be exactly {FIXED_DIVERSITY_REWARD} at {path}"
+        )
     if network_league.min_games_to_pass != FIXED_MIN_GAMES_TO_PASS:
-        raise GameConfigError(f"min_games_to_pass must be exactly {FIXED_MIN_GAMES_TO_PASS} at {path}")
+        raise GameConfigError(
+            f"min_games_to_pass must be exactly {FIXED_MIN_GAMES_TO_PASS} at {path}"
+        )
     if network_league.max_games_per_team != FIXED_MAX_GAMES_PER_TEAM:
-        raise GameConfigError(f"max_games_per_team must be exactly {FIXED_MAX_GAMES_PER_TEAM} at {path}")
+        raise GameConfigError(
+            f"max_games_per_team must be exactly {FIXED_MAX_GAMES_PER_TEAM} at {path}"
+        )
 
 
 def _validate_rate_limiter_floors(rate_limiter: RateLimiterConfig, path: Path) -> None:
     """App. F, Table 19: every field here is a MINIMUM -- teams may raise, never lower."""
     if rate_limiter.requests_per_minute < MIN_REQUESTS_PER_MINUTE:
-        raise GameConfigError(f"requests_per_minute below the mandatory floor {MIN_REQUESTS_PER_MINUTE} at {path}")
+        raise GameConfigError(
+            f"requests_per_minute below the mandatory floor {MIN_REQUESTS_PER_MINUTE} at {path}"
+        )
     if rate_limiter.concurrent_requests < MIN_CONCURRENT_REQUESTS:
-        raise GameConfigError(f"concurrent_requests below the mandatory floor {MIN_CONCURRENT_REQUESTS} at {path}")
+        raise GameConfigError(
+            f"concurrent_requests below the mandatory floor {MIN_CONCURRENT_REQUESTS} at {path}"
+        )
     if rate_limiter.retry_backoff_sec < MIN_RETRY_BACKOFF_SEC:
-        raise GameConfigError(f"retry_backoff_sec below the mandatory floor {MIN_RETRY_BACKOFF_SEC} at {path}")
+        raise GameConfigError(
+            f"retry_backoff_sec below the mandatory floor {MIN_RETRY_BACKOFF_SEC} at {path}"
+        )
     if rate_limiter.max_retries < MIN_MAX_RETRIES:
         raise GameConfigError(f"max_retries below the mandatory floor {MIN_MAX_RETRIES} at {path}")
     if rate_limiter.queue_depth < MIN_QUEUE_DEPTH:
@@ -179,9 +191,13 @@ def load_match_parameters(path: Path) -> MatchParameters:
         grid_size = int(board_section["grid_size"])
         max_barriers = int(movement_section["max_barriers"])
         if grid_size < MIN_GRID_SIZE:
-            raise GameConfigError(f"grid_size {grid_size} is below the mandatory floor {MIN_GRID_SIZE}")
+            raise GameConfigError(
+                f"grid_size {grid_size} is below the mandatory floor {MIN_GRID_SIZE}"
+            )
         if max_barriers < MIN_MAX_BARRIERS:
-            raise GameConfigError(f"max_barriers {max_barriers} is below the mandatory floor {MIN_MAX_BARRIERS}")
+            raise GameConfigError(
+                f"max_barriers {max_barriers} is below the mandatory floor {MIN_MAX_BARRIERS}"
+            )
 
         board = BoardConfig(
             grid_size=grid_size,

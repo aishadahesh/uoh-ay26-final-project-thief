@@ -161,10 +161,12 @@ class TokenUsage:
 
     input_tokens: int = 0
     output_tokens: int = 0
+    available: bool = False
 
     def add(self, input_tokens: int, output_tokens: int) -> None:
         self.input_tokens += input_tokens
         self.output_tokens += output_tokens
+        self.available = True
 
     @property
     def total(self) -> int:

@@ -43,10 +43,13 @@ class MemoryTransport:
 def test_two_peers_negotiate_play_and_mutually_audit(tmp_path):
     project_root = Path(__file__).parents[2]
     common = {
-        "local_port": 8801, "public_url": "https://local.example/mcp",
-        "game_id": "NETWORK-TEST", "sub_game_number": 1,
+        "local_port": 8801,
+        "public_url": "https://local.example/mcp",
+        "game_id": "NETWORK-TEST",
+        "sub_game_number": 1,
         "shared_config": project_root / "config" / "game.json",
-        "team_name": "test-team", "members": ("Ada", "Grace"),
+        "team_name": "test-team",
+        "members": ("Ada", "Grace"),
         "opponent_team_name": "rival-team",
         "opponent_members": ("Linus", "Margaret"),
         "own_cop_repo": "https://example.test/a-cop",
@@ -58,17 +61,23 @@ def test_two_peers_negotiate_play_and_mutually_audit(tmp_path):
     cop_inboxes, thief_inboxes = PeerInboxes(), PeerInboxes()
     cop = NetworkMatchRunner(
         NetworkMatchSettings(
-            role=AgentRole.COP, opponent_url="https://thief.example/mcp",
-            output_dir=tmp_path / "cop", **common,
+            role=AgentRole.COP,
+            opponent_url="https://thief.example/mcp",
+            output_dir=tmp_path / "cop",
+            **common,
         ),
-        cop_inboxes, transport=MemoryTransport(cop_inboxes, thief_inboxes),
+        cop_inboxes,
+        transport=MemoryTransport(cop_inboxes, thief_inboxes),
     )
     thief = NetworkMatchRunner(
         NetworkMatchSettings(
-            role=AgentRole.THIEF, opponent_url="https://cop.example/mcp",
-            output_dir=tmp_path / "thief", **common,
+            role=AgentRole.THIEF,
+            opponent_url="https://cop.example/mcp",
+            output_dir=tmp_path / "thief",
+            **common,
         ),
-        thief_inboxes, transport=MemoryTransport(thief_inboxes, cop_inboxes),
+        thief_inboxes,
+        transport=MemoryTransport(thief_inboxes, cop_inboxes),
     )
     with ThreadPoolExecutor(max_workers=2) as executor:
         paths = list(executor.map(lambda runner: runner.run(Event()), (cop, thief)))

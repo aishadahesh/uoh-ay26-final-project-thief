@@ -36,16 +36,33 @@ class LiveGUI:
         install_styles(master)
         shell = tk.Frame(master, bg=COLORS["bg"], padx=22, pady=20)
         shell.pack(fill="both", expand=True)
-        tk.Label(shell, text="LIVE LOCAL TRUTH", bg=COLORS["bg"], fg=COLORS["text"],
-                 font=(FONT, 18, "bold")).pack(anchor="w")
-        tk.Label(shell, text="BELIEF HEATMAP  •  OPPONENT POSITION HIDDEN",
-                 bg=COLORS["bg"], fg=COLORS["muted"], font=(FONT, 9)).pack(anchor="w", pady=(0, 12))
+        tk.Label(
+            shell,
+            text="LIVE LOCAL TRUTH",
+            bg=COLORS["bg"],
+            fg=COLORS["text"],
+            font=(FONT, 18, "bold"),
+        ).pack(anchor="w")
+        tk.Label(
+            shell,
+            text="BELIEF HEATMAP  •  OPPONENT POSITION HIDDEN",
+            bg=COLORS["bg"],
+            fg=COLORS["muted"],
+            font=(FONT, 9),
+        ).pack(anchor="w", pady=(0, 12))
         telemetry = tk.Frame(shell, bg=COLORS["surface_alt"], padx=12, pady=9)
         telemetry.pack(fill="x", pady=(0, 12))
-        self.banner = tk.Label(telemetry, text="", bg=COLORS["surface_alt"], font=(FONT, 14, "bold"))
+        self.banner = tk.Label(
+            telemetry, text="", bg=COLORS["surface_alt"], font=(FONT, 14, "bold")
+        )
         self.banner.pack(side="left")
-        self.step_label = tk.Label(telemetry, text="Step 0", bg=COLORS["surface_alt"],
-                                   fg=COLORS["muted"], font=(FONT, 9, "bold"))
+        self.step_label = tk.Label(
+            telemetry,
+            text="Step 0",
+            bg=COLORS["surface_alt"],
+            fg=COLORS["muted"],
+            font=(FONT, 9, "bold"),
+        )
         self.step_label.pack(side="right")
         board_card = tk.Frame(shell, bg=COLORS["surface"], padx=16, pady=16)
         board_card.pack(expand=True)

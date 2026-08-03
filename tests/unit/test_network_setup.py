@@ -10,20 +10,25 @@ from police_thief.gui.network_setup import load_network_defaults, validate_mcp_u
 def _defaults():
     return {
         "peer": {
-            "role": "thief", "local_port": 9902,
+            "role": "thief",
+            "local_port": 9902,
             "opponent_url": "https://cop.example/mcp",
             "public_url": "https://thief.example/mcp",
         },
         "match": {
-            "game_id": "G900", "sub_game_number": 2,
-            "shared_match_secret": "shared", "output_directory": "results/custom",
+            "game_id": "G900",
+            "sub_game_number": 2,
+            "shared_match_secret": "shared",
+            "output_directory": "results/custom",
         },
         "team_1": {
-            "name": "Alpha", "members": ["A1", "A2"],
+            "name": "Alpha",
+            "members": ["A1", "A2"],
             "repos": {"cop": "alpha-cop", "thief": "alpha-thief"},
         },
         "team_2": {
-            "name": "Beta", "members": ["B1", "B2"],
+            "name": "Beta",
+            "members": ["B1", "B2"],
             "repos": {"cop": "beta-cop", "thief": "beta-thief"},
         },
         "email": {"automatic": True, "recipient": "reports@example.com"},

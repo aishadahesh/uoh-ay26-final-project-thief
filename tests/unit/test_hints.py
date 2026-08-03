@@ -31,7 +31,9 @@ def test_template_provider_truthful_hint_matches_the_real_move():
 
 
 def test_template_provider_lie_claims_the_configured_false_move():
-    hint = TemplateHintProvider().generate(true_move=Move.NORTH, tell_truth=False, false_move=Move.SOUTH)
+    hint = TemplateHintProvider().generate(
+        true_move=Move.NORTH, tell_truth=False, false_move=Move.SOUTH
+    )
     assert hint.intent_truthful is False
     assert parse_claimed_direction(hint) is Move.SOUTH
 
@@ -103,7 +105,9 @@ def test_detect_bluff_catches_a_lie_reproducing_the_worked_example():
     actual_new_pos = board.apply_move(prev, true_move)
     scent.emit(actual_new_pos)
 
-    lie = TemplateHintProvider().generate(true_move=true_move, tell_truth=False, false_move=Move.NORTH)
+    lie = TemplateHintProvider().generate(
+        true_move=true_move, tell_truth=False, false_move=Move.NORTH
+    )
     assert detect_bluff(lie, prev, scent, board) is True
 
 

@@ -18,7 +18,9 @@ from police_thief.gui.play_app import PlayApp
 from police_thief.shared.constants import AgentRole
 
 
-def _match(mode: GameMode, cop=None, thief=None, max_moves: int = 35, max_barriers: int = 14) -> InteractiveMatch:
+def _match(
+    mode: GameMode, cop=None, thief=None, max_moves: int = 35, max_barriers: int = 14
+) -> InteractiveMatch:
     board = Board(BoardConfig(grid_size=7, max_barriers=max_barriers))
     return InteractiveMatch(board, cop or Position(0, 0), thief or Position(3, 3), mode, max_moves)
 
@@ -40,7 +42,9 @@ def test_starting_on_a_human_turn_enables_only_the_legal_move_buttons(root, monk
     assert app.move_buttons[Move.WEST].cget("state") == "disabled"
 
 
-def test_starting_on_an_agent_turn_disables_every_control_and_schedules_the_agent(root, monkeypatch):
+def test_starting_on_an_agent_turn_disables_every_control_and_schedules_the_agent(
+    root, monkeypatch
+):
     scheduled = []
     monkeypatch.setattr(tk.Misc, "after", lambda self, ms, func: scheduled.append(func))
     match = _match(GameMode.AGENT_VS_HUMAN_THIEF)  # cop moves first, and cop is the agent here
@@ -66,7 +70,9 @@ def test_clicking_an_illegal_move_button_is_a_no_op(root, monkeypatch):
     match = _match(GameMode.HUMAN_COP_VS_AGENT, cop=Position(0, 0))
     app = PlayApp(root, match)
     app.start()
-    app._on_human_move(Move.NORTH)  # off the board -- disabled, but call the handler directly to prove it's a no-op
+    app._on_human_move(
+        Move.NORTH
+    )  # off the board -- disabled, but call the handler directly to prove it's a no-op
     assert match.positions[AgentRole.COP] == Position(0, 0)
     assert match.turns_played == 0
 
@@ -192,7 +198,9 @@ def test_match_end_disables_controls_and_shows_a_result_message(root, monkeypatc
 def test_new_game_button_calls_the_session_callback(root, monkeypatch):
     _no_schedule(monkeypatch)
     calls = []
-    app = PlayApp(root, _match(GameMode.HUMAN_VS_HUMAN), on_new_game=lambda: calls.append(True) or True)
+    app = PlayApp(
+        root, _match(GameMode.HUMAN_VS_HUMAN), on_new_game=lambda: calls.append(True) or True
+    )
     app.start()
     app.new_game_button.invoke()
     assert calls == [True]

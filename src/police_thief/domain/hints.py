@@ -82,7 +82,9 @@ def parse_claimed_direction(hint: Hint) -> Move | None:
     return _PHRASE_TO_MOVE.get(hint.text)
 
 
-def detect_bluff(hint: Hint, prev_position: Position, scent_field: ScentField, board: Board) -> bool:
+def detect_bluff(
+    hint: Hint, prev_position: Position, scent_field: ScentField, board: Board
+) -> bool:
     """True if the hint's claimed direction contradicts the real scent trail.
 
     Sec. 4.3.5: scent cannot be forged, so a mismatch exposes a *verbal*

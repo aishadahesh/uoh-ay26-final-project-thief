@@ -50,7 +50,9 @@ def test_cop_brain_moves_toward_the_belief_peak():
     brain = ManhattanHeuristicBrain(role=AgentRole.COP)
     move = brain._decide_move(board, Position(0, 0), belief)
     new_pos = board.apply_move(Position(0, 0), move)
-    assert manhattan_distance(new_pos, Position(5, 5)) < manhattan_distance(Position(0, 0), Position(5, 5))
+    assert manhattan_distance(new_pos, Position(5, 5)) < manhattan_distance(
+        Position(0, 0), Position(5, 5)
+    )
 
 
 def test_thief_brain_moves_away_from_the_belief_peak():
@@ -59,7 +61,9 @@ def test_thief_brain_moves_away_from_the_belief_peak():
     brain = ManhattanHeuristicBrain(role=AgentRole.THIEF)
     move = brain._decide_move(board, Position(4, 4), belief)
     new_pos = board.apply_move(Position(4, 4), move)
-    assert manhattan_distance(new_pos, Position(5, 5)) > manhattan_distance(Position(4, 4), Position(5, 5))
+    assert manhattan_distance(new_pos, Position(5, 5)) > manhattan_distance(
+        Position(4, 4), Position(5, 5)
+    )
 
 
 def test_cop_brain_picks_a_barrier_target_adjacent_to_its_own_position():
@@ -139,7 +143,9 @@ def test_load_strategy_class_rejects_malformed_dotted_path(tmp_path):
 
 
 def test_load_strategy_class_rejects_a_class_that_is_not_a_brain(tmp_path):
-    _write_toml(tmp_path, AgentRole.COP, "[strategy]\ncop_class = 'police_thief.domain.board:Position'\n")
+    _write_toml(
+        tmp_path, AgentRole.COP, "[strategy]\ncop_class = 'police_thief.domain.board:Position'\n"
+    )
     with pytest.raises(ConfigError, match="not a BrainBase subclass"):
         load_strategy_class(AgentRole.COP, tmp_path)
 

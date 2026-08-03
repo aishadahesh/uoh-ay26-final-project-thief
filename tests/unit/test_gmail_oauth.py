@@ -56,7 +56,9 @@ def test_transport_for_service_returns_the_real_send_response_on_success():
     from police_thief.services.gmail_oauth import _transport_for_service
 
     service = MagicMock()
-    service.users.return_value.messages.return_value.send.return_value.execute.return_value = {"id": "msg1"}
+    service.users.return_value.messages.return_value.send.return_value.execute.return_value = {
+        "id": "msg1"
+    }
     transport = _transport_for_service(service)
 
     assert transport("rawbase64") == {"id": "msg1"}
@@ -72,7 +74,9 @@ def test_transport_for_service_translates_http_429_to_rate_limited_error():
     from police_thief.services.gmail_report_sender import GmailRateLimitedError
 
     service = MagicMock()
-    service.users.return_value.messages.return_value.send.return_value.execute.side_effect = _make_http_error(429)
+    service.users.return_value.messages.return_value.send.return_value.execute.side_effect = (
+        _make_http_error(429)
+    )
     transport = _transport_for_service(service)
 
     with pytest.raises(GmailRateLimitedError):
@@ -86,7 +90,9 @@ def test_transport_for_service_translates_other_http_errors_to_send_error():
     from police_thief.services.gmail_report_sender import GmailSendError
 
     service = MagicMock()
-    service.users.return_value.messages.return_value.send.return_value.execute.side_effect = _make_http_error(500)
+    service.users.return_value.messages.return_value.send.return_value.execute.side_effect = (
+        _make_http_error(500)
+    )
     transport = _transport_for_service(service)
 
     with pytest.raises(GmailSendError):
@@ -109,7 +115,9 @@ def test_build_gmail_api_transport_propagates_credential_loading_failure(tmp_pat
         build_gmail_api_transport(tmp_path / "credentials.json", tmp_path / "token.json")
 
 
-def test_load_credentials_returns_an_already_valid_cached_token_without_touching_the_flow(tmp_path, monkeypatch):
+def test_load_credentials_returns_an_already_valid_cached_token_without_touching_the_flow(
+    tmp_path, monkeypatch
+):
     """A valid, unexpired cached token must short-circuit straight through --
     never touching InstalledAppFlow's real interactive browser consent flow,
     which is the one piece of this module that genuinely cannot run inside
@@ -130,7 +138,9 @@ def test_load_credentials_returns_an_already_valid_cached_token_without_touching
     assert result is fake_creds
 
 
-def test_get_service_builds_a_real_offline_discovery_client_for_a_valid_cached_token(tmp_path, monkeypatch):
+def test_get_service_builds_a_real_offline_discovery_client_for_a_valid_cached_token(
+    tmp_path, monkeypatch
+):
     """googleapiclient's static discovery document is bundled, so a genuine
     Resource object can be built and inspected without any real network
     call or real OAuth consent -- only the actual message-send call is the
@@ -177,7 +187,9 @@ def test_load_credentials_refreshes_an_expired_token_with_a_refresh_token(tmp_pa
     assert result is fake_creds
 
 
-def test_load_credentials_runs_the_consent_flow_and_writes_a_fresh_token_when_none_is_cached(tmp_path, monkeypatch):
+def test_load_credentials_runs_the_consent_flow_and_writes_a_fresh_token_when_none_is_cached(
+    tmp_path, monkeypatch
+):
     """No cached token at all -> the one-time interactive consent flow runs
     (fully mocked here -- no real browser opens) and the resulting
     credentials are persisted to token_path for next time."""
@@ -223,7 +235,9 @@ def test_load_credentials_raises_when_the_cached_token_is_invalid_and_no_credent
         load_credentials(tmp_path / "credentials.json", token_path)
 
 
-def test_build_gmail_api_transport_returns_a_callable_transport_for_a_valid_cached_token(tmp_path, monkeypatch):
+def test_build_gmail_api_transport_returns_a_callable_transport_for_a_valid_cached_token(
+    tmp_path, monkeypatch
+):
     from unittest.mock import MagicMock
 
     from google.oauth2.credentials import Credentials

@@ -93,7 +93,9 @@ def test_replay_viewer_against_a_real_commit_reveal_sealed_multi_turn_log(tmp_pa
         move = Move.EAST
         state = {"cop": [pos.row, pos.col]}
         c = commit(state=state, move=move, intent=True)
-        entries.append(LogEntry(state=state, move=move, intent=True, nonce=c.nonce, h_commit=c.h_commit))
+        entries.append(
+            LogEntry(state=state, move=move, intent=True, nonce=c.nonce, h_commit=c.h_commit)
+        )
         pos = board.apply_move(pos, move)
 
     path = tmp_path / "real_match_log.json"

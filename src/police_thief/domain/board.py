@@ -87,7 +87,9 @@ class Board:
 
     def neighbors(self, pos: Position) -> list[Position]:
         """The up-to-4 orthogonal neighbors that are within bounds (barrier-agnostic)."""
-        candidates = (pos.translated(_DELTA[m]) for m in (Move.NORTH, Move.SOUTH, Move.EAST, Move.WEST))
+        candidates = (
+            pos.translated(_DELTA[m]) for m in (Move.NORTH, Move.SOUTH, Move.EAST, Move.WEST)
+        )
         return [p for p in candidates if self.is_within_bounds(p)]
 
     def apply_move(self, pos: Position, move: Move) -> Position:
@@ -135,5 +137,7 @@ class Board:
             raise MoveRejectedError(f"barrier target {target} is not adjacent to {cop_pos}")
         if self.remaining_barrier_budget <= 0:
             raise MoveRejectedError("barrier budget exhausted")
+        if target in self._blocked:
+            raise MoveRejectedError(f"barrier target {target} is already blocked")
         self._blocked.add(target)
         self._barriers_placed += 1

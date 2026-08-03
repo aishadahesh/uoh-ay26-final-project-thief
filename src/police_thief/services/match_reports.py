@@ -192,6 +192,7 @@ class MatchResult:
     mutual_sign_off: bool
     log_sha256: str
     total_tokens_used: int
+    token_usage_available: bool
     repo_links: RepoCrossLinks
     team_a: ResultTeamIdentity | None = None
     team_b: ResultTeamIdentity | None = None
@@ -219,6 +220,7 @@ def build_match_result(
         mutual_sign_off=mutual_sign_off,
         log_sha256=sha256_of_log(log_entries),
         total_tokens_used=token_usage.total,
+        token_usage_available=token_usage.available,
         repo_links=repo_links,
         team_a=team_a,
         team_b=team_b,

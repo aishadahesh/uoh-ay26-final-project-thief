@@ -44,28 +44,43 @@ def install_styles(master: tk.Misc) -> ttk.Style:
     style.configure("Card.TFrame", background=COLORS["surface"])
     style.configure("Surface.TFrame", background=COLORS["surface_alt"])
     style.configure(
-        "Title.TLabel", background=COLORS["bg"], foreground=COLORS["text"],
+        "Title.TLabel",
+        background=COLORS["bg"],
+        foreground=COLORS["text"],
         font=(FONT, 22, "bold"),
     )
     style.configure(
-        "Subtitle.TLabel", background=COLORS["bg"], foreground=COLORS["muted"],
+        "Subtitle.TLabel",
+        background=COLORS["bg"],
+        foreground=COLORS["muted"],
         font=(FONT, 10),
     )
     style.configure(
-        "CardTitle.TLabel", background=COLORS["surface"], foreground=COLORS["text"],
+        "CardTitle.TLabel",
+        background=COLORS["surface"],
+        foreground=COLORS["text"],
         font=(FONT, 11, "bold"),
     )
     style.configure(
-        "CardText.TLabel", background=COLORS["surface"], foreground=COLORS["muted"],
+        "CardText.TLabel",
+        background=COLORS["surface"],
+        foreground=COLORS["muted"],
         font=(FONT, 9),
     )
     style.configure(
-        "Telemetry.TLabel", background=COLORS["surface_alt"], foreground=COLORS["text"],
-        font=(MONO_FONT, 10, "bold"), padding=(10, 7),
+        "Telemetry.TLabel",
+        background=COLORS["surface_alt"],
+        foreground=COLORS["text"],
+        font=(MONO_FONT, 10, "bold"),
+        padding=(10, 7),
     )
     style.configure(
-        "Accent.TButton", background=COLORS["accent"], foreground=COLORS["bg"],
-        font=(FONT, 10, "bold"), padding=(14, 9), borderwidth=0,
+        "Accent.TButton",
+        background=COLORS["accent"],
+        foreground=COLORS["bg"],
+        font=(FONT, 10, "bold"),
+        padding=(14, 9),
+        borderwidth=0,
     )
     style.map(
         "Accent.TButton",
@@ -73,8 +88,12 @@ def install_styles(master: tk.Misc) -> ttk.Style:
         foreground=[("disabled", COLORS["muted"])],
     )
     style.configure(
-        "Secondary.TButton", background=COLORS["surface_alt"], foreground=COLORS["text"],
-        font=(FONT, 9, "bold"), padding=(11, 8), borderwidth=1,
+        "Secondary.TButton",
+        background=COLORS["surface_alt"],
+        foreground=COLORS["text"],
+        font=(FONT, 9, "bold"),
+        padding=(11, 8),
+        borderwidth=1,
     )
     style.map(
         "Secondary.TButton",

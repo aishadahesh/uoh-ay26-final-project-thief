@@ -18,7 +18,14 @@ from police_thief.domain.scoring import MatchOutcome
 from police_thief.shared.constants import AgentRole
 
 
-def _match(mode: GameMode, grid_size: int = 7, max_barriers: int = 14, max_moves: int = 35, cop=None, thief=None):
+def _match(
+    mode: GameMode,
+    grid_size: int = 7,
+    max_barriers: int = 14,
+    max_moves: int = 35,
+    cop=None,
+    thief=None,
+):
     board = Board(BoardConfig(grid_size=grid_size, max_barriers=max_barriers))
     return InteractiveMatch(
         board,
@@ -112,7 +119,10 @@ def test_apply_move_updates_the_opponents_belief_from_the_movers_scent():
     match.apply_move(Move.EAST)  # cop moves; thief's belief about the cop should update
     thief_belief_after = match.belief[AgentRole.THIEF].arg_max()
     # the thief's belief peak should now be influenced by the cop's real trail
-    assert thief_belief_after != thief_belief_before or match.belief[AgentRole.THIEF].belief_at(Position(0, 1)) > 0
+    assert (
+        thief_belief_after != thief_belief_before
+        or match.belief[AgentRole.THIEF].belief_at(Position(0, 1)) > 0
+    )
 
 
 def test_apply_move_detects_a_capture_by_moving_onto_the_opponent():
@@ -178,7 +188,10 @@ def test_agent_move_chases_toward_the_belief_peak_for_the_cop():
     match.scent[AgentRole.THIEF].emit(Position(0, 6))
     match.belief[AgentRole.COP].update_from_scent(match.scent[AgentRole.THIEF])
     move = match.agent_move()
-    assert move in {Move.EAST, Move.STAY}  # moving toward (0,6) from (0,0) means East (or STAY if not improving)
+    assert move in {
+        Move.EAST,
+        Move.STAY,
+    }  # moving toward (0,6) from (0,0) means East (or STAY if not improving)
 
 
 def test_agent_move_accepts_an_advisors_legal_choice():
@@ -200,8 +213,12 @@ def test_a_thief_boxed_in_by_barriers_is_treated_as_captured_on_the_next_action(
     board = Board(BoardConfig(grid_size=7, max_barriers=14))
     thief_pos = Position(3, 3)
     for neighbor in board.neighbors(thief_pos):
-        board.place_barrier(neighbor, neighbor)  # box the thief in directly via the low-level Board API
-    match = InteractiveMatch(board, Position(0, 0), thief_pos, GameMode.HUMAN_COP_VS_AGENT, max_moves=35)
+        board.place_barrier(
+            neighbor, neighbor
+        )  # box the thief in directly via the low-level Board API
+    match = InteractiveMatch(
+        board, Position(0, 0), thief_pos, GameMode.HUMAN_COP_VS_AGENT, max_moves=35
+    )
 
     match.place_barrier(Position(1, 0))  # any legal cop action, unrelated to the thief's box
     assert match.outcome is MatchOutcome.CAPTURE

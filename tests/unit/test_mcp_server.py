@@ -13,7 +13,10 @@ async def test_server_advertises_exact_reference_tool_names():
     async with Client(mcp) as client:
         tools = await client.list_tools()
     assert {tool.name for tool in tools} == {
-        "negotiate", "receive_turn", "submit_audit", "receive_control",
+        "negotiate",
+        "receive_turn",
+        "submit_audit",
+        "receive_control",
     }
 
 

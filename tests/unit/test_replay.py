@@ -20,7 +20,9 @@ def _make_entries(n: int) -> list[LogEntry]:
     entries = []
     for i in range(n):
         c = commit(state={"turn": i}, move="N", intent=True)
-        entries.append(LogEntry(state={"turn": i}, move="N", intent=True, nonce=c.nonce, h_commit=c.h_commit))
+        entries.append(
+            LogEntry(state={"turn": i}, move="N", intent=True, nonce=c.nonce, h_commit=c.h_commit)
+        )
     return entries
 
 

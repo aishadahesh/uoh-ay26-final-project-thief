@@ -42,7 +42,9 @@ def _run_partial_observability_match(cop_start: Position, thief_start: Position)
             return True, turn, cop_belief.arg_max(), cop_pos, thief_pos
 
         thief_belief.update_from_scent(cop_scent)
-        thief_pos = board.apply_move(thief_pos, thief_brain._decide_move(board, thief_pos, thief_belief))
+        thief_pos = board.apply_move(
+            thief_pos, thief_brain._decide_move(board, thief_pos, thief_belief)
+        )
         thief_scent.decay()
         thief_scent.emit(thief_pos)
         if check_capture(cop_pos, thief_pos):

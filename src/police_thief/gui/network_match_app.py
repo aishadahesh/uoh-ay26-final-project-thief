@@ -17,7 +17,9 @@ from police_thief.services.network_match import NetworkMatchRunner, NetworkMatch
 
 class NetworkMatchApp:
     def __init__(
-        self, master: tk.Misc, settings: NetworkMatchSettings,
+        self,
+        master: tk.Misc,
+        settings: NetworkMatchSettings,
         gemini_advisor: GeminiAgentAdvisor,
         on_new_game: Callable[[], bool] | None = None,
     ) -> None:
@@ -43,7 +45,10 @@ class NetworkMatchApp:
         ttk.Label(title, text="SHADOWGRID", style="Title.TLabel").pack(anchor="w")
         ttk.Label(title, text="DISTRIBUTED MCP ARENA", style="Subtitle.TLabel").pack(anchor="w")
         ttk.Button(
-            header, text="NEW GAME", style="Secondary.TButton", command=self._new_game,
+            header,
+            text="NEW GAME",
+            style="Secondary.TButton",
+            command=self._new_game,
         ).pack(side="right")
 
         cards = ttk.Frame(self.shell, style="App.TFrame")
@@ -66,22 +71,37 @@ class NetworkMatchApp:
             ("OPPONENT URL", self.settings.opponent_url),
         ):
             tk.Label(
-                endpoint, text=f"{caption:<22} {value}", bg=COLORS["surface"],
-                fg=COLORS["accent"], font=(MONO_FONT, 9), anchor="w",
+                endpoint,
+                text=f"{caption:<22} {value}",
+                bg=COLORS["surface"],
+                fg=COLORS["accent"],
+                font=(MONO_FONT, 9),
+                anchor="w",
             ).pack(fill="x", pady=(8, 0))
 
         console = ttk.Frame(self.shell, style="Card.TFrame", padding=18)
         console.pack(fill="both", expand=True)
         ttk.Label(console, text="SECURE MATCH TELEMETRY", style="CardTitle.TLabel").pack(anchor="w")
         self.status = tk.Label(
-            console, text="INITIALIZING PEER", bg=COLORS["surface"], fg=COLORS["warning"],
-            font=(FONT, 11, "bold"), anchor="w",
+            console,
+            text="INITIALIZING PEER",
+            bg=COLORS["surface"],
+            fg=COLORS["warning"],
+            font=(FONT, 11, "bold"),
+            anchor="w",
         )
         self.status.pack(fill="x", pady=(8, 10))
         self.log = tk.Text(
-            console, bg=COLORS["surface_alt"], fg=COLORS["text"],
-            insertbackground=COLORS["text"], relief="flat", state="disabled",
-            font=(MONO_FONT, 9), padx=12, pady=12, height=14,
+            console,
+            bg=COLORS["surface_alt"],
+            fg=COLORS["text"],
+            insertbackground=COLORS["text"],
+            relief="flat",
+            state="disabled",
+            font=(MONO_FONT, 9),
+            padx=12,
+            pady=12,
+            height=14,
         )
         self.log.pack(fill="both", expand=True)
 

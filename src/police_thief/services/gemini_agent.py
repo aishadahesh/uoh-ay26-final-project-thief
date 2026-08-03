@@ -97,7 +97,11 @@ class GeminiAgentAdvisor:
 
     @staticmethod
     def _prompt(context: TacticalContext) -> str:
-        objective = "close distance to the believed thief" if context.role is AgentRole.COP else "increase distance from the believed cop"
+        objective = (
+            "close distance to the believed thief"
+            if context.role is AgentRole.COP
+            else "increase distance from the believed cop"
+        )
         legal = ", ".join(move.name for move in context.legal_moves)
         return (
             "You are the tactical reasoning layer in a partially observable police-thief grid game. "
@@ -125,5 +129,9 @@ class GeminiAgentAdvisor:
                 rationale="Gemini returned an invalid move; heuristic fallback used.",
                 used_fallback=True,
             )
-        rationale = reason.strip() if separator and reason.strip() else "Gemini selected this legal tactical move."
+        rationale = (
+            reason.strip()
+            if separator and reason.strip()
+            else "Gemini selected this legal tactical move."
+        )
         return GeminiDecision(move=selected, rationale=rationale[:180])

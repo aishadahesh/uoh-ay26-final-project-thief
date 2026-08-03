@@ -72,13 +72,19 @@ def load_credentials(credentials_path: Path, token_path: Path) -> Credentials:
         ) from exc
 
     try:
-        creds = Credentials.from_authorized_user_file(str(token_path), SCOPES) if token_path.is_file() else None
+        creds = (
+            Credentials.from_authorized_user_file(str(token_path), SCOPES)
+            if token_path.is_file()
+            else None
+        )
     except ValueError as exc:
         # A malformed/corrupted token.json otherwise surfaces as a raw
         # JSONDecodeError/ValueError -- caught here and re-raised as our
         # own typed error so a bad cached token degrades to "re-authorize
         # via credentials.json," not a crash.
-        raise GmailOAuthError(f"token at {token_path} is not valid JSON/credentials data: {exc}") from exc
+        raise GmailOAuthError(
+            f"token at {token_path} is not valid JSON/credentials data: {exc}"
+        ) from exc
     if creds and creds.expired and creds.refresh_token:
         creds.refresh(Request())
     if not creds or not creds.valid:
@@ -98,7 +104,9 @@ def get_service(credentials_path: Path, token_path: Path) -> Any:
     try:
         from googleapiclient.discovery import build
     except ImportError as exc:
-        raise GmailOAuthError("google-api-python-client not installed; run `uv sync --extra email`") from exc
+        raise GmailOAuthError(
+            "google-api-python-client not installed; run `uv sync --extra email`"
+        ) from exc
     creds = load_credentials(credentials_path, token_path)
     return build("gmail", "v1", credentials=creds)
 

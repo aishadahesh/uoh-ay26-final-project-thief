@@ -44,16 +44,23 @@ def _make_gatekeeper(tmp_path, **overrides):
         QuotaManager(
             daily_threshold=defaults["quota"], persist_path=tmp_path / "q.json", today=lambda: DAY_1
         ),
-        TokenBucket(capacity=defaults["capacity"], refill_rate=defaults["refill_rate"], clock=clock),
+        TokenBucket(
+            capacity=defaults["capacity"], refill_rate=defaults["refill_rate"], clock=clock
+        ),
         AnomalyDetector(
-            max_sends_in_window=defaults["max_sends"], window_seconds=defaults["window"], clock=clock
+            max_sends_in_window=defaults["max_sends"],
+            window_seconds=defaults["window"],
+            clock=clock,
         ),
     )
 
 
 def test_build_report_email_attaches_json_not_free_text():
     message = build_report_email(
-        "lecturer@example.com", "Match Report", {"cop_score": 20, "thief_score": 5}, "result_G1.json"
+        "lecturer@example.com",
+        "Match Report",
+        {"cop_score": 20, "thief_score": 5},
+        "result_G1.json",
     )
     raw = message.as_bytes()
     parsed = message_from_bytes(raw)
@@ -93,7 +100,14 @@ def test_send_match_report_succeeds_on_first_attempt(tmp_path):
         return {"id": "msg-1"}
 
     result = send_match_report(
-        gk, transport, Http429BackoffPolicy(5.0, 3), "a@b.com", "s", {"x": 1}, "f.json", sleep=lambda s: None
+        gk,
+        transport,
+        Http429BackoffPolicy(5.0, 3),
+        "a@b.com",
+        "s",
+        {"x": 1},
+        "f.json",
+        sleep=lambda s: None,
     )
     assert result.sent is True
     assert len(result.attempts) == 1
@@ -106,7 +120,13 @@ def test_send_match_report_is_blocked_by_the_gatekeeper_before_any_transport_cal
     calls = []
 
     result = send_match_report(
-        gk, lambda raw: calls.append(raw), Http429BackoffPolicy(5.0, 3), "a@b.com", "s", {"x": 1}, "f.json"
+        gk,
+        lambda raw: calls.append(raw),
+        Http429BackoffPolicy(5.0, 3),
+        "a@b.com",
+        "s",
+        {"x": 1},
+        "f.json",
     )
     assert result.sent is False
     assert result.blocked_reason == GatekeeperBlockReason.QUOTA_EXCEEDED
@@ -125,7 +145,14 @@ def test_send_match_report_recovers_after_a_429_within_retry_budget(tmp_path):
 
     sleeps = []
     result = send_match_report(
-        gk, flaky_transport, Http429BackoffPolicy(5.0, 3), "a@b.com", "s", {"x": 1}, "f.json", sleep=sleeps.append
+        gk,
+        flaky_transport,
+        Http429BackoffPolicy(5.0, 3),
+        "a@b.com",
+        "s",
+        {"x": 1},
+        "f.json",
+        sleep=sleeps.append,
     )
     assert result.sent is True
     assert calls["n"] == 2
@@ -143,7 +170,14 @@ def test_send_match_report_exhausts_retries_on_persistent_429(tmp_path):
 
     sleeps = []
     result = send_match_report(
-        gk, always_429, Http429BackoffPolicy(5.0, 2), "a@b.com", "s", {"x": 1}, "f.json", sleep=sleeps.append
+        gk,
+        always_429,
+        Http429BackoffPolicy(5.0, 2),
+        "a@b.com",
+        "s",
+        {"x": 1},
+        "f.json",
+        sleep=sleeps.append,
     )
     assert result.sent is False
     assert calls["n"] == 3  # 1 initial + 2 retries
@@ -160,7 +194,14 @@ def test_send_match_report_stops_immediately_on_a_non_429_hard_failure(tmp_path)
         raise GmailSendError("invalid credentials")
 
     result = send_match_report(
-        gk, hard_fail, Http429BackoffPolicy(5.0, 3), "a@b.com", "s", {"x": 1}, "f.json", sleep=lambda s: None
+        gk,
+        hard_fail,
+        Http429BackoffPolicy(5.0, 3),
+        "a@b.com",
+        "s",
+        {"x": 1},
+        "f.json",
+        sleep=lambda s: None,
     )
     assert result.sent is False
     assert calls["n"] == 1  # never retried a non-429 failure

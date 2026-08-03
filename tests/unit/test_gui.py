@@ -104,7 +104,11 @@ def test_live_gui_draws_an_agent_marker_with_the_role_label(root):
     vm = build_live_view_model(Position(2, 2), belief, board, TurnState.YOUR_TURN, role_label="C")
     gui = LiveGUI(root, grid_size=7)
     gui.render(vm)
-    texts = [gui.canvas.itemcget(item, "text") for item in gui.canvas.find_all() if gui.canvas.type(item) == "text"]
+    texts = [
+        gui.canvas.itemcget(item, "text")
+        for item in gui.canvas.find_all()
+        if gui.canvas.type(item) == "text"
+    ]
     assert "C" in texts
 
 
@@ -120,7 +124,9 @@ def test_live_gui_draws_a_trail_dot_for_each_visited_cell_except_the_current_one
 
 def test_live_gui_clears_previous_markers_on_re_render_rather_than_accumulating(root):
     board, belief = _belief_peaked_at(7, Position(5, 5))
-    vm = build_live_view_model(Position(2, 2), belief, board, TurnState.YOUR_TURN, visited=frozenset({Position(0, 0)}))
+    vm = build_live_view_model(
+        Position(2, 2), belief, board, TurnState.YOUR_TURN, visited=frozenset({Position(0, 0)})
+    )
     gui = LiveGUI(root, grid_size=7)
     gui.render(vm)
     first_count = len(gui.canvas._marker_ids)
@@ -132,7 +138,9 @@ def _make_entries(n: int) -> list[LogEntry]:
     entries = []
     for i in range(n):
         c = commit(state={"turn": i}, move="N", intent=True)
-        entries.append(LogEntry(state={"turn": i}, move="N", intent=True, nonce=c.nonce, h_commit=c.h_commit))
+        entries.append(
+            LogEntry(state={"turn": i}, move="N", intent=True, nonce=c.nonce, h_commit=c.h_commit)
+        )
     return entries
 
 
@@ -196,7 +204,13 @@ def _make_positional_entries(coords: list[tuple[int, int]]) -> list[LogEntry]:
     for row, col in coords:
         c = commit(state={"row": row, "col": col}, move="N", intent=True)
         entries.append(
-            LogEntry(state={"row": row, "col": col}, move="N", intent=True, nonce=c.nonce, h_commit=c.h_commit)
+            LogEntry(
+                state={"row": row, "col": col},
+                move="N",
+                intent=True,
+                nonce=c.nonce,
+                h_commit=c.h_commit,
+            )
         )
     return entries
 

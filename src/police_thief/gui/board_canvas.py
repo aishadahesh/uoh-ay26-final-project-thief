@@ -31,7 +31,9 @@ class BoardCanvas(tk.Canvas):
         self.grid_size = grid_size
         self.cell_size = cell_size
         side = grid_size * cell_size
-        super().__init__(master, width=side, height=side, highlightthickness=1, highlightbackground="#888888")
+        super().__init__(
+            master, width=side, height=side, highlightthickness=1, highlightbackground="#888888"
+        )
         self.configure(cursor="crosshair", background="#0d1b2d", takefocus=True)
         self._rects: dict[tuple[int, int], int] = {}
         self._marker_ids: list[int] = []
@@ -113,21 +115,35 @@ class BoardCanvas(tk.Canvas):
         x0, y0 = col * self.cell_size, row * self.cell_size
         inset = self.cell_size * 0.36
         marker = self.create_oval(
-            x0 + inset, y0 + inset, x0 + self.cell_size - inset, y0 + self.cell_size - inset,
-            fill=color, outline="",
+            x0 + inset,
+            y0 + inset,
+            x0 + self.cell_size - inset,
+            y0 + self.cell_size - inset,
+            fill=color,
+            outline="",
         )
         self._marker_ids.append(marker)
 
-    def draw_agent(self, row: int, col: int, label: str, fill: str, outline: str = "#000000") -> None:
+    def draw_agent(
+        self, row: int, col: int, label: str, fill: str, outline: str = "#000000"
+    ) -> None:
         """A prominent circular marker with a short text label (a role initial)."""
         x0, y0 = col * self.cell_size, row * self.cell_size
         inset = max(4, self.cell_size * 0.12)
         oval = self.create_oval(
-            x0 + inset, y0 + inset, x0 + self.cell_size - inset, y0 + self.cell_size - inset,
-            fill=fill, outline=outline, width=2,
+            x0 + inset,
+            y0 + inset,
+            x0 + self.cell_size - inset,
+            y0 + self.cell_size - inset,
+            fill=fill,
+            outline=outline,
+            width=2,
         )
         text = self.create_text(
-            x0 + self.cell_size / 2, y0 + self.cell_size / 2, text=label,
-            fill="white", font=("Segoe UI", max(11, self.cell_size // 3), "bold"),
+            x0 + self.cell_size / 2,
+            y0 + self.cell_size / 2,
+            text=label,
+            fill="white",
+            font=("Segoe UI", max(11, self.cell_size // 3), "bold"),
         )
         self._marker_ids.extend([oval, text])

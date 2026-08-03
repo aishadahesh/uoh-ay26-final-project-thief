@@ -17,7 +17,10 @@ class PeerClientError(RuntimeError):
 
 
 async def send_move_async(
-    opponent_url: str, signed_move: str, signature: str, timeout: float,
+    opponent_url: str,
+    signed_move: str,
+    signature: str,
+    timeout: float,
 ) -> dict:
     """Compatibility wrapper that transports an old envelope via receive_turn.
 
@@ -37,15 +40,21 @@ async def send_move_async(
 
 
 def send_move(
-    opponent_url: str, signed_move: str, signature: str, timeout: float = 10.0,
+    opponent_url: str,
+    signed_move: str,
+    signature: str,
+    timeout: float = 10.0,
 ) -> dict:
     return asyncio.run(send_move_async(opponent_url, signed_move, signature, timeout))
 
 
 class McpPeerTransport:
     def __init__(
-        self, opponent_url: str, inboxes: PeerInboxes,
-        connect_timeout: float = 30.0, retry_interval: float = 1.0,
+        self,
+        opponent_url: str,
+        inboxes: PeerInboxes,
+        connect_timeout: float = 30.0,
+        retry_interval: float = 1.0,
     ) -> None:
         self.opponent_url = opponent_url
         self.inboxes = inboxes

@@ -58,6 +58,7 @@ from police_thief.domain.scent import ScentConfig, ScentField
 from police_thief.domain.simulation import run_local_match
 from police_thief.gui.live_gui import LiveGUI
 from police_thief.gui.replay_gui import ReplayGUI
+from police_thief.services.doctor import render_text, run_doctor, save_json_report
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
 from police_thief.shared.config import load_network_config
 from police_thief.shared.constants import AgentRole
@@ -90,6 +91,16 @@ def _add_peer_command(subparsers: argparse._SubParsersAction, name: str, help_te
         ),
     )
     command.add_argument("--config-root", type=Path, default=DEFAULT_CONFIG_ROOT)
+    command.add_argument(
+        "--smoke-test",
+        action="store_true",
+        help="Label this peer as a deterministic NON-COUNTED cross-machine smoke peer.",
+    )
+    command.add_argument(
+        "--non-counted",
+        action="store_true",
+        help="Require non-counted mode for smoke testing; official shared num_games is unchanged.",
+    )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -118,11 +129,25 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     subparsers.add_parser("play", help="Open the interactive, mode-selectable play window")
 
+    doctor = subparsers.add_parser(
+        "doctor", help="Run non-destructive cross-machine readiness checks"
+    )
+    doctor.add_argument("--role", default=AgentRole.THIEF.value, choices=sorted(ROLE_ALIASES))
+    doctor.add_argument("--config-root", type=Path, default=DEFAULT_CONFIG_ROOT)
+    doctor.add_argument("--game-config", type=Path, default=DEFAULT_GAME_CONFIG)
+    doctor.add_argument("--offline", action="store_true")
+    doctor.add_argument("--check-opponent", action="store_true")
+    doctor.add_argument("--json-output", type=Path)
+
     return parser.parse_args(argv)
 
 
 def _serve(args: argparse.Namespace) -> None:
     role = _coerce_role(args.role)
+    if args.smoke_test and not args.non_counted:
+        raise SystemExit(
+            "--smoke-test requires --non-counted so it cannot be mistaken for a league result"
+        )
     if role is AgentRole.COP:
         print(
             "NOTE: 'police'/'cop' is not a supported submission role in this "
@@ -131,9 +156,31 @@ def _serve(args: argparse.Namespace) -> None:
             "sibling cop repository (see README.md).",
             file=sys.stderr,
         )
+    if args.smoke_test:
+        print(
+            "NON-COUNTED TEST: deterministic peer server only; do not submit this as a counted result.",
+            file=sys.stderr,
+        )
     network = load_network_config(role, args.config_root)
     mcp = build_peer_server(role.value, PeerInboxes())
     run_peer_server(mcp, host="0.0.0.0", port=network.my_port)
+
+
+def _doctor(args: argparse.Namespace) -> None:
+    role = _coerce_role(args.role)
+    repo_root = DEFAULT_CONFIG_ROOT.parent
+    report = run_doctor(
+        role=role,
+        config_root=args.config_root,
+        game_config=args.game_config,
+        repo_root=repo_root,
+        offline=args.offline,
+        check_opponent=args.check_opponent,
+    )
+    if args.json_output:
+        save_json_report(report, args.json_output)
+    print(render_text(report))
+    raise SystemExit(report.exit_code)
 
 
 def _simulate(args: argparse.Namespace) -> None:
@@ -193,7 +240,9 @@ def _demo(args: argparse.Namespace) -> None:
         belief[AgentRole.COP].update_from_scent(scent[AgentRole.THIEF])
 
         cop_guess = belief[AgentRole.COP].arg_max()
-        cop_pos = board.apply_move(cop_pos, greedy_manhattan_move(board, cop_pos, cop_guess, chase=True))
+        cop_pos = board.apply_move(
+            cop_pos, greedy_manhattan_move(board, cop_pos, cop_guess, chase=True)
+        )
         scent[AgentRole.COP].decay()
         scent[AgentRole.COP].emit(cop_pos)
         belief[AgentRole.THIEF].update_from_scent(scent[AgentRole.COP])
@@ -266,14 +315,15 @@ def _play(args: argparse.Namespace) -> None:
                 current_app.close()
             root.deiconify()
             current_app = NetworkMatchApp(
-                root, settings, gemini_advisor, on_new_game=select_and_start,
+                root,
+                settings,
+                gemini_advisor,
+                on_new_game=select_and_start,
             )
             current_app.start()
             return True
 
-        has_agent = any(
-            controller_for(mode, role) is PlayerType.AGENT for role in AgentRole
-        )
+        has_agent = any(controller_for(mode, role) is PlayerType.AGENT for role in AgentRole)
         gemini_advisor = None
         if has_agent:
             try:
@@ -318,6 +368,8 @@ def main(argv: list[str] | None = None) -> None:
         _demo(args)
     elif args.command == "play":
         _play(args)
+    elif args.command == "doctor":
+        _doctor(args)
 
 
 if __name__ == "__main__":

@@ -98,8 +98,16 @@ def test_audit_log_passes_on_a_fully_untampered_log():
 def test_audit_log_catches_the_first_tampered_entry_and_reports_its_index():
     good = commit({"turn": 0}, "N", True)
     entries = [
-        LogEntry(state={"turn": 0}, move="N", intent=True, nonce=good.nonce, h_commit=good.h_commit),
-        LogEntry(state={"turn": 1}, move="TAMPERED", intent=True, nonce=good.nonce, h_commit=good.h_commit),
+        LogEntry(
+            state={"turn": 0}, move="N", intent=True, nonce=good.nonce, h_commit=good.h_commit
+        ),
+        LogEntry(
+            state={"turn": 1},
+            move="TAMPERED",
+            intent=True,
+            nonce=good.nonce,
+            h_commit=good.h_commit,
+        ),
     ]
     result = audit_log(entries)
     assert result.verified is False
@@ -172,7 +180,9 @@ def test_multi_turn_log_audit_catches_a_post_hoc_tampering_attempt():
         state = {"turn": turn, "cop": [0, turn], "thief": [6, 6 - turn]}
         move = "E"
         c = commit(state, move, intent=True)
-        entries.append(LogEntry(state=state, move=move, intent=True, nonce=c.nonce, h_commit=c.h_commit))
+        entries.append(
+            LogEntry(state=state, move=move, intent=True, nonce=c.nonce, h_commit=c.h_commit)
+        )
 
     assert audit_log(entries).verified is True
 

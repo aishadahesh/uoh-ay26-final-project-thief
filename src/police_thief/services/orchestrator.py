@@ -98,7 +98,9 @@ class Orchestrator:
             )
             self.state_machine.transition(MatchState.WAITING_FOR_OPPONENT)
             self.watchdog.heartbeat()
-            return TurnResult(state=self.state_machine.state, move=move, h_commit=commitment.h_commit)
+            return TurnResult(
+                state=self.state_machine.state, move=move, h_commit=commitment.h_commit
+            )
         except (DeadlineExceededError, PeerClientError, TechnicalLossError):
             self.state_machine.transition(MatchState.TECHNICAL_LOSS)
             return TurnResult(state=self.state_machine.state, move=None, h_commit=None)

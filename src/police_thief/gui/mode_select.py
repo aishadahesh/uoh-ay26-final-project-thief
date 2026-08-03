@@ -43,11 +43,15 @@ class ModeSelectDialog:
         shell.pack(fill="both", expand=True)
         ttk.Label(shell, text="SHADOWGRID", style="Title.TLabel").pack(anchor="w")
         ttk.Label(
-            shell, text="POLICE / THIEF  •  DECENTRALIZED TACTICAL LAB",
+            shell,
+            text="POLICE / THIEF  •  DECENTRALIZED TACTICAL LAB",
             style="Subtitle.TLabel",
         ).pack(anchor="w", pady=(0, 22))
         tk.Label(
-            shell, text="SELECT MISSION PROFILE", bg=COLORS["bg"], fg=COLORS["accent"],
+            shell,
+            text="SELECT MISSION PROFILE",
+            bg=COLORS["bg"],
+            fg=COLORS["accent"],
             font=(FONT, 10, "bold"),
         ).pack(anchor="w", pady=(0, 10))
 
@@ -57,11 +61,15 @@ class ModeSelectDialog:
         footer = ttk.Frame(shell, style="App.TFrame")
         footer.pack(fill="x", pady=(22, 0))
         ttk.Label(
-            footer, text="ENTER  Start mission     ↑/↓  Review modes",
+            footer,
+            text="ENTER  Start mission     ↑/↓  Review modes",
             style="Subtitle.TLabel",
         ).pack(side="left")
         self.start_button = ttk.Button(
-            footer, text="LAUNCH MISSION  →", style="Accent.TButton", command=self._on_start,
+            footer,
+            text="LAUNCH MISSION  →",
+            style="Accent.TButton",
+            command=self._on_start,
         )
         self.start_button.pack(side="right")
 
@@ -83,7 +91,10 @@ class ModeSelectDialog:
         heading = tk.Label(frame, text=label, anchor="w", font=(FONT, 11, "bold"))
         heading.pack(fill="x")
         copy = tk.Label(
-            frame, text=f"{tag}  •  {description}", anchor="w", font=(FONT, 9),
+            frame,
+            text=f"{tag}  •  {description}",
+            anchor="w",
+            font=(FONT, 9),
         )
         copy.pack(fill="x", pady=(4, 0))
         for widget in (frame, heading, copy):

@@ -60,7 +60,11 @@ def load_network_defaults(path: Path, project_root: Path) -> dict:
 def validate_mcp_url(value: str) -> str:
     url = value.strip().rstrip("/")
     parsed = urlparse(url)
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc or not parsed.path.endswith("/mcp"):
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.netloc
+        or not parsed.path.endswith("/mcp")
+    ):
         raise ValueError("URL must be http(s) and end with /mcp")
     return url
 
@@ -88,11 +92,15 @@ class NetworkSetupDialog:
         self.vars = {
             "role": tk.StringVar(value=defaults.get("role", "thief")),
             "port": tk.StringVar(value=defaults.get("port", "8802")),
-            "opponent": tk.StringVar(value=defaults.get("opponent", "https://opponent.example/mcp")),
+            "opponent": tk.StringVar(
+                value=defaults.get("opponent", "https://opponent.example/mcp")
+            ),
             "public": tk.StringVar(value=defaults.get("public", "https://your-tunnel.example/mcp")),
             "game": tk.StringVar(value=defaults.get("game", "G001")),
             "subgame": tk.StringVar(value=defaults.get("subgame", "1")),
-            "output": tk.StringVar(value=defaults.get("output", str(project_root / "results" / "network"))),
+            "output": tk.StringVar(
+                value=defaults.get("output", str(project_root / "results" / "network"))
+            ),
             "team1_name": tk.StringVar(value=defaults.get("team1_name", "")),
             "team1_member1": tk.StringVar(value=defaults.get("team1_member1", "")),
             "team1_member2": tk.StringVar(value=defaults.get("team1_member2", "")),
@@ -112,7 +120,10 @@ class NetworkSetupDialog:
         viewport = tk.Frame(self.window, bg=COLORS["bg"])
         viewport.pack(fill="both", expand=True)
         canvas = tk.Canvas(
-            viewport, bg=COLORS["bg"], highlightthickness=0, borderwidth=0,
+            viewport,
+            bg=COLORS["bg"],
+            highlightthickness=0,
+            borderwidth=0,
         )
         scrollbar = ttk.Scrollbar(viewport, orient="vertical", command=canvas.yview)
         canvas.configure(yscrollcommand=scrollbar.set)
@@ -135,7 +146,9 @@ class NetworkSetupDialog:
         self.window.bind_all("<MouseWheel>", scroll)
         self.window.protocol("WM_DELETE_WINDOW", self._close)
         ttk.Label(shell, text="NETWORK MATCH", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(shell, text="TWO COMPUTERS  •  FASTMCP  •  SIGNED MOVES", style="Subtitle.TLabel").pack(anchor="w", pady=(0, 18))
+        ttk.Label(
+            shell, text="TWO COMPUTERS  •  FASTMCP  •  SIGNED MOVES", style="Subtitle.TLabel"
+        ).pack(anchor="w", pady=(0, 18))
         self._fixed_row(shell, "This computer's role", "role")
         self._row(shell, "Local MCP port", "port")
         self._row(shell, "Opponent public URL (must end /mcp)", "opponent")
@@ -152,24 +165,38 @@ class NetworkSetupDialog:
         self._row(shell, "Team 2 - member 1", "team2_member1")
         self._row(shell, "Team 2 - member 2", "team2_member2")
         self._row(
-            shell, "Team 2 Cop / Thief repository URLs", "opponent_cop",
+            shell,
+            "Team 2 Cop / Thief repository URLs",
+            "opponent_cop",
             second_key="opponent_thief",
         )
         self._row(shell, "Shared match secret (same on both computers)", "secret", secret=True)
         self._row(shell, "JSON output directory", "output")
         tk.Checkbutton(
-            shell, text="Automatically email result JSON after mutual match completion",
-            variable=self.vars["email"], bg=COLORS["bg"], fg=COLORS["text"],
-            selectcolor=COLORS["surface_alt"], activebackground=COLORS["bg"],
-            activeforeground=COLORS["text"], font=(FONT, 9), command=self._toggle_email,
+            shell,
+            text="Automatically email result JSON after mutual match completion",
+            variable=self.vars["email"],
+            bg=COLORS["bg"],
+            fg=COLORS["text"],
+            selectcolor=COLORS["surface_alt"],
+            activebackground=COLORS["bg"],
+            activeforeground=COLORS["text"],
+            font=(FONT, 9),
+            command=self._toggle_email,
         ).pack(anchor="w", pady=12)
         ttk.Label(shell, text="Result email recipient", style="Subtitle.TLabel").pack(
-            anchor="w", pady=(0, 3),
+            anchor="w",
+            pady=(0, 3),
         )
         self.email_entry = tk.Entry(
-            shell, textvariable=self.vars["email_recipient"], bg=COLORS["surface_alt"],
-            fg=COLORS["text"], insertbackground=COLORS["text"], relief="flat",
-            font=(FONT, 10), disabledbackground=COLORS["surface"],
+            shell,
+            textvariable=self.vars["email_recipient"],
+            bg=COLORS["surface_alt"],
+            fg=COLORS["text"],
+            insertbackground=COLORS["text"],
+            relief="flat",
+            font=(FONT, 10),
+            disabledbackground=COLORS["surface"],
             disabledforeground=COLORS["muted"],
         )
         self.email_entry.pack(fill="x", ipady=5)
@@ -177,12 +204,21 @@ class NetworkSetupDialog:
         tk.Label(
             shell,
             text="Run an ngrok/Localtonet tunnel to the local port. Give your public /mcp URL to the opponent, and paste their URL above.",
-            bg=COLORS["surface"], fg=COLORS["muted"], wraplength=650, justify="left", padx=14, pady=12,
+            bg=COLORS["surface"],
+            fg=COLORS["muted"],
+            wraplength=650,
+            justify="left",
+            padx=14,
+            pady=12,
         ).pack(fill="x", pady=(6, 18))
         buttons = ttk.Frame(shell, style="App.TFrame")
         buttons.pack(fill="x")
-        ttk.Button(buttons, text="CANCEL", style="Secondary.TButton", command=self._close).pack(side="left")
-        self.start_button = ttk.Button(buttons, text="START NETWORK PEER →", style="Accent.TButton", command=self._start)
+        ttk.Button(buttons, text="CANCEL", style="Secondary.TButton", command=self._close).pack(
+            side="left"
+        )
+        self.start_button = ttk.Button(
+            buttons, text="START NETWORK PEER →", style="Accent.TButton", command=self._start
+        )
         self.start_button.pack(side="right")
         self.window.update_idletasks()
         self.window.deiconify()
@@ -202,24 +238,41 @@ class NetworkSetupDialog:
     def _fixed_row(self, parent, label: str, key: str) -> None:
         ttk.Label(parent, text=label, style="Subtitle.TLabel").pack(anchor="w", pady=(8, 3))
         tk.Entry(
-            parent, textvariable=self.vars[key], bg=COLORS["surface"],
-            fg=COLORS["muted"], disabledbackground=COLORS["surface"],
-            disabledforeground=COLORS["muted"], relief="flat", font=(FONT, 10),
+            parent,
+            textvariable=self.vars[key],
+            bg=COLORS["surface"],
+            fg=COLORS["muted"],
+            disabledbackground=COLORS["surface"],
+            disabledforeground=COLORS["muted"],
+            relief="flat",
+            font=(FONT, 10),
             state="disabled",
         ).pack(fill="x", ipady=5)
 
     def _row(
-        self, parent, label: str, key: str, choices: tuple[str, ...] = (),
-        second_key: str | None = None, secret: bool = False,
+        self,
+        parent,
+        label: str,
+        key: str,
+        choices: tuple[str, ...] = (),
+        second_key: str | None = None,
+        secret: bool = False,
     ) -> None:
         ttk.Label(parent, text=label, style="Subtitle.TLabel").pack(anchor="w", pady=(8, 3))
         if choices:
-            widget = ttk.Combobox(parent, textvariable=self.vars[key], values=choices, state="readonly")
+            widget = ttk.Combobox(
+                parent, textvariable=self.vars[key], values=choices, state="readonly"
+            )
         else:
             widget = tk.Entry(
-                parent, textvariable=self.vars[key], bg=COLORS["surface_alt"],
-                fg=COLORS["text"], insertbackground=COLORS["text"], relief="flat",
-                font=(FONT, 10), show="*" if secret else "",
+                parent,
+                textvariable=self.vars[key],
+                bg=COLORS["surface_alt"],
+                fg=COLORS["text"],
+                insertbackground=COLORS["text"],
+                relief="flat",
+                font=(FONT, 10),
+                show="*" if secret else "",
             )
         if second_key is None:
             widget.pack(fill="x", ipady=5)
@@ -228,15 +281,24 @@ class NetworkSetupDialog:
         row.pack(fill="x")
         widget.pack(in_=row, side="left", fill="x", expand=True, ipady=5, padx=(0, 5))
         tk.Entry(
-            row, textvariable=self.vars[second_key], bg=COLORS["surface_alt"],
-            fg=COLORS["text"], insertbackground=COLORS["text"], relief="flat", font=(FONT, 10),
+            row,
+            textvariable=self.vars[second_key],
+            bg=COLORS["surface_alt"],
+            fg=COLORS["text"],
+            insertbackground=COLORS["text"],
+            relief="flat",
+            font=(FONT, 10),
         ).pack(side="left", fill="x", expand=True, ipady=5, padx=(5, 0))
 
     @staticmethod
     def _section_label(parent, text: str) -> None:
         tk.Label(
-            parent, text=text, bg=COLORS["bg"], fg=COLORS["accent"],
-            font=(FONT, 10, "bold"), anchor="w",
+            parent,
+            text=text,
+            bg=COLORS["bg"],
+            fg=COLORS["accent"],
+            font=(FONT, 10, "bold"),
+            anchor="w",
         ).pack(fill="x", pady=(18, 0))
 
     def _start(self) -> None:
@@ -252,13 +314,23 @@ class NetworkSetupDialog:
                 raise ValueError("game ID is required")
             subgame = int(self.vars["subgame"].get())
             required = (
-                "team1_name", "team1_member1", "team1_member2", "team2_name",
-                "team2_member1", "team2_member2", "own_cop", "own_thief",
-                "opponent_cop", "opponent_thief", "secret",
+                "team1_name",
+                "team1_member1",
+                "team1_member2",
+                "team2_name",
+                "team2_member1",
+                "team2_member2",
+                "own_cop",
+                "own_thief",
+                "opponent_cop",
+                "opponent_thief",
+                "secret",
             )
             missing = [key for key in required if not self.vars[key].get().strip()]
             if missing:
-                raise ValueError("team identity, all four repository URLs, and shared secret are required")
+                raise ValueError(
+                    "team identity, all four repository URLs, and shared secret are required"
+                )
             recipient = self.vars["email_recipient"].get().strip()
             if self.vars["email"].get() and (
                 "@" not in recipient or recipient.startswith("@") or recipient.endswith("@")
@@ -268,8 +340,12 @@ class NetworkSetupDialog:
             messagebox.showerror("Invalid network setup", str(exc), parent=self.window)
             return
         self.result = NetworkMatchSettings(
-            role=role, local_port=port, opponent_url=opponent, public_url=public,
-            game_id=game_id, sub_game_number=subgame,
+            role=role,
+            local_port=port,
+            opponent_url=opponent,
+            public_url=public,
+            game_id=game_id,
+            sub_game_number=subgame,
             shared_config=self.project_root / "config" / "game.json",
             output_dir=Path(self.vars["output"].get()),
             team_name=self.vars["team1_name"].get().strip(),

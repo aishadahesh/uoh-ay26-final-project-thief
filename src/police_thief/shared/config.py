@@ -70,10 +70,9 @@ def load_network_config(role: AgentRole, config_root: Path) -> NetworkConfig:
 
 
 def _is_thief_submission_config(config_root: Path) -> bool:
-    return (
-        (config_root / "game.toml").is_file()
-        and (config_root / AgentRole.THIEF.value / "game.toml").is_file()
-    )
+    return (config_root / "game.toml").is_file() and (
+        config_root / AgentRole.THIEF.value / "game.toml"
+    ).is_file()
 
 
 def _load_toml(role: AgentRole, config_root: Path) -> dict:

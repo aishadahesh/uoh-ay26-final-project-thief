@@ -141,3 +141,10 @@ class Board:
             raise MoveRejectedError(f"barrier target {target} is already blocked")
         self._blocked.add(target)
         self._barriers_placed += 1
+
+    def apply_declared_barrier(self, target: Position) -> None:
+        """Apply the cop peer's public real-time barrier declaration locally."""
+        if self.is_blocked(target):
+            return
+        self._blocked.add(target)
+        self._barriers_placed += 1

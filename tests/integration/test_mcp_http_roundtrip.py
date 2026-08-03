@@ -5,11 +5,13 @@ test binds an actual TCP port and calls it over real HTTP -- exercising the
 same code path main.py uses in production (docs/tasks.md Chapter 2).
 """
 
+import asyncio
 import socket
 import threading
 import time
 
 import pytest
+from fastmcp import Client
 
 from police_thief.services.mcp_client import send_move
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
@@ -40,6 +42,22 @@ def test_real_http_roundtrip_accepts_well_formed_move(running_server):
     result = send_move(url, signed_move="N", signature="abc123")
     assert result == {"accepted": True, "ok": True}
     assert inboxes.turns.get_nowait() == {"signed_move": "N", "signature": "abc123"}
+
+
+def test_real_http_retry_is_acknowledged_without_duplicate_delivery(running_server):
+    url, inboxes = running_server
+    payload = {"sender": "police", "step": 7, "commit": "a" * 64}
+
+    async def exercise() -> None:
+        async with Client(url) as client:
+            first = await client.call_tool("receive_turn", {"message": payload})
+            retry = await client.call_tool("receive_turn", {"message": payload})
+        assert first.data == {"ok": True}
+        assert retry.data == {"ok": True, "duplicate": True}
+
+    asyncio.run(exercise())
+    assert inboxes.turns.get_nowait() == payload
+    assert inboxes.turns.empty()
 
 
 def test_real_http_server_exposes_no_legacy_receive_move_tool(running_server):

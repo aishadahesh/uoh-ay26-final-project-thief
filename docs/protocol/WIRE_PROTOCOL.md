@@ -4,52 +4,74 @@ Protocol name: `police-thief-mcp`
 
 Protocol version: `3.0.0`
 
-Canonical JSON hash procedure: JSON is serialized with sorted keys, UTF-8, and compact separators before SHA-256 hashing. The shared config fingerprint is SHA-256 over canonical `config/game.json`.
+Each peer exposes exactly four FastMCP tools:
 
-## Prematch Handshake
+- `negotiate(message)`
+- `receive_turn(message)`
+- `submit_audit(payload)`
+- `receive_control(message)`
 
-Each peer sends:
+## Prematch negotiation
+
+`negotiate` receives `{terms, nonce, signature, identity}`. The signature is
+SHA-256 over canonical JSON terms plus the nonce. The runtime terms object is
+kept character-for-character compatible with the lecturer reference:
 
 ```json
 {
-  "terms": {
-    "protocol_name": "police-thief-mcp",
-    "protocol_version": "3.0.0",
-    "schema_version": "1.00",
-    "match_id": "MATCH-FAKE-001",
-    "series_id": "SERIES-FAKE-001",
-    "game_index": 1,
-    "counted": false,
-    "smoke_test": true,
-    "config_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "shared_config_schema_version": "1.00",
-    "num_games_declared": 6,
-    "previous_counted_games": 0,
-    "response_timeout_sec": 30,
-    "watchdog_timeout_sec": 60,
-    "capabilities": ["commit_reveal_sha256", "canonical_json", "non_counted_smoke"]
-  },
-  "nonce": "fake-nonce",
-  "signature": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-  "identity": {
-    "group_id": "fake-team",
-    "group_name": "Fake Team",
-    "role": "thief",
-    "software_version": "1.00",
-    "git_commit_hash": "cccccccccccccccccccccccccccccccccccccccc",
-    "protocol": {"name": "police-thief-mcp", "version": "3.0.0"},
-    "step0_hardware": {"os_name": "Windows", "cpu_count": 8, "ram_gb": 16, "gpu_present": false, "llm_model": "template"}
-  }
+  "board_size": 7,
+  "smell_grid_size": 5,
+  "decay_per_step": 0.1,
+  "emit_intensity": 0.9,
+  "min_center_intensity": 0.5,
+  "max_steps": 35,
+  "barriers_max": 14,
+  "setting": "New York",
+  "hint_max_words": 15,
+  "axis_origin_corner": "top-left",
+  "axis_start_index": 0,
+  "thief_start": [3, 3],
+  "cop_start": [0, 0],
+  "num_games": 6
 }
 ```
 
-Reject on config hash mismatch, schema/protocol mismatch, equal roles, match or series mismatch, counted/smoke mismatch, missing mandatory fields, or invalid capabilities.
+Do not add local fields such as `series_id`, `counted`, `config_sha256`, or
+`capabilities` to the signed terms: equality is exact, so extensions make a
+reference-compatible opponent reject negotiation. Team identity and repository
+links belong in `identity`, not in public game terms.
 
-## Turn Message
+## Turn message
 
-Outgoing turn messages use canonical fields: `protocol_version`, `match_id`, `series_id`, `message_id`, `correlation_id`, `sender`, `receiver`, `step`, `phase`, `message_type`, `commit`, `hint`, `smell_grid`, optional `barrier_placed`, optional `capture_claim`, optional `claim_response`, and optional `win_claim`.
+`receive_turn` gets the exact public shape below. Optional fields are present
+with `null` when unused:
 
-Legacy parsers may accept older turn messages that omit match metadata, but outgoing messages must include it.
+```json
+{
+  "step": 1,
+  "sender": "thief",
+  "hint": "bounded public hint",
+  "smell_grid": {},
+  "commit": "64-character SHA-256 digest",
+  "timestamp": "2026-08-03T12:00:00+00:00",
+  "barrier_placed": null,
+  "capture_claim": null,
+  "claim_response": null,
+  "win_claim": null
+}
+```
 
-Protocol errors are reported structurally in tests through `NetworkProtocolError` and idempotency decisions: `wrong-match`, `wrong-series`, `wrong-role`, `wrong-receiver`, `wrong-phase`, `stale-turn`, `future-turn`, and `duplicate message_id`.
+Moves and private state stay sealed until audit. Cop barrier coordinates are
+public immediately. Step numbers are local to each peer and run from 1 through
+`max_steps`.
 
+## Audit and control
+
+`submit_audit` receives `{sender, records, result_claim}`. Records include one
+sealed Step-0 hardware/model declaration and every local turn nonce reveal.
+Both peers independently verify the commitments and outcome before setting
+`mutual_sign_off` to true.
+
+`receive_control` carries `enable`, `status`, `restart`, or `quit`. A six-game
+series renegotiates and resets state before every sub-game while keeping one
+long-lived MCP server per computer.

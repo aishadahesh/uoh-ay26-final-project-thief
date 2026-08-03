@@ -166,7 +166,7 @@ this file; those remain in `.env`, `credentials.json`, and `token.json`.
   plus all four repository URLs;
   they are recorded in the final result schema.
 
-For the lower-level `serve` command, the same opponent address belongs in
+For the lower-level `peer` command, the same opponent address belongs in
 `[network].opponent_url` inside the private role file
 `config/thief/game.toml`; a submission-facing copy of this thief private config
 also exists at `config/game.toml`, matching the rulebook's private-file name.
@@ -180,8 +180,14 @@ on both computers before `mutual_sign_off` becomes `true`. Each peer writes:
 declaration_<game_id>.json
 config_<game_id>_g<NN>.json
 log_<game_id>_g<NN>.json
+result_<game_id>_g<NN>.json
 result_<game_id>.json
 ```
+
+The numbered files are written for each of the six required sub-games;
+`result_<game_id>.json` is the aggregate series result. The peers renegotiate
+and reset their board/audit state before each sub-game, and their roles
+alternate automatically. This repository starts game 1 as thief.
 
 Enable **Automatically email result JSON** to send the final JSON-only report.
 The assignment address `rmisegal+uoh26finalgame@gmail.com` is pre-filled, but
@@ -190,36 +196,22 @@ Google OAuth `credentials.json` in the project root, and complete browser
 consent once; its reusable token is stored as `token.json`. Email is sent only
 after both computers agree on the result.
 
-**Run this peer as a real, standalone FastMCP process:**
+**Play the complete six-game series from the terminal** (no GUI):
 
 ```bash
-uv run python -m police_thief serve                # --role defaults to thief
-```
-
-**For local interop/protocol testing only**, you can also run a second process
-pretending to be the opponent on the same machine. The first form below is
-the exact PDF-compatible "How to Run" form:
-
-```bash
-# Terminal 1
-uv run python -m police_thief peer --role police    # local opponent peer only
-
-# Terminal 2
 uv run python -m police_thief peer --role thief
 ```
 
-The existing `serve` command remains supported as the same operation:
+Connection details come from `config/thief/game.toml`; match identity, both
+teams, repository links, shared secret, output, and email settings come from
+`config/network_match.json`. The sibling cop repository runs
+`uv run python -m police_thief peer --role police`. The two ports should be
+different on one computer; across different computers they may coincide, but
+each tunnel URL must point to the correct peer. The legacy `serve --role thief`
+alias performs the same full match operation.
 
-```bash
-uv run python -m police_thief serve --role cop
-uv run python -m police_thief serve --role thief
-```
-
-`--role police` / `--role cop` prints a one-line stderr notice every time,
-since it is never a submission-grade cop peer in this repo — only a local
-stand-in for the real cop process, which lives in the sibling repo. This repo
-does not track `config/cop/`; the local police smoke process uses built-in
-loopback defaults while the thief peer loads `config/thief/game.toml`.
+This submission repository should be launched with the thief role only; use
+the sibling cop repository for the police peer.
 
 **Replay a saved, cryptographically-sealed match log:**
 

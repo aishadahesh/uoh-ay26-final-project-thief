@@ -32,12 +32,18 @@ def _context() -> TacticalContext:
 
 def test_gemini_selects_a_supplied_legal_move_and_returns_its_reason():
     models = _FakeModels()
-    advisor = GeminiAgentAdvisor(client=SimpleNamespace(models=models), model="test-model")
+    advisor = GeminiAgentAdvisor(
+        client=SimpleNamespace(models=models),
+        model="test-model",
+        timeout_seconds=3,
+    )
     decision = advisor.choose_move(_context(), Move.STAY)
     assert decision.move is Move.EAST
     assert decision.rationale == "Closing on the strongest scent signal."
     assert decision.used_fallback is False
     assert models.calls[0]["model"] == "test-model"
+    assert models.calls[0]["config"]["max_output_tokens"] == 24
+    assert models.calls[0]["config"]["http_options"]["timeout"] == 3000
 
 
 def test_invalid_gemini_move_uses_the_validated_heuristic_fallback():
@@ -56,7 +62,25 @@ def test_provider_failure_uses_fallback_without_crashing_the_match():
     assert decision.used_fallback is True
     assert "TimeoutError" in decision.rationale
     assert "offline" in decision.rationale
+    assert "after 1 models" in decision.rationale
+
+
+def test_fallback_models_are_opt_in():
+    models = _FakeModels(error=TimeoutError("offline"))
+    advisor = GeminiAgentAdvisor(
+        client=SimpleNamespace(models=models),
+        model="test-model",
+        allow_fallback_models=True,
+    )
+    decision = advisor.choose_move(_context(), Move.STAY)
+    assert decision.move is Move.STAY
+    assert decision.used_fallback is True
     assert "after 3 models" in decision.rationale
+    assert [call["model"] for call in models.calls] == [
+        "test-model",
+        "gemini-flash-latest",
+        "gemini-2.5-flash",
+    ]
 
 
 def test_provider_error_redacts_api_keys(monkeypatch):

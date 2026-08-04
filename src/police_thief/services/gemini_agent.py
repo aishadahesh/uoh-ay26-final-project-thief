@@ -16,6 +16,8 @@ from police_thief.shared.constants import AgentRole
 
 DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
 _FALLBACK_MODELS = ("gemini-flash-latest", "gemini-2.5-flash")
+DEFAULT_GEMINI_TIMEOUT_SECONDS = 8.0
+DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 24
 
 
 class GeminiConfigurationError(RuntimeError):
@@ -48,9 +50,21 @@ class GeminiAgentAdvisor:
         *,
         api_key: str | None = None,
         model: str | None = None,
+        timeout_seconds: float | None = None,
+        allow_fallback_models: bool | None = None,
         client: Any | None = None,
     ) -> None:
         self.model = model or os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
+        self.timeout_seconds = (
+            timeout_seconds
+            if timeout_seconds is not None
+            else _float_env("GEMINI_TIMEOUT_SECONDS", DEFAULT_GEMINI_TIMEOUT_SECONDS)
+        )
+        self.allow_fallback_models = (
+            allow_fallback_models
+            if allow_fallback_models is not None
+            else _truthy_env("GEMINI_ENABLE_MODEL_FALLBACKS")
+        )
         if client is not None:
             self._client = client
             return
@@ -61,16 +75,28 @@ class GeminiAgentAdvisor:
             )
         from google import genai
 
-        self._client = genai.Client(api_key=key)
+        self._client = genai.Client(
+            api_key=key,
+            http_options={"timeout": int(self.timeout_seconds * 1000)},
+        )
 
     def choose_move(self, context: TacticalContext, fallback: Move) -> GeminiDecision:
         """Return Gemini's legal move, or the deterministic fallback on any failure."""
         prompt = self._prompt(context)
         last_error: Exception | None = None
-        candidates = dict.fromkeys((self.model, *_FALLBACK_MODELS))
+        models = (self.model, *_FALLBACK_MODELS) if self.allow_fallback_models else (self.model,)
+        candidates = dict.fromkeys(models)
         for model in candidates:
             try:
-                response = self._client.models.generate_content(model=model, contents=prompt)
+                response = self._client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config={
+                        "temperature": 0,
+                        "max_output_tokens": DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
+                        "http_options": {"timeout": int(self.timeout_seconds * 1000)},
+                    },
+                )
                 return self._parse_response(response.text or "", context.legal_moves, fallback)
             except Exception as exc:  # noqa: BLE001 - try next model before safe fallback
                 last_error = exc
@@ -135,3 +161,18 @@ class GeminiAgentAdvisor:
             else "Gemini selected this legal tactical move."
         )
         return GeminiDecision(move=selected, rationale=rationale[:180])
+
+
+def _float_env(name: str, default: float) -> float:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        parsed = float(value)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else default
+
+
+def _truthy_env(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}

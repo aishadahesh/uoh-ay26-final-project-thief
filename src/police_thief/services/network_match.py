@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import platform
+import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
 from pathlib import Path
@@ -300,6 +301,7 @@ class NetworkMatchRunner:
     def _choose_move(self, board, belief, own, fallback, step, max_steps, emit):
         if self.gemini_advisor is None:
             return fallback, "Deterministic local-truth move"
+        started = time.monotonic()
         decision = self.gemini_advisor.choose_move(
             TacticalContext(
                 role=self.settings.role,
@@ -312,8 +314,9 @@ class NetworkMatchRunner:
             ),
             fallback,
         )
+        elapsed = time.monotonic() - started
         source = "fallback" if decision.used_fallback else "Gemini"
-        emit(f"Step {step}: {source} - {decision.rationale}")
+        emit(f"Step {step}: {source} ({elapsed:.1f}s) - {decision.rationale}")
         return decision.move, decision.rationale
 
     def _maybe_place_barrier(

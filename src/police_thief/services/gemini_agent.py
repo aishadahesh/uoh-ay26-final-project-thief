@@ -14,10 +14,11 @@ from typing import Any
 from police_thief.domain.board import Move, Position
 from police_thief.shared.constants import AgentRole
 
-DEFAULT_GEMINI_MODEL = "gemini-3.6-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
 _FALLBACK_MODELS = ("gemini-flash-latest", "gemini-2.5-flash")
 DEFAULT_GEMINI_TIMEOUT_SECONDS = 8.0
-DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 24
+MIN_GEMINI_HTTP_TIMEOUT_SECONDS = 10.0
+DEFAULT_GEMINI_MAX_OUTPUT_TOKENS = 64
 
 
 class GeminiConfigurationError(RuntimeError):
@@ -60,6 +61,7 @@ class GeminiAgentAdvisor:
             if timeout_seconds is not None
             else _float_env("GEMINI_TIMEOUT_SECONDS", DEFAULT_GEMINI_TIMEOUT_SECONDS)
         )
+        self.http_timeout_seconds = max(self.timeout_seconds, MIN_GEMINI_HTTP_TIMEOUT_SECONDS)
         self.allow_fallback_models = (
             allow_fallback_models
             if allow_fallback_models is not None
@@ -77,7 +79,7 @@ class GeminiAgentAdvisor:
 
         self._client = genai.Client(
             api_key=key,
-            http_options={"timeout": int(self.timeout_seconds * 1000)},
+            http_options={"timeout": int(self.http_timeout_seconds * 1000)},
         )
 
     def choose_move(self, context: TacticalContext, fallback: Move) -> GeminiDecision:
@@ -94,7 +96,7 @@ class GeminiAgentAdvisor:
                     config={
                         "temperature": 0,
                         "max_output_tokens": DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
-                        "http_options": {"timeout": int(self.timeout_seconds * 1000)},
+                        "http_options": {"timeout": int(self.http_timeout_seconds * 1000)},
                     },
                 )
                 return self._parse_response(response.text or "", context.legal_moves, fallback)
@@ -128,7 +130,7 @@ class GeminiAgentAdvisor:
             if context.role is AgentRole.COP
             else "increase distance from the believed cop"
         )
-        legal = ", ".join(move.name for move in context.legal_moves)
+        legal = ", ".join(f"{move.name} ({move.value})" for move in context.legal_moves)
         return (
             "You are the tactical reasoning layer in a partially observable police-thief grid game. "
             "Opponent coordinates are unavailable; reason only from the belief map. "
@@ -141,14 +143,19 @@ class GeminiAgentAdvisor:
             f"Remaining barrier budget: {context.remaining_barriers}\n"
             f"Legal moves: {legal}\n"
             "Reply on one line only as MOVE|brief tactical reason. "
-            "MOVE must exactly match one legal move name."
+            "MOVE must exactly match one legal move name or code."
         )
 
     @staticmethod
     def _parse_response(text: str, legal_moves: tuple[Move, ...], fallback: Move) -> GeminiDecision:
         move_text, separator, reason = text.strip().partition("|")
-        legal_by_name = {move.name: move for move in legal_moves}
-        selected = legal_by_name.get(move_text.strip().upper())
+        cleaned = move_text.strip().upper()
+        for prefix in ("MOVE:", "MOVE=", "MOVE "):
+            if cleaned.startswith(prefix):
+                cleaned = cleaned.removeprefix(prefix).strip()
+        legal = {move.name: move for move in legal_moves}
+        legal.update({move.value: move for move in legal_moves})
+        selected = legal.get(cleaned)
         if selected is None:
             return GeminiDecision(
                 move=fallback,

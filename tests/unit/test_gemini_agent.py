@@ -42,8 +42,17 @@ def test_gemini_selects_a_supplied_legal_move_and_returns_its_reason():
     assert decision.rationale == "Closing on the strongest scent signal."
     assert decision.used_fallback is False
     assert models.calls[0]["model"] == "test-model"
-    assert models.calls[0]["config"]["max_output_tokens"] == 24
-    assert models.calls[0]["config"]["http_options"]["timeout"] == 3000
+    assert models.calls[0]["config"]["max_output_tokens"] == 64
+    assert models.calls[0]["config"]["http_options"]["timeout"] == 10000
+
+
+def test_gemini_accepts_move_codes_and_move_prefixes():
+    models = _FakeModels("MOVE: E|Shortest legal code.")
+    advisor = GeminiAgentAdvisor(client=SimpleNamespace(models=models))
+    decision = advisor.choose_move(_context(), Move.STAY)
+    assert decision.move is Move.EAST
+    assert decision.rationale == "Shortest legal code."
+    assert decision.used_fallback is False
 
 
 def test_invalid_gemini_move_uses_the_validated_heuristic_fallback():
@@ -93,5 +102,5 @@ def test_provider_error_redacts_api_keys(monkeypatch):
 def test_prompt_contains_local_belief_but_not_an_opponent_true_position():
     prompt = GeminiAgentAdvisor._prompt(_context())
     assert "Belief-map peak: (0, 6)" in prompt
-    assert "Legal moves: SOUTH, EAST, STAY" in prompt
+    assert "Legal moves: SOUTH (S), EAST (E), STAY (STAY)" in prompt
     assert "true position" not in prompt.lower()

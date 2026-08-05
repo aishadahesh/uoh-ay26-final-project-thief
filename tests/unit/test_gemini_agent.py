@@ -42,7 +42,7 @@ def test_gemini_selects_a_supplied_legal_move_and_returns_its_reason():
     assert decision.rationale == "Closing on the strongest scent signal."
     assert decision.used_fallback is False
     assert models.calls[0]["model"] == "test-model"
-    assert models.calls[0]["config"]["max_output_tokens"] == 64
+    assert models.calls[0]["config"]["max_output_tokens"] == 128
     assert models.calls[0]["config"]["http_options"]["timeout"] == 10000
 
 
@@ -71,7 +71,7 @@ def test_provider_failure_uses_fallback_without_crashing_the_match():
     assert decision.used_fallback is True
     assert "TimeoutError" in decision.rationale
     assert "offline" in decision.rationale
-    assert "after 1 models" in decision.rationale
+    assert "after 1 Gemini attempt(s)" in decision.rationale
 
 
 def test_fallback_models_are_opt_in():
@@ -84,7 +84,7 @@ def test_fallback_models_are_opt_in():
     decision = advisor.choose_move(_context(), Move.STAY)
     assert decision.move is Move.STAY
     assert decision.used_fallback is True
-    assert "after 3 models" in decision.rationale
+    assert "after 3 Gemini attempt(s)" in decision.rationale
     assert [call["model"] for call in models.calls] == [
         "test-model",
         "gemini-flash-latest",
@@ -101,6 +101,44 @@ def test_provider_error_redacts_api_keys(monkeypatch):
 
 def test_prompt_contains_local_belief_but_not_an_opponent_true_position():
     prompt = GeminiAgentAdvisor._prompt(_context())
-    assert "Belief-map peak: (0, 6)" in prompt
-    assert "Legal moves: SOUTH (S), EAST (E), STAY (STAY)" in prompt
+    assert "BELIEVED_OPPONENT=(0,6)" in prompt
+    assert "ALLOWED_ACTIONS=SOUTH [S]; EAST [E]; STAY [STAY]" in prompt
     assert "true position" not in prompt.lower()
+
+
+class _SequenceModels:
+    def __init__(self, texts):
+        self.texts = iter(texts)
+        self.calls = []
+
+    def generate_content(self, **kwargs):
+        self.calls.append(kwargs)
+        return SimpleNamespace(text=next(self.texts))
+
+
+def test_invalid_action_is_reprompted_and_corrected_before_fallback():
+    models = _SequenceModels(["NORTH|off board", '{"action":"EAST","reason":"legal repair"}'])
+    advisor = GeminiAgentAdvisor(client=SimpleNamespace(models=models))
+    decision = advisor.choose_move(_context(), Move.STAY)
+    assert decision.move is Move.EAST
+    assert decision.used_fallback is False
+    assert decision.attempts == 2
+    assert "NORTH" in decision.rejected[0]
+    assert "previous response was rejected" in models.calls[1]["contents"].lower()
+
+
+def test_json_and_common_direction_alias_are_strictly_mapped_to_legal_move():
+    models = _FakeModels('{"action":"RIGHT","reason":"open escape"}')
+    advisor = GeminiAgentAdvisor(client=SimpleNamespace(models=models))
+    decision = advisor.choose_move(_context(), Move.STAY)
+    assert decision.move is Move.EAST
+    assert decision.used_fallback is False
+
+
+def test_illegal_caller_fallback_is_repaired_to_a_legal_action():
+    models = _FakeModels("TELEPORT")
+    advisor = GeminiAgentAdvisor(client=SimpleNamespace(models=models))
+    decision = advisor.choose_move(_context(), Move.NORTH)
+    assert decision.move in _context().legal_moves
+    assert decision.move is Move.STAY
+    assert decision.used_fallback is True

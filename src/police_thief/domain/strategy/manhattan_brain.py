@@ -12,7 +12,11 @@ from __future__ import annotations
 
 from police_thief.domain.belief import BeliefMap
 from police_thief.domain.board import Board, Move, Position
-from police_thief.domain.heuristics import greedy_manhattan_move, manhattan_distance
+from police_thief.domain.heuristics import (
+    greedy_manhattan_move,
+    manhattan_distance,
+    strategic_thief_move,
+)
 from police_thief.domain.strategy.brain_base import BrainBase
 from police_thief.shared.constants import AgentRole
 
@@ -25,7 +29,9 @@ class ManhattanHeuristicBrain(BrainBase):
 
     def _decide_move(self, board: Board, own: Position, belief: BeliefMap) -> Move:
         target = belief.arg_max()
-        return greedy_manhattan_move(board, own, target, chase=self.role is AgentRole.COP)
+        if self.role is AgentRole.THIEF:
+            return strategic_thief_move(board, own, target)
+        return greedy_manhattan_move(board, own, target, chase=True)
 
     def _pick_move(self, board: Board, own: Position, belief: BeliefMap) -> Position | None:
         """Cop-only: barrier the neighbor closest to the believed target,

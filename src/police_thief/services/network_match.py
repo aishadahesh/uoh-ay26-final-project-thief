@@ -13,6 +13,7 @@ from threading import Event
 from police_thief.domain.belief import BeliefMap
 from police_thief.domain.board import Board, Position
 from police_thief.domain.capture import is_boxed_in
+from police_thief.domain.heuristics import thief_escape_score
 from police_thief.domain.hints import TemplateHintProvider
 from police_thief.domain.replay import save_log
 from police_thief.domain.scent import ScentField
@@ -302,12 +303,24 @@ class NetworkMatchRunner:
         if self.gemini_advisor is None:
             return fallback, "Deterministic local-truth move"
         started = time.monotonic()
+        legal_destinations = tuple(board.legal_moves(own).items())
+        threat = belief.arg_max()
+        scores = (
+            tuple(
+                (move, thief_escape_score(board, own, threat, move))
+                for move, _ in legal_destinations
+            )
+            if self.settings.role is AgentRole.THIEF
+            else ()
+        )
         decision = self.gemini_advisor.choose_move(
             TacticalContext(
                 role=self.settings.role,
                 own_position=own,
-                belief_peak=belief.arg_max(),
-                legal_moves=tuple(board.legal_moves(own)),
+                belief_peak=threat,
+                legal_moves=tuple(move for move, _ in legal_destinations),
+                legal_destinations=legal_destinations,
+                action_scores=scores,
                 turn_number=step,
                 max_turns=max_steps,
                 remaining_barriers=board.remaining_barrier_budget,
@@ -315,6 +328,23 @@ class NetworkMatchRunner:
             fallback,
         )
         elapsed = time.monotonic() - started
+        legal_now = board.legal_moves(own)
+        if decision.move not in legal_now:
+            emit(f"Step {step}: rejected Gemini action {decision.move!r}: no longer legal")
+            safe_fallback = fallback if fallback in legal_now else next(iter(legal_now))
+            emit(
+                f"Step {step}: fallback activated; selected {safe_fallback.name} ({safe_fallback.value})"
+            )
+            return safe_fallback, "Live-state validation rejected the Gemini action."
+        for rejection in decision.rejected:
+            emit(f"Step {step}: Gemini response rejected - {rejection}")
+        if decision.used_fallback:
+            emit(f"Step {step}: fallback activated after {decision.attempts} Gemini attempt(s)")
+            emit(f"Step {step}: fallback selected {decision.move.name} ({decision.move.value})")
+        else:
+            emit(
+                f"Step {step}: Gemini selected {decision.move.name} ({decision.move.value}); valid=True; attempts={decision.attempts}"
+            )
         source = "fallback" if decision.used_fallback else "Gemini"
         emit(f"Step {step}: {source} ({elapsed:.1f}s) - {decision.rationale}")
         return decision.move, decision.rationale

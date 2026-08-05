@@ -34,3 +34,27 @@ def greedy_manhattan_move(board: Board, own: Position, target: Position, *, chas
         if improves:
             best_move, best_distance = move, distance
     return best_move
+
+
+def thief_escape_score(
+    board: Board, own: Position, threat: Position, move: Move
+) -> tuple[int, int, int]:
+    """Rank a legal escape by threat distance, future exits, then movement.
+
+    Pure distance can make a thief oscillate along an edge or enter a cell
+    with no useful exit. Mobility breaks equal-distance ties without
+    weakening the mandatory Manhattan-distance objective.
+    """
+    destination = board.apply_move(own, move)
+    distance = manhattan_distance(destination, threat)
+    exits = sum(candidate is not Move.STAY for candidate in board.legal_moves(destination))
+    moved = int(move is not Move.STAY)
+    return distance, exits, moved
+
+
+def strategic_thief_move(board: Board, own: Position, threat: Position) -> Move:
+    """Choose the safest legal escape while avoiding unnecessary dead ends."""
+    return max(
+        board.legal_moves(own),
+        key=lambda move: thief_escape_score(board, own, threat, move),
+    )

@@ -144,7 +144,9 @@ def test_load_strategy_class_rejects_malformed_dotted_path(tmp_path):
 
 def test_load_strategy_class_rejects_a_class_that_is_not_a_brain(tmp_path):
     _write_toml(
-        tmp_path, AgentRole.COP, "[strategy]\ncop_class = 'police_thief.domain.board:Position'\n"
+        tmp_path,
+        AgentRole.COP,
+        "[strategy]\ncop_class = 'police_thief.domain.board:Position'\n",
     )
     with pytest.raises(ConfigError, match="not a BrainBase subclass"):
         load_strategy_class(AgentRole.COP, tmp_path)
@@ -154,3 +156,12 @@ def _write_toml(tmp_path, role: AgentRole, content: str) -> None:
     role_dir = tmp_path / role.value
     role_dir.mkdir(parents=True, exist_ok=True)
     (role_dir / "game.toml").write_text(content, encoding="utf-8")
+
+
+def test_thief_breaks_equal_distance_ties_toward_more_future_exits():
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    # From (0,1), WEST and EAST are equally distant from a threat at (1,1),
+    # but WEST is a corner with fewer future exits.
+    belief = _belief_peaked_at(board, Position(1, 1))
+    brain = ManhattanHeuristicBrain(role=AgentRole.THIEF)
+    assert brain._decide_move(board, Position(0, 1), belief).name == "EAST"

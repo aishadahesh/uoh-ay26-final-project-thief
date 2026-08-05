@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections import Counter, deque
 from dataclasses import dataclass
 
@@ -21,13 +22,14 @@ class ActionEvaluation:
     revisit_penalty: float
     loop_penalty: float
     dead_end_penalty: float
+    variation_bonus: float
 
     def summary(self) -> str:
         return (
             f"total={self.total:.2f}, path={self.path_distance:.2f}, "
             f"mobility={self.mobility}, future={self.future_value:.2f}, "
             f"revisit={self.revisit_penalty:.2f}, loop={self.loop_penalty:.2f}, "
-            f"dead_end={self.dead_end_penalty:.2f}"
+            f"dead_end={self.dead_end_penalty:.2f}, variation={self.variation_bonus:.2f}"
         )
 
 
@@ -46,8 +48,13 @@ class StrategyPlan:
 class TacticalPlanner:
     """Score legal moves and suppress actions that continue a detected loop."""
 
-    def __init__(self, role: AgentRole, history_limit: int = 12) -> None:
+    STRATEGIC_SCORE_MARGIN = 1.0
+
+    def __init__(
+        self, role: AgentRole, history_limit: int = 12, strategy_seed: int = 0
+    ) -> None:
         self.role = role
+        self.strategy_seed = strategy_seed
         self._positions: deque[Position] = deque(maxlen=history_limit)
         self._moves: deque[Move] = deque(maxlen=history_limit)
 
@@ -87,11 +94,20 @@ class TacticalPlanner:
             if len(excluded) == len(evaluations):
                 excluded.remove(max(evaluations, key=self._rank_key).move)
         admissible = tuple(item for item in evaluations if item.move not in excluded)
-        selected = max(admissible or evaluations, key=self._rank_key).move
+        candidates = admissible or evaluations
+        best_score = max(item.total for item in candidates)
+        strategic = tuple(
+            item
+            for item in candidates
+            if item.total >= best_score - self.STRATEGIC_SCORE_MARGIN
+        )
+        selected = max(strategic, key=self._rank_key).move
         return StrategyPlan(
             selected=selected,
             evaluations=tuple(sorted(evaluations, key=self._rank_key, reverse=True)),
-            allowed_moves=tuple(item.move for item in (admissible or evaluations)),
+            # Gemini may choose among genuinely close alternatives, but cannot
+            # override the planner with a legal yet strategically poor action.
+            allowed_moves=tuple(item.move for item in strategic),
             loop_detected=loop_detected,
             loop_reason=loop_reason,
             excluded_moves=tuple(move for move in legal if move in excluded),
@@ -142,15 +158,27 @@ class TacticalPlanner:
         if loop_detected and (move is Move.STAY or destination in set(tuple(self._positions)[-2:])):
             loop_penalty += 25.0
         dead_end_penalty = 14.0 if mobility <= 1 else (4.0 if mobility == 2 else 0.0)
+        variation_bonus = self._variation_bonus(own, move)
 
         if self.role is AgentRole.COP:
             current_distance = _expected_distance(board, own, targets)
             progress = current_distance - expected_distance
-            total = (-10.0 * expected_distance + 7.0 * progress + 1.4 * mobility + 2.0 * future_value - revisit_penalty - loop_penalty - 0.4 * dead_end_penalty)
+            total = (-10.0 * expected_distance + 7.0 * progress + 1.4 * mobility + 2.0 * future_value - revisit_penalty - loop_penalty - 0.4 * dead_end_penalty + variation_bonus)
         else:
             capture_margin = max(0.0, expected_distance - 1.0)
-            total = (9.0 * capture_margin + 3.0 * future_value + 2.2 * mobility - revisit_penalty - loop_penalty - dead_end_penalty)
-        return ActionEvaluation(move, destination, total, expected_distance, mobility, future_value, revisit_penalty, loop_penalty, dead_end_penalty)
+            total = (9.0 * capture_margin + 3.0 * future_value + 2.2 * mobility - revisit_penalty - loop_penalty - dead_end_penalty + variation_bonus)
+        return ActionEvaluation(move, destination, total, expected_distance, mobility, future_value, revisit_penalty, loop_penalty, dead_end_penalty, variation_bonus)
+
+    def _variation_bonus(self, own: Position, move: Move) -> float:
+        """Small deterministic sub-game preference for strategically close moves."""
+        if self.strategy_seed == 0:
+            return 0.0
+        material = (
+            f"{self.strategy_seed}:{self.role.value}:{len(self._moves) + 1}:"
+            f"{own.row}:{own.col}:{move.value}"
+        ).encode()
+        value = int.from_bytes(hashlib.sha256(material).digest()[:4], "big")
+        return (value / 0xFFFFFFFF) * 0.49
 
     def _future_value(self, board: Board, destination: Position, targets: tuple[tuple[Position, float], ...]) -> float:
         next_positions = [candidate for move, candidate in board.legal_moves(destination).items() if move is not Move.STAY] or [destination]

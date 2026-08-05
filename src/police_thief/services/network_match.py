@@ -109,6 +109,7 @@ class NetworkMatchRunner:
         self.settings = settings
         self.gemini_advisor = gemini_advisor
         self.transport = transport or McpPeerTransport(settings.opponent_url, inboxes)
+        self._usage_start = self._gemini_usage_snapshot()
 
     def run(self, stop: Event, emit: EventSink = lambda _message: None) -> Path:
         params = load_match_parameters(self.settings.shared_config)
@@ -132,7 +133,9 @@ class NetworkMatchRunner:
         )
         own_scent = ScentField(params.board.grid_size, params.scent)
         belief = BeliefMap(board)
-        brain = ManhattanHeuristicBrain(self.settings.role)
+        brain = ManhattanHeuristicBrain(
+            self.settings.role, strategy_seed=self.settings.sub_game_number
+        )
         hint_provider = TemplateHintProvider(params.world.hint_max_words)
         own_records: list[dict] = [self._sealed_system_spec()]
         peer_commits: dict[int, str] = {}
@@ -150,6 +153,35 @@ class NetworkMatchRunner:
             active_role = AgentRole.THIEF if global_turn % 2 == 1 else AgentRole.COP
             step = (global_turn + 1) // 2
             if active_role is self.settings.role:
+                if (
+                    self.settings.role is AgentRole.THIEF
+                    and pending_claim_response
+                    and pending_claim_response.get("caught")
+                ):
+                    payload = {
+                        "step": step,
+                        "role": wire_role,
+                        "state": {"row": own_position.row, "col": own_position.col},
+                        "position": [own_position.row, own_position.col],
+                        "terminal_ack": "capture",
+                    }
+                    record = seal_payload(payload)
+                    own_records.append(record)
+                    message = TurnMessage(
+                        step=step,
+                        sender=wire_role,
+                        hint="Capture acknowledged.",
+                        smell_grid=self._scent_snapshot(
+                            own_scent, params.board.grid_size
+                        ),
+                        commit=record["commit"],
+                        timestamp=now_iso(),
+                        claim_response=pending_claim_response,
+                    )
+                    self.transport.send_turn(message.to_dict(), timeout)
+                    emit(f"Step {step}: capture acknowledged; no thief move executed")
+                    outcome = MatchOutcome.CAPTURE
+                    break
                 self._send_control("status", "THINKING")
                 fallback = brain._decide_move(board, own_position, belief)
                 move, _private_reason = self._choose_move(
@@ -348,6 +380,7 @@ class NetworkMatchRunner:
                 recent_positions=plan.recent_positions if plan else (),
                 recent_actions=plan.recent_actions if plan else (),
                 repeated_state_warning=plan.loop_reason if plan and plan.loop_detected else "",
+                sub_game_number=self.settings.sub_game_number,
                 turn_number=step,
                 max_turns=max_steps,
                 remaining_barriers=board.remaining_barrier_budget,
@@ -376,6 +409,21 @@ class NetworkMatchRunner:
         source = "fallback" if decision.used_fallback else "Gemini"
         emit(f"Step {step}: {source} ({elapsed:.1f}s) - {decision.rationale}")
         return decision.move, decision.rationale
+
+    def _gemini_usage_snapshot(self) -> tuple[int, int]:
+        if self.gemini_advisor is None or not hasattr(
+            self.gemini_advisor, "usage_snapshot"
+        ):
+            return 0, 0
+        return self.gemini_advisor.usage_snapshot()
+
+    def _token_usage(self) -> TokenUsage:
+        current_input, current_output = self._gemini_usage_snapshot()
+        start_input, start_output = self._usage_start
+        return TokenUsage(
+            input_tokens=max(0, current_input - start_input),
+            output_tokens=max(0, current_output - start_output),
+        )
 
     def _maybe_place_barrier(
         self,
@@ -493,8 +541,14 @@ class NetworkMatchRunner:
         peer_role: str,
     ) -> list[LogEntry]:
         decorated = [
-            (own_role, record) for record in own_records if record["payload"]["step"] > 0
-        ] + [(peer_role, record) for record in peer_records if record["payload"]["step"] > 0]
+            (own_role, record)
+            for record in own_records
+            if record["payload"]["step"] > 0 and "move" in record["payload"]
+        ] + [
+            (peer_role, record)
+            for record in peer_records
+            if record["payload"]["step"] > 0 and "move" in record["payload"]
+        ]
         records = sorted(
             decorated,
             key=lambda item: (
@@ -577,7 +631,7 @@ class NetworkMatchRunner:
             outcome.value,
             True,
             entries,
-            TokenUsage(),
+            self._token_usage(),
             RepoCrossLinks(
                 str(repos_a.get("cop", "")),
                 str(repos_a.get("thief", "")),

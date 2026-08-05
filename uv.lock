@@ -1057,14 +1057,10 @@ version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
-    { name = "google-genai" },
-    { name = "python-dotenv" },
-]
-
-[package.optional-dependencies]
-email = [
     { name = "google-api-python-client" },
     { name = "google-auth-oauthlib" },
+    { name = "google-genai" },
+    { name = "python-dotenv" },
 ]
 
 [package.dev-dependencies]
@@ -1078,12 +1074,11 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastmcp", specifier = ">=3.4.4" },
-    { name = "google-api-python-client", marker = "extra == 'email'", specifier = ">=2.130.0" },
-    { name = "google-auth-oauthlib", marker = "extra == 'email'", specifier = ">=1.2.0" },
+    { name = "google-api-python-client", specifier = ">=2.130.0" },
+    { name = "google-auth-oauthlib", specifier = ">=1.2.0" },
     { name = "google-genai", specifier = ">=1.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
 ]
-provides-extras = ["email"]
 
 [package.metadata.requires-dev]
 dev = [

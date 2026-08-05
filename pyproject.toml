@@ -8,10 +8,8 @@ dependencies = [
     "fastmcp>=3.4.4",
     "google-genai>=1.0.0",
     "python-dotenv>=1.0.0",
-]
-
-[project.optional-dependencies]
-email = [
+    # Real matches always email their signed aggregate result. Keep Gmail
+    # support in the default environment so plain uv sync/uv run is reliable.
     "google-api-python-client>=2.130.0",
     "google-auth-oauthlib>=1.2.0",
 ]

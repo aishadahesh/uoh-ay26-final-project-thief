@@ -8,6 +8,7 @@ downward below the Mandatory Parameters Table's floors.
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -127,6 +128,25 @@ class Board:
             except MoveRejectedError:
                 continue
         return legal
+
+    def reachable_area(self, source: Position, extra_blocked: Position | None = None) -> int:
+        """Count open cells reachable from ``source`` with an optional trial barrier."""
+        if source == extra_blocked or self.is_blocked(source):
+            return 0
+        visited = {source}
+        queue: deque[Position] = deque([source])
+        while queue:
+            current = queue.popleft()
+            for neighbor in self.neighbors(current):
+                if (
+                    neighbor in visited
+                    or neighbor == extra_blocked
+                    or self.is_blocked(neighbor)
+                ):
+                    continue
+                visited.add(neighbor)
+                queue.append(neighbor)
+        return len(visited)
 
     def place_barrier(self, cop_pos: Position, target: Position) -> None:
         """Place a permanent barrier at `target`; must be cop_pos itself or adjacent.

@@ -66,12 +66,20 @@ def test_thief_brain_moves_away_from_the_belief_peak():
     )
 
 
-def test_cop_brain_picks_a_barrier_target_adjacent_to_its_own_position():
+def test_cop_brain_conserves_barriers_in_open_space():
     board = Board(BoardConfig(grid_size=7, max_barriers=14))
     belief = _belief_peaked_at(board, Position(5, 5))
     brain = ManhattanHeuristicBrain(role=AgentRole.COP)
-    target = brain._pick_move(board, Position(0, 0), belief)
-    assert target in board.neighbors(Position(0, 0))
+    assert brain._pick_move(board, Position(0, 0), belief) is None
+
+
+def test_cop_brain_uses_a_barrier_to_seal_a_real_chokepoint():
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    board.place_barrier(Position(0, 2), Position(0, 2))
+    board.place_barrier(Position(2, 0), Position(2, 0))
+    belief = _belief_peaked_at(board, Position(0, 0))
+    brain = ManhattanHeuristicBrain(role=AgentRole.COP)
+    assert brain._pick_move(board, Position(1, 1), belief) == Position(1, 1)
 
 
 def test_cop_brain_declines_to_place_a_barrier_once_budget_exhausted():

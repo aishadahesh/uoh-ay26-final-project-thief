@@ -33,7 +33,13 @@ class TacticalContext:
     max_turns: int
     remaining_barriers: int
     legal_destinations: tuple[tuple[Move, Position], ...] = ()
-    action_scores: tuple[tuple[Move, tuple[int, int, int]], ...] = ()
+    action_scores: tuple[tuple[Move, object], ...] = ()
+    board_size: int = 7
+    blocked_cells: tuple[Position, ...] = ()
+    belief_candidates: tuple[tuple[Position, float], ...] = ()
+    recent_positions: tuple[Position, ...] = ()
+    recent_actions: tuple[Move, ...] = ()
+    repeated_state_warning: str = ""
 
 
 @dataclass(frozen=True)
@@ -80,7 +86,11 @@ class GeminiAgentAdvisor:
         from google import genai
 
         self._client = genai.Client(
-            api_key=key, http_options={"timeout": int(self.http_timeout_seconds * 1000)}
+            api_key=key,
+            http_options={
+                "timeout": int(self.http_timeout_seconds * 1000),
+                "retry_options": {"attempts": 1},
+            },
         )
 
     def choose_move(self, context: TacticalContext, fallback: Move) -> GeminiDecision:
@@ -111,7 +121,10 @@ class GeminiAgentAdvisor:
                         config={
                             "temperature": 0,
                             "max_output_tokens": DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
-                            "http_options": {"timeout": int(self.http_timeout_seconds * 1000)},
+                            "http_options": {
+                                "timeout": int(self.http_timeout_seconds * 1000),
+                                "retry_options": {"attempts": 1},
+                            },
                         },
                     )
                     text = response.text or ""
@@ -163,7 +176,7 @@ class GeminiAgentAdvisor:
             destination = destinations.get(move)
             location = f" -> ({destination.row},{destination.col})" if destination else ""
             score = scores.get(move)
-            safety = f"; safety(distance,exits,moved)={score}" if score else ""
+            safety = f"; planner_score={score}" if score is not None else ""
             actions.append(f"{move.name} [{move.value}]{location}{safety}")
         objective = (
             "intercept the believed thief"
@@ -179,6 +192,12 @@ class GeminiAgentAdvisor:
             f"ROLE={context.role.value}\nOBJECTIVE={objective}\n"
             f"OWN_POSITION=({context.own_position.row},{context.own_position.col})\n"
             f"BELIEVED_OPPONENT=({context.belief_peak.row},{context.belief_peak.col}) (estimate, not truth)\n"
+            f"BELIEF_CANDIDATES={_positions_with_weights(context.belief_candidates)}\n"
+            f"BOARD_SIZE={context.board_size}x{context.board_size}\n"
+            f"BLOCKED_CELLS={_positions(context.blocked_cells)}\n"
+            f"RECENT_POSITIONS={_positions(context.recent_positions)}\n"
+            f"RECENT_ACTIONS={[move.name for move in context.recent_actions]}\n"
+            f"REPEATED_STATE_WARNING={context.repeated_state_warning or 'none'}\n"
             f"TURN={context.turn_number}/{context.max_turns}\nREMAINING_BARRIERS={context.remaining_barriers}\n"
             f"ALLOWED_ACTIONS={'; '.join(actions)}\n"
             'Return strict JSON only: {"action":"EXACT_NAME","reason":"brief tactical reason"}.'
@@ -259,3 +278,13 @@ def _float_env(name: str, default: float) -> float:
 
 def _truthy_env(name: str) -> bool:
     return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _positions(values: tuple[Position, ...]) -> list[tuple[int, int]]:
+    return [(position.row, position.col) for position in values]
+
+
+def _positions_with_weights(
+    values: tuple[tuple[Position, float], ...],
+) -> list[tuple[int, int, float]]:
+    return [(position.row, position.col, round(weight, 4)) for position, weight in values]

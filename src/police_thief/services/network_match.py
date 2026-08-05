@@ -11,9 +11,8 @@ from pathlib import Path
 from threading import Event
 
 from police_thief.domain.belief import BeliefMap
-from police_thief.domain.board import Board, Position
+from police_thief.domain.board import Board, Move, Position
 from police_thief.domain.capture import is_boxed_in
-from police_thief.domain.heuristics import thief_escape_score
 from police_thief.domain.hints import TemplateHintProvider
 from police_thief.domain.replay import save_log
 from police_thief.domain.scent import ScentField
@@ -161,11 +160,13 @@ class NetworkMatchRunner:
                     step,
                     params.max_moves,
                     emit,
+                    plan=brain.last_plan,
                 )
                 # Gemini reasoning is private. Only the bounded public hint is sent.
                 hint = hint_provider.generate(move, tell_truth=True).text
                 state_before = own_position
                 own_position = board.apply_move(own_position, move)
+                brain.record_move(state_before, move, own_position)
                 own_scent.decay()
                 own_scent.emit(own_position)
                 barrier_placed = self._maybe_place_barrier(
@@ -299,28 +300,54 @@ class NetworkMatchRunner:
             emit("Email mode is dry_run; JSON created but not sent")
         return path
 
-    def _choose_move(self, board, belief, own, fallback, step, max_steps, emit):
+    def _choose_move(self, board, belief, own, fallback, step, max_steps, emit, plan=None):
+        legal_now = board.legal_moves(own)
+        if plan is not None:
+            for item in plan.evaluations:
+                emit(f"Step {step}: candidate {item.move.name} ({item.move.value}) - {item.summary()}")
+            if plan.loop_detected:
+                excluded = ", ".join(move.name for move in plan.excluded_moves) or "none"
+                emit(
+                    f"Step {step}: repeated loop detected ({plan.loop_reason}); "
+                    f"forcing reconsideration; excluded={excluded}"
+                )
+            allowed = tuple(move for move in plan.allowed_moves if move in legal_now)
+        else:
+            allowed = tuple(legal_now)
+        if not allowed:
+            allowed = tuple(legal_now)
+        if fallback not in allowed:
+            fallback = Move.STAY if Move.STAY in allowed else allowed[0]
         if self.gemini_advisor is None:
+            emit(f"Step {step}: planner selected {fallback.name} ({fallback.value}); valid=True")
             return fallback, "Deterministic local-truth move"
         started = time.monotonic()
-        legal_destinations = tuple(board.legal_moves(own).items())
+        legal_destinations = tuple((move, legal_now[move]) for move in allowed)
         threat = belief.arg_max()
-        scores = (
-            tuple(
-                (move, thief_escape_score(board, own, threat, move))
-                for move, _ in legal_destinations
-            )
-            if self.settings.role is AgentRole.THIEF
-            else ()
+        scores = tuple(
+            (item.move, item.summary()) for item in plan.evaluations if item.move in allowed
+        ) if plan else ()
+        size = board.config.grid_size
+        blocked = tuple(
+            Position(row, col)
+            for row in range(size)
+            for col in range(size)
+            if board.is_blocked(Position(row, col))
         )
         decision = self.gemini_advisor.choose_move(
             TacticalContext(
                 role=self.settings.role,
                 own_position=own,
                 belief_peak=threat,
-                legal_moves=tuple(move for move, _ in legal_destinations),
+                legal_moves=allowed,
                 legal_destinations=legal_destinations,
                 action_scores=scores,
+                board_size=size,
+                blocked_cells=blocked,
+                belief_candidates=belief.top_positions(5),
+                recent_positions=plan.recent_positions if plan else (),
+                recent_actions=plan.recent_actions if plan else (),
+                repeated_state_warning=plan.loop_reason if plan and plan.loop_detected else "",
                 turn_number=step,
                 max_turns=max_steps,
                 remaining_barriers=board.remaining_barrier_budget,
@@ -329,9 +356,10 @@ class NetworkMatchRunner:
         )
         elapsed = time.monotonic() - started
         legal_now = board.legal_moves(own)
-        if decision.move not in legal_now:
-            emit(f"Step {step}: rejected Gemini action {decision.move!r}: no longer legal")
-            safe_fallback = fallback if fallback in legal_now else next(iter(legal_now))
+        if decision.move not in legal_now or decision.move not in allowed:
+            reason = "no longer legal" if decision.move not in legal_now else "excluded because it continues a loop"
+            emit(f"Step {step}: rejected Gemini action {decision.move!r}: {reason}")
+            safe_fallback = fallback if fallback in legal_now and fallback in allowed else allowed[0]
             emit(
                 f"Step {step}: fallback activated; selected {safe_fallback.name} ({safe_fallback.value})"
             )

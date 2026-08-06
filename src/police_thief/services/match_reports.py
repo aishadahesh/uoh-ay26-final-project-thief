@@ -197,6 +197,8 @@ class MatchResult:
     repo_links: RepoCrossLinks
     team_a: ResultTeamIdentity | None = None
     team_b: ResultTeamIdentity | None = None
+    participants: dict | None = None
+    token_usage_by_group: dict[str, int] | None = None
 
 
 def build_match_result(
@@ -211,6 +213,8 @@ def build_match_result(
     repo_links: RepoCrossLinks,
     team_a: ResultTeamIdentity | None = None,
     team_b: ResultTeamIdentity | None = None,
+    participants: dict | None = None,
+    token_usage_by_group: dict[str, int] | None = None,
 ) -> MatchResult:
     return MatchResult(
         game_id=game_id,
@@ -225,6 +229,8 @@ def build_match_result(
         repo_links=repo_links,
         team_a=team_a,
         team_b=team_b,
+        participants=participants,
+        token_usage_by_group=token_usage_by_group,
     )
 
 

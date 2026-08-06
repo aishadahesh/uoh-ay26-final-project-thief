@@ -6,6 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Event
 
+import pytest
+
 from police_thief.services.mcp_server import PeerInboxes
 from police_thief.services.network_match import NetworkMatchSeriesRunner, NetworkMatchSettings
 from police_thief.shared.constants import AgentRole
@@ -40,13 +42,59 @@ class MemoryTransport:
             return None
 
 
-def test_two_peers_play_six_game_series_with_role_alternation(tmp_path):
+def _team_config(tmp_path, source, name, group_id, members, repos, num_games=6):
+    target = tmp_path / name / "game.json"
+    target.parent.mkdir(parents=True)
+    game = json.loads(source.read_text(encoding="utf-8"))
+    game["network_and_league"]["num_games"] = num_games
+    target.write_text(json.dumps(game), encoding="utf-8")
+    timeout = game["network_and_league"]["response_timeout_sec"]
+    target.with_suffix(".toml").write_text(
+        f'version = "1.00"\n[game]\ngroup_name = "{name}"\n'
+        f'group_id = "{group_id}"\nsub_game_number = 1\n'
+        f'members = {json.dumps(list(members))}\nrepos = {json.dumps(repos)}\n'
+        f'[network]\nmy_port = 8801\nopponent_url = "https://peer.example/mcp"\n'
+        f'turn_timeout_seconds = {timeout}\n',
+        encoding="utf-8",
+    )
+    text = target.with_suffix(".toml").read_text(encoding="utf-8")
+    text = text.replace('"cop":', 'cop =').replace('"thief":', 'thief =')
+    target.with_suffix(".toml").write_text(text, encoding="utf-8")
+    return target
+
+
+@pytest.mark.parametrize("num_games", [1, 6])
+def test_two_peers_play_agreed_series_with_role_alternation(
+    tmp_path, monkeypatch, num_games,
+):
     project_root = Path(__file__).parents[2]
+    monkeypatch.setattr(
+        "police_thief.services.pregame_validation.inspect_public_repository",
+        lambda *_args: ([], [{"status": "verified-test-double"}]),
+    )
+    monkeypatch.setattr(
+        "police_thief.services.network_match.get_git_commit_hash", lambda _path: "a" * 40,
+    )
+    alpha_repos = {
+        "cop": "https://github.com/example/a-cop",
+        "thief": "https://github.com/example/a-thief",
+    }
+    beta_repos = {
+        "cop": "https://github.com/example/b-cop",
+        "thief": "https://github.com/example/b-thief",
+    }
+    alpha_config = _team_config(
+        tmp_path, project_root / "config" / "game.json", "alpha", "alpha",
+        ("Ada", "Grace"), alpha_repos, num_games,
+    )
+    beta_config = _team_config(
+        tmp_path, project_root / "config" / "game.json", "beta", "beta",
+        ("Linus", "Margaret"), beta_repos, num_games,
+    )
     common = {
         "local_port": 8801,
         "game_id": "NETWORK-TEST",
         "sub_game_number": 1,
-        "shared_config": project_root / "config" / "game.json",
         "shared_key": b"integration-secret",
     }
     cop_inboxes, thief_inboxes = PeerInboxes(), PeerInboxes()
@@ -60,10 +108,9 @@ def test_two_peers_play_six_game_series_with_role_alternation(tmp_path):
             members=("Ada", "Grace"),
             opponent_team_name="beta",
             opponent_members=("Linus", "Margaret"),
-            own_cop_repo="https://example.test/a-cop",
-            own_thief_repo="https://example.test/a-thief",
-            opponent_cop_repo="https://example.test/b-cop",
-            opponent_thief_repo="https://example.test/b-thief",
+            own_cop_repo=alpha_repos["cop"], own_thief_repo=alpha_repos["thief"],
+            opponent_cop_repo=beta_repos["cop"], opponent_thief_repo=beta_repos["thief"],
+            shared_config=alpha_config,
             **common,
         ),
         cop_inboxes,
@@ -79,10 +126,9 @@ def test_two_peers_play_six_game_series_with_role_alternation(tmp_path):
             members=("Linus", "Margaret"),
             opponent_team_name="alpha",
             opponent_members=("Ada", "Grace"),
-            own_cop_repo="https://example.test/b-cop",
-            own_thief_repo="https://example.test/b-thief",
-            opponent_cop_repo="https://example.test/a-cop",
-            opponent_thief_repo="https://example.test/a-thief",
+            own_cop_repo=beta_repos["cop"], own_thief_repo=beta_repos["thief"],
+            opponent_cop_repo=alpha_repos["cop"], opponent_thief_repo=alpha_repos["thief"],
+            shared_config=beta_config,
             **common,
         ),
         thief_inboxes,
@@ -92,30 +138,27 @@ def test_two_peers_play_six_game_series_with_role_alternation(tmp_path):
         paths = list(executor.map(lambda runner: runner.run(Event()), (cop, thief)))
 
     results = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
-    assert all(result["mutual_sign_off"] for result in results)
-    assert all(result["num_games"] == 6 for result in results)
-    assert results[0]["sub_games"] == results[1]["sub_games"]
-    assert results[0]["team_scores"] == results[1]["team_scores"]
+    assert all(result["mutual_agreement"]["confirmed"] for result in results)
+    assert all(result["num_sub_games"] == num_games for result in results)
+    assert results[0]["game_uid"] == results[1]["game_uid"]
+    assert results[0]["final_result"]["total_score"] == results[1]["final_result"]["total_score"]
     assert [game["roles"]["alpha"] for game in results[0]["sub_games"]] == [
-        "cop",
-        "thief",
-        "cop",
-        "thief",
-        "cop",
-        "thief",
+        "police" if index % 2 == 0 else "thief" for index in range(num_games)
     ]
-    for number in range(1, 7):
+    for number in range(1, num_games + 1):
         assert (tmp_path / "cop" / f"log_NETWORK-TEST_g{number:02d}.json").is_file()
-        assert (tmp_path / "thief" / f"result_NETWORK-TEST_g{number:02d}.json").is_file()
+        assert (tmp_path / "thief" / f"config_NETWORK-TEST_g{number:02d}.json").is_file()
     assert (tmp_path / "cop" / "declaration_NETWORK-TEST.json").is_file()
+    assert (tmp_path / "cop" / "result_NETWORK-TEST.json").is_file()
 
     trajectories = set()
-    for number in range(1, 7):
-        records = json.loads(
+    for number in range(1, num_games + 1):
+        log_document = json.loads(
             (tmp_path / "cop" / f"log_NETWORK-TEST_g{number:02d}.json").read_text(
                 encoding="utf-8"
             )
         )
+        records = log_document["records"]
         moves = [
             record["payload"]
             for record in records
@@ -133,6 +176,8 @@ def test_two_peers_play_six_game_series_with_role_alternation(tmp_path):
         # A collision is terminal only when it remains the final audited
         # state. Earlier crossings can be hidden by commit-reveal, and a
         # capture can also be established by the separate boxed-in rule.
-        if latest.get("police") == latest.get("thief"):
+        if collision_index is not None:
             assert collision_index == len(moves) - 1, "no move may occur after capture"
-    assert len(trajectories) >= 2, "sub-games must not replay one identical trajectory"
+    assert len(trajectories) >= min(2, num_games), (
+        "multi-game series must not replay one identical trajectory"
+    )

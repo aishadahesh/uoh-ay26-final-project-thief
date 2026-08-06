@@ -44,7 +44,7 @@ def test_official_terms_match_the_reference_wire_contract_exactly():
         "axis_start_index": 0,
         "thief_start": [3, 3],
         "cop_start": [0, 0],
-        "num_games": 6,
+        "num_games": params.network_league.num_games,
     }
 
 
@@ -58,5 +58,4 @@ def test_local_smoke_metadata_does_not_change_signed_public_terms():
     assert "smoke_test" not in terms
     assert "series_id" not in terms
     assert "game_index" not in terms
-    assert terms["num_games"] == 6
-    assert params.network_league.num_games == 6
+    assert terms["num_games"] == params.network_league.num_games

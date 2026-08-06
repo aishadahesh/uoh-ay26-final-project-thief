@@ -7,6 +7,7 @@ import platform
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
+from datetime import datetime
 from pathlib import Path
 from threading import Event
 
@@ -32,7 +33,7 @@ from police_thief.services.match_reports import (
     save_match_result,
     save_series_result,
 )
-from police_thief.services.mcp_client import McpPeerTransport
+from police_thief.services.mcp_client import McpPeerTransport, PeerClientError
 from police_thief.services.mcp_server import PeerInboxes
 from police_thief.services.network_protocol import (
     WIRE_ROLES,
@@ -46,12 +47,24 @@ from police_thief.services.network_protocol import (
     seal_payload,
     verify_agreement,
 )
+from police_thief.services.pregame_validation import (
+    ValidationIssue,
+    build_local_conformance,
+    format_failure,
+    save_validation_result,
+    validate_local_identity,
+    validate_peer_conformance,
+)
 from police_thief.services.step0 import (
     Step0Declaration,
     TokenUsage,
     gather_hardware_spec,
     get_git_commit_hash,
     sign_step0,
+)
+from police_thief.services.submission_artifacts import (
+    finalize_submission_bundle,
+    public_participant,
 )
 from police_thief.shared.constants import AgentRole
 from police_thief.shared.game_config import config_fingerprint, load_match_parameters
@@ -112,18 +125,79 @@ class NetworkMatchRunner:
         self._usage_start = self._gemini_usage_snapshot()
 
     def run(self, stop: Event, emit: EventSink = lambda _message: None) -> Path:
-        params = load_match_parameters(self.settings.shared_config)
+        s = self.settings
+        commit_hash = get_git_commit_hash(str(s.shared_config.parent.parent))
+        local_manifest, local_issues = build_local_conformance(
+            s.shared_config, s.shared_config.with_suffix(".toml"),
+            role=s.role.value, sub_game_number=s.sub_game_number,
+            git_commit_hash=commit_hash,
+        )
+        if local_issues:
+            report = save_validation_result(
+                s.output_dir, game_id=s.game_id,
+                sub_game_number=s.sub_game_number, status="failed",
+                local_manifest=local_manifest, issues=local_issues,
+            )
+            emit(format_failure(local_issues, report))
+            raise NetworkProtocolError(format_failure(local_issues, report))
+
+        own_identity = self._identity()
+        identity_issues = validate_local_identity(local_manifest, own_identity)
+        if identity_issues:
+            report = save_validation_result(
+                s.output_dir, game_id=s.game_id,
+                sub_game_number=s.sub_game_number, status="failed",
+                local_manifest=local_manifest, issues=identity_issues,
+            )
+            emit(format_failure(identity_issues, report))
+            raise NetworkProtocolError(format_failure(identity_issues, report))
+
+        params = load_match_parameters(s.shared_config)
         timeout = params.network_league.response_timeout_sec
         terms = self._terms(params)
-        emit("Negotiating signed game terms and peer identity")
-        own_identity = self._identity()
-        peer_agreement = self.transport.exchange_agreement(
-            create_agreement(terms, own_identity),
-            timeout,
+        emit("Validating signed game terms, public configuration, and opponent repository")
+        try:
+            peer_agreement = self.transport.exchange_agreement(
+                create_agreement(terms, own_identity, local_manifest), timeout,
+            )
+            peer_identity = verify_agreement(peer_agreement, terms)
+            self._validate_peer_identity(peer_identity)
+        except (NetworkProtocolError, PeerClientError) as exc:
+            issues = [ValidationIssue(
+                "opponent", "agreement", "$", "negotiation_failed",
+                "valid signed terms and declared identity", str(exc),
+            )]
+            report = save_validation_result(
+                s.output_dir, game_id=s.game_id,
+                sub_game_number=s.sub_game_number, status="failed",
+                local_manifest=local_manifest, issues=issues,
+            )
+            emit(format_failure(issues, report))
+            raise NetworkProtocolError(format_failure(issues, report)) from exc
+        peer_manifest = peer_agreement.get("conformance")
+        peer_issues, repository_checks = validate_peer_conformance(
+            peer_manifest, local_manifest, local_role=s.role.value,
+            sub_game_number=s.sub_game_number, peer_identity=peer_identity,
         )
-        peer_identity = verify_agreement(peer_agreement, terms)
-        self._validate_peer_identity(peer_identity)
-        emit(f"Negotiation verified with {peer_identity.get('group_name', 'opponent')}")
+        if peer_issues:
+            report = save_validation_result(
+                s.output_dir, game_id=s.game_id,
+                sub_game_number=s.sub_game_number, status="failed",
+                local_manifest=local_manifest, peer_manifest=peer_manifest,
+                issues=peer_issues, repository_checks=repository_checks,
+            )
+            emit(format_failure(peer_issues, report))
+            raise NetworkProtocolError(format_failure(peer_issues, report))
+        report = save_validation_result(
+            s.output_dir, game_id=s.game_id,
+            sub_game_number=s.sub_game_number, status="passed",
+            local_manifest=local_manifest, peer_manifest=peer_manifest,
+            repository_checks=repository_checks,
+        )
+        emit(
+            f"Pre-game validation passed with "
+            f"{peer_identity.get('group_name', 'opponent')}; report saved to {report}"
+        )
         self._write_pregame_files(params)
         self._send_control("enable", "READY")
 
@@ -140,6 +214,9 @@ class NetworkMatchRunner:
         own_records: list[dict] = [self._sealed_system_spec()]
         peer_commits: dict[int, str] = {}
         pending_claim_response: dict | None = None
+        known_cop_position = (
+            params.cop_start if self.settings.role is AgentRole.THIEF else None
+        )
         thief_boxed_in = False
         outcome = MatchOutcome.SURVIVAL
         wire_role = WIRE_ROLES[self.settings.role.value]
@@ -193,12 +270,27 @@ class NetworkMatchRunner:
                     params.max_moves,
                     emit,
                     plan=brain.last_plan,
+                    known_opponent_position=known_cop_position,
                 )
                 # Gemini reasoning is private. Only the bounded public hint is sent.
                 hint = hint_provider.generate(move, tell_truth=True).text
                 state_before = own_position
                 own_position = board.apply_move(own_position, move)
                 brain.record_move(state_before, move, own_position)
+                if (
+                    self.settings.role is AgentRole.THIEF
+                    and known_cop_position is not None
+                    and own_position == known_cop_position
+                ):
+                    pending_claim_response = {
+                        "claim": [known_cop_position.row, known_cop_position.col],
+                        "caught": True,
+                        "reason": "thief_entered_cop_cell",
+                    }
+                    emit(
+                        f"Step {step}: thief entered the cop cell {known_cop_position}; "
+                        "capture confirmed before the cop may move"
+                    )
                 own_scent.decay()
                 own_scent.emit(own_position)
                 barrier_placed = self._maybe_place_barrier(
@@ -274,6 +366,8 @@ class NetworkMatchRunner:
                     board.apply_declared_barrier(barrier_target)
                     emit(f"Step {step}: opponent declared a barrier at {barrier_target}")
                 if self.settings.role is AgentRole.THIEF:
+                    if message.capture_claim is not None:
+                        known_cop_position = Position(*message.capture_claim)
                     claims = [
                         list(claim)
                         for claim in (message.capture_claim, message.barrier_placed)
@@ -305,9 +399,15 @@ class NetworkMatchRunner:
                     break
 
         emit("Exchanging final audit records and nonce reveals")
+        own_usage = self._token_usage()
+        usage_payload = {
+            "input_tokens": own_usage.input_tokens,
+            "output_tokens": own_usage.output_tokens,
+            "total": own_usage.total,
+        }
         peer_audit = AuditPayload.from_dict(
             self.transport.exchange_audit(
-                AuditPayload(wire_role, own_records, outcome.value).to_dict(),
+                AuditPayload(wire_role, own_records, outcome.value, usage_payload).to_dict(),
                 timeout,
             )
         )
@@ -322,7 +422,9 @@ class NetworkMatchRunner:
             wire_role,
             peer_audit.sender,
         )
-        path = self._write_result(params, entries, outcome, peer_identity, emit)
+        path = self._write_result(
+            params, entries, outcome, peer_identity, peer_audit.token_usage, emit,
+        )
         self._send_control("status", "COMPLETE")
         if self.settings.email_mode == "real":
             from police_thief.services.network_reporting import email_result_file
@@ -332,8 +434,20 @@ class NetworkMatchRunner:
             emit("Email mode is dry_run; JSON created but not sent")
         return path
 
-    def _choose_move(self, board, belief, own, fallback, step, max_steps, emit, plan=None):
+    def _choose_move(
+        self, board, belief, own, fallback, step, max_steps, emit, plan=None,
+        known_opponent_position=None,
+    ):
         legal_now = board.legal_moves(own)
+        safe_now = dict(legal_now)
+        if self.settings.role is AgentRole.THIEF and known_opponent_position is not None:
+            for move, destination in legal_now.items():
+                if destination == known_opponent_position:
+                    safe_now.pop(move)
+                    emit(
+                        f"Step {step}: rejected {move.name} ({move.value}); destination "
+                        f"{known_opponent_position} is the cop's confirmed current cell"
+                    )
         if plan is not None:
             for item in plan.evaluations:
                 emit(f"Step {step}: candidate {item.move.name} ({item.move.value}) - {item.summary()}")
@@ -343,11 +457,15 @@ class NetworkMatchRunner:
                     f"Step {step}: repeated loop detected ({plan.loop_reason}); "
                     f"forcing reconsideration; excluded={excluded}"
                 )
-            allowed = tuple(move for move in plan.allowed_moves if move in legal_now)
+            allowed = tuple(move for move in plan.allowed_moves if move in safe_now)
+            if not allowed:
+                allowed = tuple(
+                    item.move for item in plan.evaluations if item.move in safe_now
+                )
         else:
-            allowed = tuple(legal_now)
+            allowed = tuple(safe_now)
         if not allowed:
-            allowed = tuple(legal_now)
+            allowed = tuple(safe_now) or tuple(legal_now)
         if fallback not in allowed:
             fallback = Move.STAY if Move.STAY in allowed else allowed[0]
         if self.gemini_advisor is None:
@@ -380,6 +498,7 @@ class NetworkMatchRunner:
                 recent_positions=plan.recent_positions if plan else (),
                 recent_actions=plan.recent_actions if plan else (),
                 repeated_state_warning=plan.loop_reason if plan and plan.loop_detected else "",
+                known_opponent_position=known_opponent_position,
                 sub_game_number=self.settings.sub_game_number,
                 turn_number=step,
                 max_turns=max_steps,
@@ -389,8 +508,20 @@ class NetworkMatchRunner:
         )
         elapsed = time.monotonic() - started
         legal_now = board.legal_moves(own)
-        if decision.move not in legal_now or decision.move not in allowed:
-            reason = "no longer legal" if decision.move not in legal_now else "excluded because it continues a loop"
+        unsafe_destination = (
+            self.settings.role is AgentRole.THIEF
+            and known_opponent_position is not None
+            and decision.move in legal_now
+            and legal_now[decision.move] == known_opponent_position
+        )
+        if decision.move not in legal_now or decision.move not in allowed or unsafe_destination:
+            reason = (
+                "would enter the cop's confirmed current cell"
+                if unsafe_destination
+                else "no longer legal"
+                if decision.move not in legal_now
+                else "excluded by tactical safety or loop prevention"
+            )
             emit(f"Step {step}: rejected Gemini action {decision.move!r}: {reason}")
             safe_fallback = fallback if fallback in legal_now and fallback in allowed else allowed[0]
             emit(
@@ -495,6 +626,7 @@ class NetworkMatchRunner:
                 "vram_gb": "unknown",
             },
             "protocol": {"name": "police-thief-mcp", "version": "3.0.0"},
+            "git_commit_hash": get_git_commit_hash(str(s.shared_config.parent.parent)),
         }
 
     def _validate_peer_identity(self, identity: dict) -> None:
@@ -608,6 +740,7 @@ class NetworkMatchRunner:
         entries,
         outcome,
         peer_identity: dict,
+        peer_token_usage: dict | None,
         emit: EventSink,
     ) -> Path:
         s = self.settings
@@ -623,6 +756,15 @@ class NetworkMatchRunner:
         team_a, team_b = teams
         repos_a = team_a.get("repos", {})
         repos_b = team_b.get("repos", {})
+        own_usage = self._token_usage()
+        participants = {
+            str(identity["group_id"]): public_participant(identity)
+            for identity in (own_identity, peer_identity)
+        }
+        token_usage_by_group = {
+            str(own_identity["group_id"]): own_usage.total,
+            str(peer_identity["group_id"]): int((peer_token_usage or {}).get("total", 0)),
+        }
         result = build_match_result(
             s.game_id,
             s.sub_game_number,
@@ -646,6 +788,8 @@ class NetworkMatchRunner:
                 str(team_b.get("group_name", "")),
                 tuple(team_b.get("members", ())),
             ),
+            participants,
+            token_usage_by_group,
         )
         path = save_match_result(
             result,
@@ -666,7 +810,7 @@ def role_for_subgame(natural_role: AgentRole, series_index: int) -> AgentRole:
 
 
 class NetworkMatchSeriesRunner:
-    """Run the fixed six-game series over one long-lived MCP server."""
+    """Run the agreed multi-game series over one long-lived MCP connection."""
 
     def __init__(
         self,
@@ -684,10 +828,9 @@ class NetworkMatchSeriesRunner:
         params = load_match_parameters(self.settings.shared_config)
         num_games = params.network_league.num_games
         subgames: list[dict] = []
-        totals: dict[str, int] = {
-            self.settings.team_name: 0,
-            self.settings.opponent_team_name: 0,
-        }
+        totals: dict[str, int] = {}
+        participants: dict[str, dict] | None = None
+        series_started_at = datetime.now().astimezone().isoformat()
         for series_index in range(num_games):
             sub_game_number = self.settings.sub_game_number + series_index
             role = role_for_subgame(self.settings.role, series_index)
@@ -701,27 +844,43 @@ class NetworkMatchSeriesRunner:
                 sub_game_number=sub_game_number,
                 email_mode="series_deferred",
             )
+            subgame_started_at = datetime.now().astimezone().isoformat()
             path = NetworkMatchRunner(
                 child_settings,
                 self.inboxes,
                 self.gemini_advisor,
                 self.transport,
             ).run(stop, emit)
+            subgame_ended_at = datetime.now().astimezone().isoformat()
             result = json.loads(path.read_text(encoding="utf-8"))
+            if participants is None:
+                participants = result["participants"]
+                totals = dict.fromkeys(participants, 0)
+            own_group = next(
+                key for key, value in participants.items()
+                if value["group_name"] == self.settings.team_name
+            )
+            peer_group = next(key for key in participants if key != own_group)
             own_key = "cop_score" if role is AgentRole.COP else "thief_score"
             peer_key = "thief_score" if role is AgentRole.COP else "cop_score"
-            totals[self.settings.team_name] += int(result[own_key])
-            totals[self.settings.opponent_team_name] += int(result[peer_key])
+            score = {own_group: int(result[own_key]), peer_group: int(result[peer_key])}
+            totals[own_group] += score[own_group]
+            totals[peer_group] += score[peer_group]
             subgames.append(
                 {
                     "sub_game_number": sub_game_number,
                     "roles": {
-                        self.settings.team_name: role.value,
-                        self.settings.opponent_team_name: (
+                        own_group: role.value,
+                        peer_group: (
                             AgentRole.THIEF.value if role is AgentRole.COP else AgentRole.COP.value
                         ),
                     },
+                    "started_at": subgame_started_at,
+                    "ended_at": subgame_ended_at,
                     "outcome": result["outcome"],
+                    "score": score,
+                    "tokens": result["token_usage_by_group"],
+                    "mutual_sign_off": result["mutual_sign_off"],
                     "cop_score": result["cop_score"],
                     "thief_score": result["thief_score"],
                     "log_sha256": result["log_sha256"],
@@ -744,11 +903,39 @@ class NetworkMatchSeriesRunner:
             "winner": winners[0] if len(winners) == 1 else "tie",
         }
         path = save_series_result(series_result, self.settings.output_dir, self.settings.game_id)
-        emit(f"Series complete; aggregate result saved to {path}")
+        if participants is None:
+            raise RuntimeError("series completed without participant metadata")
+        terms = NetworkMatchRunner(
+            self.settings, self.inboxes, self.gemini_advisor, self.transport,
+        )._terms(params)
+        submission_paths = finalize_submission_bundle(
+            self.settings.output_dir,
+            game_id=self.settings.game_id,
+            terms=terms,
+            participants=participants,
+            series_result=series_result,
+            game_started_at=series_started_at,
+            token_budget=params.network_league.token_budget_per_series,
+        )
+        path = submission_paths[-1]
+        emit(
+            f"Series complete; {len(submission_paths)} validated submission JSON files "
+            f"ready in {self.settings.output_dir}"
+        )
         if self.settings.email_mode == "real":
-            from police_thief.services.network_reporting import email_result_file
-
-            email_result_file(path, params, self.settings, emit)
+            _try_email_submission(submission_paths, params, self.settings, emit)
         else:
             emit("Email mode is dry_run; aggregate JSON created but not sent")
         return path
+
+
+def _try_email_submission(
+    paths: list[Path], params, settings: NetworkMatchSettings, emit: EventSink,
+) -> None:
+    """Preserve a completed match if optional Gmail delivery fails."""
+    from police_thief.services.network_reporting import email_submission_files
+
+    try:
+        email_submission_files(paths, params, settings, emit)
+    except RuntimeError as exc:
+        emit(f"Email delivery failed (submission JSON remains saved): {exc}")

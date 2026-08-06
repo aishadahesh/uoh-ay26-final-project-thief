@@ -17,11 +17,7 @@ from police_thief.domain.replay import ReplaySession, load_log
 from police_thief.services.network_protocol import PROTOCOL_VERSION
 from police_thief.shared.config import ConfigError, load_network_config
 from police_thief.shared.constants import AgentRole
-from police_thief.shared.game_config import (
-    FIXED_NUM_GAMES,
-    config_fingerprint,
-    load_match_parameters,
-)
+from police_thief.shared.game_config import config_fingerprint, load_match_parameters
 
 
 @dataclass(frozen=True)
@@ -133,10 +129,10 @@ def run_doctor(
         checks.append(DoctorCheck("shared configuration loads", "PASS", str(game_config)))
         checks.append(
             _status(
-                params.network_league.num_games == FIXED_NUM_GAMES,
-                "mandatory game count",
+                1 <= params.network_league.num_games <= params.network_league.max_games_per_team,
+                "negotiated game count",
                 f"num_games={params.network_league.num_games}",
-                f"expected fixed num_games={FIXED_NUM_GAMES}",
+                "num_games must be from 1 through max_games_per_team",
             )
         )
         checks.append(

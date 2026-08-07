@@ -35,7 +35,6 @@ def test_official_terms_match_the_reference_wire_contract_exactly():
         "smell_grid_size": 5,
         "decay_per_step": 0.1,
         "emit_intensity": 0.9,
-        "min_center_intensity": 0.5,
         "max_steps": 35,
         "barriers_max": 14,
         "setting": "New York",

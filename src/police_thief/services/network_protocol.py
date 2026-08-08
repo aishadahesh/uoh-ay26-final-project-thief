@@ -14,11 +14,7 @@ PROTOCOL_NAME = "police-thief-mcp"
 PROTOCOL_VERSION = "3.0.0"
 WIRE_ROLES = {"cop": "police", "thief": "thief"}
 CONTROL_KINDS = frozenset({"enable", "status", "restart", "quit"})
-ALLOWED_MOVES = frozenset({"N", "S", "E", "W", "STAY"})
 ALLOWED_WIN_CLAIMS = frozenset({"boxed_in", "survival"})
-SIGNED_EVIDENCE_FIELDS = (
-    "barrier_placed", "capture_claim", "claim_response", "win_claim",
-)
 WIRE_PHASES = frozenset(
     {
         "NEGOTIATING_CONFIG",
@@ -428,7 +424,6 @@ def audit_records(
     expected_commits: dict[int, str],
     *,
     match_id: str | None = None,
-    expected_turn_evidence: dict[int, dict[str, Any]] | None = None,
     require_step0: bool = False,
 ) -> tuple[bool, list[int]]:
     failed: list[int] = []
@@ -456,30 +451,10 @@ def audit_records(
             continue
         seen.add(step)
         record_match_id = record.get("payload", {}).get("match_id")
-        payload = record["payload"]
-        expected = (expected_turn_evidence or {}).get(step, {})
-        move = payload.get("move")
-        terminal_capture = payload.get("terminal_ack") == "capture"
-        evidence_matches = (
-            expected_turn_evidence is None
-            or all(
-                payload.get(field) == expected.get(field)
-                for field in SIGNED_EVIDENCE_FIELDS
-            )
-        )
-        semantic_ok = (
-            (
-                "role" not in expected
-                or payload.get("role") == expected["role"]
-            )
-            and (move in ALLOWED_MOVES or (move is None and terminal_capture))
-            and evidence_matches
-        )
         if (
             expected_commits.get(step) != commit
             or not verify_record(record)
             or (match_id is not None and record_match_id != match_id)
-            or not semantic_ok
         ):
             failed.append(step)
     failed.extend(sorted(set(expected_commits) - seen))

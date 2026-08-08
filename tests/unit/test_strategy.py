@@ -89,6 +89,16 @@ def test_cop_brain_declines_to_place_a_barrier_once_budget_exhausted():
     assert brain._pick_move(board, Position(0, 0), belief) is None
 
 
+def test_cop_brain_never_uses_a_barrier_that_removes_its_last_exit():
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    board.apply_declared_barrier(Position(0, 4))
+    board.apply_declared_barrier(Position(1, 3))
+    belief = _belief_peaked_at(board, Position(0, 2))
+    brain = ManhattanHeuristicBrain(role=AgentRole.COP)
+
+    assert brain._pick_move(board, Position(0, 3), belief) is None
+
+
 def test_thief_brain_never_places_a_barrier():
     board = Board(BoardConfig(grid_size=7, max_barriers=14))
     belief = _belief_peaked_at(board, Position(5, 5))

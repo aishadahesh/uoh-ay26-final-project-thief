@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import platform
+import re
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
@@ -45,6 +46,7 @@ from police_thief.services.network_protocol import (
     create_agreement,
     now_iso,
     seal_payload,
+    validate_claim_response,
     verify_agreement,
 )
 from police_thief.services.step0 import (
@@ -55,8 +57,11 @@ from police_thief.services.step0 import (
     sign_step0,
 )
 from police_thief.services.submission_artifacts import (
+    SubmissionBundleError,
     finalize_submission_bundle,
     public_participant,
+    save_submission_validation_report,
+    validate_submission_directory,
 )
 from police_thief.shared.constants import AgentRole
 from police_thief.shared.game_config import config_fingerprint, load_match_parameters
@@ -145,7 +150,9 @@ class NetworkMatchRunner:
         hint_provider = TemplateHintProvider(params.world.hint_max_words)
         own_records: list[dict] = [self._sealed_system_spec()]
         peer_commits: dict[int, str] = {}
+        peer_turn_evidence: dict[int, dict] = {}
         pending_claim_response: dict | None = None
+        outstanding_capture_claims: list[list[int]] = []
         known_cop_position = (
             params.cop_start if self.settings.role is AgentRole.THIEF else None
         )
@@ -173,6 +180,7 @@ class NetworkMatchRunner:
                         "state": {"row": own_position.row, "col": own_position.col},
                         "position": [own_position.row, own_position.col],
                         "terminal_ack": "capture",
+                        "claim_response": pending_claim_response,
                     }
                     record = seal_payload(payload)
                     own_records.append(record)
@@ -233,17 +241,6 @@ class NetworkMatchRunner:
                     emit,
                     step,
                 )
-                payload = {
-                    "step": step,
-                    "role": wire_role,
-                    "state": {"row": state_before.row, "col": state_before.col},
-                    "position": [own_position.row, own_position.col],
-                    "move": move.value,
-                    "intent": True,
-                    "hint": hint,
-                }
-                record = seal_payload(payload)
-                own_records.append(record)
                 capture_claim = (
                     [own_position.row, own_position.col]
                     if self.settings.role is AgentRole.COP
@@ -256,6 +253,29 @@ class NetworkMatchRunner:
                     if self.settings.role is AgentRole.THIEF and step >= params.max_moves
                     else None
                 )
+                payload = {
+                    "step": step,
+                    "role": wire_role,
+                    "state": {"row": state_before.row, "col": state_before.col},
+                    "position": [own_position.row, own_position.col],
+                    "move": move.value,
+                    "intent": True,
+                    "hint": hint,
+                }
+                payload.update(
+                    {
+                        field: value
+                        for field, value in {
+                            "barrier_placed": barrier_placed,
+                            "capture_claim": capture_claim,
+                            "claim_response": pending_claim_response,
+                            "win_claim": win_claim,
+                        }.items()
+                        if value is not None
+                    }
+                )
+                record = seal_payload(payload)
+                own_records.append(record)
                 message = TurnMessage(
                     step=step,
                     sender=wire_role,
@@ -269,6 +289,12 @@ class NetworkMatchRunner:
                     win_claim=win_claim,
                 )
                 self.transport.send_turn(message.to_dict(), timeout)
+                if self.settings.role is AgentRole.COP:
+                    outstanding_capture_claims = [
+                        list(claim)
+                        for claim in (capture_claim, barrier_placed)
+                        if claim is not None
+                    ]
                 emit(f"Step {step}: sealed turn delivered; nonce remains private")
                 if pending_claim_response and pending_claim_response.get("caught"):
                     outcome = MatchOutcome.CAPTURE
@@ -291,6 +317,17 @@ class NetworkMatchRunner:
                         f"received sender={message.sender!r}, step={message.step}"
                     )
                 peer_commits[step] = message.commit
+                peer_turn_evidence[step] = {
+                    field: value
+                    for field, value in {
+                        "role": message.sender,
+                        "barrier_placed": message.barrier_placed,
+                        "capture_claim": message.capture_claim,
+                        "claim_response": message.claim_response,
+                        "win_claim": message.win_claim,
+                    }.items()
+                    if value is not None
+                }
                 belief.update_from_scent(_WireScent(message.smell_grid))
                 emit(f"Step {step}: received sealed {message.sender} turn")
                 if message.barrier_placed is not None:
@@ -315,13 +352,14 @@ class NetworkMatchRunner:
                     if is_boxed_in(board, own_position):
                         thief_boxed_in = True
                         emit(f"Step {step}: thief is boxed in")
-                if (
-                    self.settings.role is AgentRole.COP
-                    and message.claim_response
-                    and message.claim_response.get("caught")
-                ):
-                    outcome = MatchOutcome.CAPTURE
-                    break
+                if self.settings.role is AgentRole.COP and message.claim_response:
+                    validate_claim_response(
+                        message.claim_response, outstanding_capture_claims,
+                    )
+                    outstanding_capture_claims = []
+                    if message.claim_response.get("caught"):
+                        outcome = MatchOutcome.CAPTURE
+                        break
                 if message.win_claim:
                     outcome = (
                         MatchOutcome.CAPTURE
@@ -343,11 +381,38 @@ class NetworkMatchRunner:
                 timeout,
             )
         )
-        audit_ok, failed = audit_records(peer_audit.records, peer_commits, require_step0=True)
+        audit_ok, failed = audit_records(
+            peer_audit.records,
+            peer_commits,
+            expected_turn_evidence=peer_turn_evidence,
+            require_step0=True,
+        )
         if not audit_ok:
-            raise RuntimeError(f"opponent audit failed at steps {failed}")
+            emit(
+                f"Opponent audit rejected at steps {failed}; recording technical loss "
+                "with mutual_sign_off=false"
+            )
+            self._send_control("status", "AUDIT_FAILED")
+            return self._write_technical_loss_result(
+                params, own_records, peer_identity, emit,
+            )
         if peer_audit.result_claim != outcome.value:
-            raise RuntimeError("opponent result claim does not match local result")
+            emit(
+                "Opponent result claim does not match local result; recording "
+                "technical loss with mutual_sign_off=false"
+            )
+            self._send_control("status", "AUDIT_FAILED")
+            return self._write_technical_loss_result(
+                params, own_records, peer_identity, emit,
+            )
+        mutual_sign_off = bool(re.fullmatch(
+            r"[0-9a-f]{40}", str(peer_identity.get("git_commit_hash", "")),
+        ))
+        if not mutual_sign_off:
+            emit(
+                "Opponent identity omitted a valid 40-character Git commit; "
+                "result retained with mutual_sign_off=false"
+            )
         entries = self._combined_log(
             own_records,
             peer_audit.records,
@@ -356,6 +421,7 @@ class NetworkMatchRunner:
         )
         path = self._write_result(
             params, entries, outcome, peer_identity, peer_audit.token_usage, emit,
+            mutual_sign_off=mutual_sign_off,
         )
         self._send_control("status", "COMPLETE")
         if self.settings.email_mode == "real":
@@ -682,6 +748,8 @@ class NetworkMatchRunner:
         peer_identity: dict,
         peer_token_usage: dict | None,
         emit: EventSink,
+        *,
+        mutual_sign_off: bool = True,
     ) -> Path:
         s = self.settings
         save_log(entries, s.output_dir / f"log_{s.game_id}_g{s.sub_game_number:02d}.json")
@@ -711,7 +779,7 @@ class NetworkMatchRunner:
             cop_score,
             thief_score,
             outcome.value,
-            True,
+            mutual_sign_off,
             entries,
             self._token_usage(),
             RepoCrossLinks(
@@ -736,8 +804,36 @@ class NetworkMatchRunner:
             s.output_dir,
             include_sub_game=params.network_league.num_games > 1,
         )
-        emit(f"Audit verified; result saved to {path}")
+        status = "verified" if mutual_sign_off else "not mutually signed"
+        emit(f"Audit {status}; result saved to {path}")
         return path
+
+    def _write_technical_loss_result(
+        self, params, own_records: list[dict], peer_identity: dict, emit: EventSink,
+    ) -> Path:
+        """Persist a controlled, unsigned result after a failed final audit."""
+        entries = [
+            LogEntry(
+                state=record["payload"]["state"],
+                move=record["payload"]["move"],
+                intent=record["payload"]["intent"],
+                nonce=record["nonce"],
+                h_commit=record["commit"],
+                payload=record["payload"],
+            )
+            for record in own_records
+            if record["payload"].get("step", 0) > 0
+            and "move" in record["payload"]
+        ]
+        return self._write_result(
+            params,
+            entries,
+            MatchOutcome.TECHNICAL_LOSS,
+            peer_identity,
+            None,
+            emit,
+            mutual_sign_off=False,
+        )
 
 
 def role_for_subgame(natural_role: AgentRole, series_index: int) -> AgentRole:
@@ -837,7 +933,9 @@ class NetworkMatchSeriesRunner:
             "game_id": self.settings.game_id,
             "num_games": num_games,
             "first_sub_game_number": self.settings.sub_game_number,
-            "mutual_sign_off": True,
+            "mutual_sign_off": all(
+                bool(row["mutual_sign_off"]) for row in subgames
+            ),
             "sub_games": subgames,
             "team_scores": ordered_totals,
             "winner": winners[0] if len(winners) == 1 else "tie",
@@ -848,15 +946,32 @@ class NetworkMatchSeriesRunner:
         terms = NetworkMatchRunner(
             self.settings, self.inboxes, self.gemini_advisor, self.transport,
         )._terms(params)
-        submission_paths = finalize_submission_bundle(
-            self.settings.output_dir,
-            game_id=self.settings.game_id,
-            terms=terms,
-            participants=participants,
-            series_result=series_result,
-            game_started_at=series_started_at,
-            token_budget=params.network_league.token_budget_per_series,
-        )
+        try:
+            submission_paths = finalize_submission_bundle(
+                self.settings.output_dir,
+                game_id=self.settings.game_id,
+                terms=terms,
+                participants=participants,
+                series_result=series_result,
+                game_started_at=series_started_at,
+                token_budget=params.network_league.token_budget_per_series,
+            )
+        except SubmissionBundleError as exc:
+            errors, _required = validate_submission_directory(
+                self.settings.output_dir, self.settings.game_id,
+            )
+            report = save_submission_validation_report(
+                self.settings.output_dir,
+                self.settings.game_id,
+                errors,
+                str(exc),
+            )
+            path = self.settings.output_dir / f"result_{self.settings.game_id}.json"
+            emit(
+                "Series completed, but official submission was not sent: "
+                f"{len(errors)} validation error(s); report saved to {report}"
+            )
+            return path
         path = submission_paths[-1]
         emit(
             f"Series complete; {len(submission_paths)} validated submission JSON files "

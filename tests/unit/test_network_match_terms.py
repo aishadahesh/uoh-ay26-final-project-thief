@@ -38,7 +38,7 @@ def test_official_terms_match_the_reference_wire_contract_exactly():
         "min_center_intensity": 0.5,
         "max_steps": 35,
         "barriers_max": 14,
-        "setting": "New York",
+        "setting": params.world.map_area,
         "hint_max_words": 15,
         "axis_origin_corner": "top-left",
         "axis_start_index": 0,

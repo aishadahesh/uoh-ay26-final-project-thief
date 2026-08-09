@@ -35,15 +35,21 @@ class PeerInboxes:
 
         A tunnel can deliver a POST successfully and then lose its HTTP
         response. The client must retry, so the receiver must acknowledge the
-        identical retry without placing a second copy in the gameplay queue.
+        retry without placing a second copy in the gameplay queue.  A turn's
+        immutable commitment is its delivery identifier because transport
+        metadata such as the timestamp may change during redelivery.
         """
-        canonical = json.dumps(
-            payload,
-            sort_keys=True,
-            ensure_ascii=False,
-            separators=(",", ":"),
-        ).encode()
-        fingerprint = hashlib.sha256(canonical).hexdigest()
+        commit = payload.get("commit") if inbox_name == "turns" else None
+        if isinstance(commit, str) and commit:
+            fingerprint = f"commit:{commit}"
+        else:
+            canonical = json.dumps(
+                payload,
+                sort_keys=True,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ).encode()
+            fingerprint = f"payload:{hashlib.sha256(canonical).hexdigest()}"
         with self._delivery_lock:
             delivered = self._delivered[inbox_name]
             if fingerprint in delivered:

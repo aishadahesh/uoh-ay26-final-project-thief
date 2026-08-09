@@ -11,6 +11,7 @@ from police_thief.services.network_match import (
     NetworkMatchRunner,
     NetworkMatchSettings,
     _confirmed_cop_position,
+    _infer_public_scent_candidates,
     _infer_public_scent_center,
     _public_barrier_cop_candidates,
     _truthful_capture_claim,
@@ -218,6 +219,90 @@ def test_fresh_scent_innovation_tracks_recorded_cop_path_not_old_trail():
         assert inferred == current_position
         previous_grid = current_grid
         previous_position = current_position
+
+
+_CAPPED_KERNEL = {
+    (0, 0): 0.90,
+    (0, 1): 0.62, (0, -1): 0.62, (1, 0): 0.62, (-1, 0): 0.62,
+    (1, 1): 0.42, (1, -1): 0.42, (-1, 1): 0.42, (-1, -1): 0.42,
+    (0, 2): 0.20, (0, -2): 0.20, (2, 0): 0.20, (-2, 0): 0.20,
+    (1, 2): 0.14, (1, -2): 0.14, (-1, 2): 0.14, (-1, -2): 0.14,
+    (2, 1): 0.14, (2, -1): 0.14, (-2, 1): 0.14, (-2, -1): 0.14,
+    (2, 2): 0.04, (2, -2): 0.04, (-2, 2): 0.04, (-2, -2): 0.04,
+}
+
+
+def _opponent_capped_step(
+    grid: dict[str, float], center: Position, size: int = 7,
+) -> dict[str, float]:
+    """One turn of the reviewed opponent's scent model: decay by (1-rho),
+    deposit the 5x5 kernel, hard-cap every cell at 0.9."""
+    decayed = {key: value * 0.9 for key, value in grid.items()}
+    for (delta_row, delta_col), deposit in _CAPPED_KERNEL.items():
+        row, col = center.row + delta_row, center.col + delta_col
+        if 0 <= row < size and 0 <= col < size:
+            key = f"{row},{col}"
+            decayed[key] = min(0.9, decayed.get(key, 0.0) + deposit)
+    return {key: value for key, value in decayed.items() if value > 1e-9}
+
+
+def test_capped_opponent_step_onto_own_trail_yields_a_set_with_the_true_center():
+    """One ordinary step inside the opponent's own kernel: the cap clips the
+    center innovation below min_center_intensity, so the singleton stage is
+    blind, but the fallback set must stay small and contain the true cell."""
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    previous_grid = _opponent_capped_step({}, Position(3, 3))
+    current_grid = _opponent_capped_step(previous_grid, Position(3, 4))
+    candidates = _infer_public_scent_candidates(
+        board, previous_grid, current_grid,
+        decay_rate=0.10, min_center_intensity=0.5, emission_cap=0.9,
+        previous_position=Position(3, 3),
+    )
+    assert candidates
+    assert len(candidates) <= 4
+    assert Position(3, 4) in candidates
+
+
+def test_saturated_oscillation_yields_a_small_candidate_set_with_the_opponent_in_it():
+    """The reviewed loss: the opponent oscillates between two cells while the
+    whole neighborhood saturates at the 0.9 cap.  The singleton inference
+    goes blind; the cap-aware fallback must still pin it to a small set."""
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    grid: dict[str, float] = {}
+    spots = (Position(6, 6), Position(5, 6))
+    for turn in range(8):
+        grid = _opponent_capped_step(grid, spots[turn % 2])
+    current_center = spots[0]
+    current_grid = _opponent_capped_step(grid, current_center)
+
+    assert _infer_public_scent_center(
+        board, grid, current_grid,
+        decay_rate=0.10, min_center_intensity=0.5,
+        previous_position=spots[1],
+    ) is None
+
+    candidates = _infer_public_scent_candidates(
+        board, grid, current_grid,
+        decay_rate=0.10, min_center_intensity=0.5, emission_cap=0.9,
+        previous_position=spots[1],
+    )
+    assert candidates
+    assert len(candidates) <= 4
+    assert current_center in candidates
+
+
+def test_saturated_scent_without_an_anchor_stays_silent():
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    grid: dict[str, float] = {}
+    for turn in range(8):
+        grid = _opponent_capped_step(grid, Position(6, 6) if turn % 2 else Position(5, 6))
+    current_grid = _opponent_capped_step(grid, Position(5, 6))
+    candidates = _infer_public_scent_candidates(
+        board, grid, current_grid,
+        decay_rate=0.10, min_center_intensity=0.5, emission_cap=0.9,
+        previous_position=None,
+    )
+    assert candidates == ()
 
 
 def test_thief_public_hint_is_a_plausible_lie(tmp_path, monkeypatch):

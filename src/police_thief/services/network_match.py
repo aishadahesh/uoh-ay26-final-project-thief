@@ -192,6 +192,41 @@ def _infer_public_scent_center(
     return center
 
 
+def _cornered_candidate_barrier(
+    board: Board,
+    own_position: Position,
+    public_thief_candidates: tuple[Position, ...],
+) -> Position | None:
+    """Endgame closer: when the single fresh public thief candidate is
+    adjacent to the cop AND already cornered (at most two open exits beyond
+    the cop's own cell), wall that cell.  Either the thief is still on it (a
+    capture claim, Sec. 3.3.4) or its hiding pocket just lost the doorway
+    and the next approach boxes it in.  In an open-field chase the candidate
+    has three or four exits, so this rule stays silent and can never wall
+    off the cop's own pursuit path with a one-turn-stale scent center."""
+    candidates = tuple(dict.fromkeys(public_thief_candidates))
+    if len(candidates) != 1:
+        return None
+    target = candidates[0]
+    open_neighbors = [
+        neighbor
+        for neighbor in board.neighbors(own_position)
+        if not board.is_blocked(neighbor)
+    ]
+    # Never seal the cop's own last escape route (the reviewed G001 failure
+    # that forced ten consecutive STAY turns).
+    if target == own_position or target not in open_neighbors or len(open_neighbors) < 3:
+        return None
+    target_exits = [
+        neighbor
+        for neighbor in board.neighbors(target)
+        if not board.is_blocked(neighbor) and neighbor != own_position
+    ]
+    if len(target_exits) > 2:
+        return None
+    return target
+
+
 def _truthful_capture_claim(
     role: AgentRole,
     own_position: Position,
@@ -383,6 +418,7 @@ class NetworkMatchRunner:
                     brain,
                     emit,
                     step,
+                    public_thief_candidates=public_thief_candidates,
                 )
                 capture_claim = _truthful_capture_claim(
                     self.settings.role,
@@ -850,10 +886,13 @@ class NetworkMatchRunner:
         brain,
         emit,
         step,
+        public_thief_candidates: tuple[Position, ...] = (),
     ) -> list[int] | None:
-        if self.settings.role is not AgentRole.COP:
+        if self.settings.role is not AgentRole.COP or board.remaining_barrier_budget <= 0:
             return None
-        target = brain._pick_move(board, own_position, belief)
+        target = _cornered_candidate_barrier(board, own_position, public_thief_candidates)
+        if target is None:
+            target = brain._pick_move(board, own_position, belief)
         if target is None or board.remaining_barrier_budget <= 0:
             return None
         if board.is_blocked(target):

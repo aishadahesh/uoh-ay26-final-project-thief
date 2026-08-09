@@ -28,6 +28,9 @@ class ActionEvaluation:
     proximity_risk: float = 0.0
     escape_routes: float = 0.0
     trap_risk: float = 0.0
+    intercept_distance: float = 0.0
+    containment: float = 0.0
+    escape_space: float = 0.0
 
     def summary(self) -> str:
         return (
@@ -122,8 +125,9 @@ class TacticalPlanner:
         if self.role is AgentRole.COP and any(move is not Move.STAY for move in legal):
             hard_excluded.add(Move.STAY)
         if self.role is AgentRole.THIEF:
-            # Risk is a constraint, not merely a score.  With scent/boundary
-            # evidence the former planner could still accept a high-scoring
+            # Risk is a constraint, not merely a score.  The former planner
+            # hard-filtered danger only when the cop published an exact cell;
+            # with scent/boundary evidence it could still accept a high-scoring
             # move directly into capture.  Eliminate each risk tier whenever a
             # safer legal alternative exists, while retaining at least one move
             # when the thief is genuinely cornered.
@@ -189,6 +193,7 @@ class TacticalPlanner:
 
     @staticmethod
     def _rank_key(item: ActionEvaluation) -> tuple[float, int, int]:
+        # Stable deterministic tie-break: moving beats STAY, then enum order from Board.
         return item.total, int(item.move is not Move.STAY), -list(Move).index(item.move)
 
     def _detect_loop(self, own: Position) -> tuple[bool, str]:
@@ -245,23 +250,95 @@ class TacticalPlanner:
         dead_end_penalty = 24.0 if mobility <= 1 else (12.0 if mobility == 2 else 0.0)
         variation_bonus = self._variation_bonus(own, move)
 
+        intercept_distance = 0.0
+        containment = 0.0
+        escape_space = 0.0
         if self.role is AgentRole.COP:
             current_distance = _expected_distance(board, own, targets)
             progress = current_distance - expected_distance
-            total = (-10.0 * expected_distance + 7.0 * progress + 1.4 * mobility + 2.0 * future_value - revisit_penalty - loop_penalty - 0.4 * dead_end_penalty + variation_bonus)
-        else:
-            capture_margin = max(0.0, expected_distance - 1.0)
+            # Pursuit terms are gated on a genuinely focused target: with an
+            # exact/near-exact public fix (a fresh scent center, a barrier
+            # deduction, or a published cell) they stop the cop from
+            # tail-chasing; against a flat searching belief they would only
+            # add noise to the sweep that the plain distance objective and
+            # revisit pressure already handle well.
+            focused = max((probability for _, probability in targets), default=0.0) >= 0.3
+            if focused:
+                # Interception: a fleeing thief does not wait on its scent
+                # peak.  Also score the destination against each believed
+                # cell's best one-step flight from our CURRENT cell, so the
+                # cop cuts the corner instead of following decayed scent.
+                intercept_distance = sum(
+                    probability
+                    * _shortest_distance(board, destination, _evasive_reply(board, target, own))
+                    for target, probability in targets
+                ) / weight
+                # Containment: the escape space the believed thief keeps if
+                # we stand at `destination`.  Standing in a pocket's doorway
+                # collapses this area and turns barriers already on the
+                # board into a cage; plain distance-chasing never sees that.
+                containment = sum(
+                    probability
+                    * (0 if destination == target else board.reachable_area(target, extra_blocked=destination))
+                    for target, probability in targets
+                ) / weight
             total = (
-                9.0 * capture_margin + 3.0 * future_value + 2.2 * mobility
+                -10.0 * expected_distance
+                - 4.0 * intercept_distance
+                + 7.0 * progress
+                + 1.4 * mobility
+                + 2.0 * future_value
+                - 0.35 * containment
+                - revisit_penalty
+                - loop_penalty
+                - 0.4 * dead_end_penalty
+                + variation_bonus
+            )
+        else:
+            # Assume the believed cop takes its best one-step approach, then value
+            # our best following escape. This is a conservative two-ply safety view.
+            capture_margin = max(0.0, expected_distance - 1.0)
+            # Open-space preference: reachable area with the believed cop
+            # treated as one more wall.  Slipping into a region whose sole
+            # doorway the cop occupies reads as ~zero escape space here even
+            # when one-step mobility still looks healthy.
+            escape_space = sum(
+                probability
+                * (0.0 if destination == target else board.reachable_area(destination, extra_blocked=target))
+                for target, probability in targets
+            ) / weight
+            total = (
+                9.0 * capture_margin
+                + 3.0 * future_value
+                + 2.2 * mobility
                 + 5.0 * escape_routes
-                - revisit_penalty - loop_penalty - dead_end_penalty + variation_bonus
-                - 1000.0 * direct_capture_risk - 250.0 * proximity_risk
+                + 0.6 * escape_space
+                - revisit_penalty
+                - loop_penalty
+                - dead_end_penalty
+                + variation_bonus
+                - 1000.0 * direct_capture_risk
+                - 250.0 * proximity_risk
                 - 300.0 * trap_risk
             )
         return ActionEvaluation(
-            move, destination, total, expected_distance, mobility, future_value,
-            revisit_penalty, loop_penalty, dead_end_penalty, variation_bonus,
-            direct_capture_risk, proximity_risk, escape_routes, trap_risk,
+            move=move,
+            destination=destination,
+            total=total,
+            path_distance=expected_distance,
+            mobility=mobility,
+            future_value=future_value,
+            revisit_penalty=revisit_penalty,
+            loop_penalty=loop_penalty,
+            dead_end_penalty=dead_end_penalty,
+            variation_bonus=variation_bonus,
+            direct_capture_risk=direct_capture_risk,
+            proximity_risk=proximity_risk,
+            escape_routes=escape_routes,
+            trap_risk=trap_risk,
+            intercept_distance=intercept_distance,
+            containment=containment,
+            escape_space=escape_space,
         )
 
     def _escape_outlook(
@@ -270,7 +347,13 @@ class TacticalPlanner:
         destination: Position,
         targets: tuple[tuple[Position, float], ...],
     ) -> tuple[float, float]:
-        """Score legal escape routes after the cop's strongest public-belief reply."""
+        """Conservatively score the thief's next escape after the cop responds.
+
+        For each public-belief cop candidate, the cop is allowed its best legal
+        reply. We then count thief continuations that also stay outside the
+        cop's following one-step capture range. This is a small three-ply
+        search over legal board moves; it uses no private opponent state.
+        """
         if self.role is AgentRole.COP:
             return 0.0, 0.0
         weight = sum(probability for _, probability in targets) or 1.0
@@ -301,7 +384,13 @@ class TacticalPlanner:
         return expected_routes / weight, trapped_weight / weight
 
     def _variation_bonus(self, own: Position, move: Move) -> float:
-        """Small deterministic sub-game preference for strategically close moves."""
+        """Small stable preference that varies only strategically close choices.
+
+        A league sub-game seed prevents six fresh planners from replaying the
+        same symmetric opening. The bonus is deliberately below 0.5, far less
+        than the objective terms, so it cannot rescue a materially worse move.
+        Seed zero preserves the historical deterministic unit-test baseline.
+        """
         if self.strategy_seed == 0:
             return 0.0
         material = (
@@ -311,18 +400,45 @@ class TacticalPlanner:
         value = int.from_bytes(hashlib.sha256(material).digest()[:4], "big")
         return (value / 0xFFFFFFFF) * 0.89
 
-    def _future_value(self, board: Board, destination: Position, targets: tuple[tuple[Position, float], ...]) -> float:
-        next_positions = [candidate for move, candidate in board.legal_moves(destination).items() if move is not Move.STAY] or [destination]
+    def _future_value(
+        self,
+        board: Board,
+        destination: Position,
+        targets: tuple[tuple[Position, float], ...],
+    ) -> float:
+        next_positions = [
+            candidate
+            for move, candidate in board.legal_moves(destination).items()
+            if move is not Move.STAY
+        ] or [destination]
         future_distances = [_expected_distance(board, candidate, targets) for candidate in next_positions]
-        return -min(future_distances) if self.role is AgentRole.COP else max(future_distances)
+        if self.role is AgentRole.COP:
+            # Higher is better, so negate the shortest continuation distance.
+            return -min(future_distances)
+        return max(future_distances)
 
 
-def _expected_distance(board: Board, source: Position, targets: tuple[tuple[Position, float], ...]) -> float:
+def _evasive_reply(board: Board, target: Position, chaser: Position) -> Position:
+    """The believed thief's best one-step flight from `chaser`: the legal
+    destination maximizing BFS distance, with a deterministic tie-break."""
+    options = set(board.legal_moves(target).values())
+    return max(
+        options,
+        key=lambda cell: (_shortest_distance(board, chaser, cell), -cell.row, -cell.col),
+    )
+
+
+def _expected_distance(
+    board: Board,
+    source: Position,
+    targets: tuple[tuple[Position, float], ...],
+) -> float:
     weight = sum(probability for _, probability in targets) or 1.0
     return sum(_shortest_distance(board, source, target) * probability for target, probability in targets) / weight
 
 
 def _shortest_distance(board: Board, start: Position, goal: Position) -> int:
+    """Breadth-first path distance around barriers; Manhattan is its lower bound."""
     if start == goal:
         return 0
     queue: deque[tuple[Position, int]] = deque([(start, 0)])

@@ -376,9 +376,13 @@ class AuditPayload:
     records: list[dict]
     result_claim: str
     token_usage: dict | None = None
+    consensus_sha: str | None = None
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        payload = asdict(self)
+        if self.consensus_sha is None:
+            payload.pop("consensus_sha")
+        return payload
 
     @classmethod
     def from_dict(cls, data: dict) -> AuditPayload:
@@ -388,6 +392,12 @@ class AuditPayload:
             raise NetworkProtocolError(f"malformed audit payload: {exc}") from exc
         if payload.sender not in WIRE_ROLES.values() or not isinstance(payload.records, list):
             raise NetworkProtocolError("invalid audit sender or records")
+        if payload.consensus_sha is not None and (
+            not isinstance(payload.consensus_sha, str)
+            or len(payload.consensus_sha) != 64
+            or any(char not in "0123456789abcdef" for char in payload.consensus_sha)
+        ):
+            raise NetworkProtocolError("consensus_sha must be 64 lowercase hexadecimal characters")
         return payload
 
 

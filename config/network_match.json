@@ -3,13 +3,13 @@
   "peer": {
     "role": "thief",
     "local_port": 8802,
-    "opponent_url": "https://opponent.example/mcp",
-    "public_url": "https://your-tunnel.example/mcp"
+    "opponent_url": "https://know-counts-negotiations-rooms.trycloudflare.com/mcp",
+    "public_url": "https://theif.uohay26game.com/mcp"
   },
   "match": {
-    "game_id": "G001",
+    "game_id": "G003",
     "sub_game_number": 1,
-    "shared_match_secret": "",
+    "shared_match_secret": "50",
     "output_directory": "results/network"
   },
   "team_1": {
@@ -21,11 +21,11 @@
     }
   },
   "team_2": {
-    "name": "",
-    "members": ["", ""],
+    "name": "sharNamr",
+    "members": ["Sharbel Maroun", "Amr safadi"],
     "repos": {
-      "cop": "",
-      "thief": ""
+      "cop": "https://github.com/SharbelMaroun/p2p-cop-agent",
+      "thief": "https://github.com/SharbelMaroun/p2p-thief-agent"
     }
   },
   "email": {

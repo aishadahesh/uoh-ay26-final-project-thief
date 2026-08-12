@@ -289,7 +289,7 @@ def _infer_public_scent_candidates(
     min_center_intensity: float,
     emission_cap: float,
     previous_positions: tuple[Position, ...] = (),
-    max_ambiguity: int = 4,
+    max_ambiguity: int = 8,
 ) -> tuple[Position, ...]:
     """Cap-aware generalization of `_infer_public_scent_center`.
 
@@ -2171,21 +2171,15 @@ def _deliver_unverified_result(
     result_path: Path, params, settings: NetworkMatchSettings,
     emit: EventSink,
 ) -> bool:
-    """Deliver only the aggregate result without claiming it is verified."""
+    """Fail closed: an invalid aggregate is evidence, not a submission."""
     if not result_path.is_file():
         emit(
             "Submission email could not be created because the aggregate result "
             f"is missing: {result_path.name}"
         )
         return False
-    if settings.email_mode != "real":
-        emit(
-            "Email mode is dry_run; unverified aggregate result was created but not sent"
-        )
-        return False
     emit(
-        "Sending only the aggregate result JSON despite validation warnings; "
-        "supporting artifacts remain local and no values were fabricated or confirmed"
+        "Unverified aggregate result was created but not sent; resolve the "
+        "validation/consensus failure before email submission"
     )
-    _try_email_result(result_path, params, settings, emit)
-    return True
+    return False

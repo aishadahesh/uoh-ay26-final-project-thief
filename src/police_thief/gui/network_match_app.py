@@ -13,7 +13,7 @@ from tkinter import messagebox, ttk
 from police_thief.gui.theme import COLORS, FONT, MONO_FONT, configure_window, install_styles
 from police_thief.services.gemini_agent import GeminiAgentAdvisor
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
-from police_thief.services.network_match import NetworkMatchSeriesRunner, NetworkMatchSettings
+from police_thief.services.network_match import NetworkMatchRunner, NetworkMatchSettings
 
 
 class NetworkMatchApp:
@@ -28,7 +28,11 @@ class NetworkMatchApp:
         self.settings = replace(settings, llm_model=gemini_advisor.model)
         self.on_new_game = on_new_game
         self.inboxes = PeerInboxes()
-        self.runner = NetworkMatchSeriesRunner(self.settings, self.inboxes, gemini_advisor)
+        self.runner = NetworkMatchRunner(
+            replace(self.settings, email_mode="series_deferred"),
+            self.inboxes,
+            gemini_advisor,
+        )
         self.stop_event = threading.Event()
         self.events: queue.Queue[tuple[str, str]] = queue.Queue()
         self.closed = False

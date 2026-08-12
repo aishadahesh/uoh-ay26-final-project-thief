@@ -1,20 +1,16 @@
 """CLI entry point: `uv run python -m police_thief <command> ...`.
 
 This repository is the **thief-side submission repo** (sibling `cop` repo:
-see README.md). `serve` defaults to `--role thief`, the only role this repo
-submits as. `--role cop` still works -- it runs this same shared package
-as a local opponent peer for interop/protocol testing, never as a
-submission-grade cop implementation -- and prints a one-line notice to
-stderr saying so every time it's used, so it's never silently mistaken for
-supported behavior in this repo.
+see README.md). Public `serve`/`peer` mode accepts only `--role thief`.
+Police sub-games run from the sibling Cop repository as an independent
+process with independent configuration and process memory.
 
 Commands:
-  peer [--role thief|police] PDF-compatible alias for `serve`.
-  serve [--role thief|cop|police]
+  peer [--role thief]       PDF-compatible alias for `serve`.
+  serve [--role thief]
                            Start this peer's FastMCP server (Chapter 2).
-                           Defaults to --role thief. --role cop/police is
-                           for local opponent-peer testing only -- see the
-                           module docstring above.
+                           Defaults to --role thief. Police is deliberately
+                           rejected by this submission repository.
   simulate                 Run a single-process local match with placeholder
                            policies and print the result (Chapter 3).
   replay --log PATH        Launch the Replay Viewer against a saved match
@@ -47,6 +43,7 @@ import argparse
 import sys
 import threading
 import tkinter as tk
+from dataclasses import replace
 from pathlib import Path
 from tkinter import messagebox
 
@@ -62,7 +59,7 @@ from police_thief.gui.network_setup import load_network_defaults, validate_mcp_u
 from police_thief.gui.replay_gui import ReplayGUI
 from police_thief.services.doctor import render_text, run_doctor, save_json_report
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
-from police_thief.services.network_match import NetworkMatchSeriesRunner, NetworkMatchSettings
+from police_thief.services.network_match import NetworkMatchRunner, NetworkMatchSettings
 from police_thief.shared.config import load_network_config
 from police_thief.shared.constants import AgentRole
 from police_thief.shared.game_config import load_match_parameters
@@ -85,13 +82,8 @@ def _add_peer_command(subparsers: argparse._SubParsersAction, name: str, help_te
     command.add_argument(
         "--role",
         default=AgentRole.THIEF.value,
-        choices=sorted(ROLE_ALIASES),
-        help=(
-            "Peer role to run. Defaults to 'thief' -- the only role this "
-            "repository submits as. 'police'/'cop' runs a local opponent peer "
-            "for interop testing only; see the sibling cop repository for the "
-            "real police/cop submission."
-        ),
+        choices=[AgentRole.THIEF.value],
+        help="Only 'thief' is supported; run the sibling Cop repository for Police games.",
     )
     command.add_argument("--config-root", type=Path, default=DEFAULT_CONFIG_ROOT)
     command.add_argument(
@@ -151,13 +143,10 @@ def _serve(args: argparse.Namespace) -> None:
         raise SystemExit(
             "--smoke-test requires --non-counted so it cannot be mistaken for a league result"
         )
-    if role is AgentRole.COP:
-        print(
-            "NOTE: 'police'/'cop' is not a supported submission role in this "
-            "(thief) repository -- this process is a local opponent peer for "
-            "interop testing only. The real police/cop submission lives in the "
-            "sibling cop repository (see README.md).",
-            file=sys.stderr,
+    if role is not AgentRole.THIEF:
+        raise SystemExit(
+            "This submission repository can only run the Thief peer; use the "
+            "independent Cop repository for Police games."
         )
     if args.smoke_test:
         print(
@@ -234,12 +223,16 @@ def _serve(args: argparse.Namespace) -> None:
         name="mcp-peer-server",
     ).start()
     print(f"MCP server listening on 0.0.0.0:{network.my_port}/mcp")
-    result_path = NetworkMatchSeriesRunner(
+    # Keep the submitted Cop and Thief as independent live processes.  This
+    # Thief entry point runs exactly one configured sub-game and never changes
+    # its role in-process; the sibling Cop repository owns police-role games.
+    settings = replace(settings, email_mode="series_deferred")
+    result_path = NetworkMatchRunner(
         settings,
         inboxes,
         gemini_advisor=gemini_advisor,
     ).run(threading.Event(), emit=print)
-    print(f"Match series complete -- result saved to {result_path}")
+    print(f"Thief sub-game complete -- result saved to {result_path}")
 
 
 def _doctor(args: argparse.Namespace) -> None:

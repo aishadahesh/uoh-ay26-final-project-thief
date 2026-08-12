@@ -699,6 +699,11 @@ class NetworkMatchRunner:
         self._usage_start = self._gemini_usage_snapshot()
 
     def run(self, stop: Event, emit: EventSink = lambda _message: None) -> Path:
+        if self.settings.role is not AgentRole.THIEF:
+            raise RuntimeError(
+                "the Thief submission repository cannot run a live Police role; "
+                "start the independent Cop repository instead"
+            )
         s = self.settings
         own_identity = self._identity()
         params = load_match_parameters(s.shared_config)
@@ -1707,16 +1712,14 @@ class NetworkMatchRunner:
 
 
 def role_for_subgame(natural_role: AgentRole, series_index: int) -> AgentRole:
-    """Alternate roles while each repository keeps its natural first-game role."""
+    """Return the repository's immutable live role for compatibility callers."""
     if series_index < 0:
         raise ValueError("series_index must be non-negative")
-    if series_index % 2 == 0:
-        return natural_role
-    return AgentRole.THIEF if natural_role is AgentRole.COP else AgentRole.COP
+    return natural_role
 
 
 class NetworkMatchSeriesRunner:
-    """Run the agreed multi-game series over one long-lived MCP connection."""
+    """Fail closed instead of changing a submitted repository's live role."""
 
     def __init__(
         self,
@@ -1731,6 +1734,11 @@ class NetworkMatchSeriesRunner:
         self.transport = transport or McpPeerTransport(settings.opponent_url, inboxes)
 
     def run(self, stop: Event, emit: EventSink = lambda _message: None) -> Path:
+        raise RuntimeError(
+            "automatic in-process role alternation is disabled: run one "
+            "NetworkMatchRunner sub-game from the Thief repository and use "
+            "the independent Cop repository for police-role sub-games"
+        )
         params = load_match_parameters(self.settings.shared_config)
         num_games = params.network_league.num_games
         subgames: list[dict] = []

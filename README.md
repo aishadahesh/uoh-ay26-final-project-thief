@@ -292,7 +292,7 @@ A machine-readable report can be saved with `--json-output path/to/report.json`.
 uv run python -m police_thief peer --role thief
 ```
 
-Starts this repository in its natural role for the first sub-game, negotiates the match, drives the Gemini/validation pipeline, performs final audit, and saves results.
+Starts this repository as the Thief and runs exactly the configured sub-game. It never switches to the Police role in-process. Run the independent Cop repository for this team's Police-role sub-games.
 
 ### Non-counted smoke peer
 
@@ -317,7 +317,7 @@ The viewer recalculates commitments and flags modified evidence.
 1. Run `uv sync` in each repository.
 2. Configure `.env` with Gemini credentials.
 3. Confirm both sides have byte-identical `config/game.json` files.
-4. Fill team identities, repositories, shared secret, game ID, output, and email defaults in `config/network_match.json`.
+4. Fill team identities, repositories, shared secret, game ID, current sub-game number, output, and email defaults in `config/network_match.json`.
 5. Set the opponent URL in `config/thief/game.toml`.
 6. Start the project's **Cloudflare Tunnel (cloudflared)** for the local thief MCP port.
 
@@ -350,6 +350,8 @@ uv run python -m police_thief peer --role police
 ```
 
 Each side may start first and wait at negotiation.
+
+This Thief process handles one Thief-role sub-game only. After its audited result is saved, use the independent Cop repository and endpoint for the next sub-game assigned to this team as Police. The two repositories do not share process memory or private role configuration.
 
 ### Shared versus private values
 

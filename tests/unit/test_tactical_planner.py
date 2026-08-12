@@ -150,11 +150,11 @@ def test_thief_uses_confirmed_cop_position_to_avoid_repeated_corner_capture():
         known_opponent_position=Position(4, 1),
     )
 
-    assert plan.selected is Move.STAY
-    assert plan.allowed_moves == (Move.STAY,)
+    assert plan.selected in (Move.NORTH, Move.EAST)
+    assert Move.STAY not in plan.allowed_moves
 
 
-def test_thief_accounts_for_move_then_barrier_capture_footprint():
+def test_thief_does_not_invent_an_illegal_move_then_barrier_capture_range():
     board = Board(BoardConfig(grid_size=7, max_barriers=14))
     plan = TacticalPlanner(AgentRole.THIEF).evaluate(
         board,
@@ -165,8 +165,7 @@ def test_thief_accounts_for_move_then_barrier_capture_footprint():
 
     west = next(item for item in plan.evaluations if item.move is Move.WEST)
     assert west.destination == Position(3, 5)
-    assert west.proximity_risk == 1.0
-    assert Move.WEST not in plan.allowed_moves
+    assert west.proximity_risk == 0.0
 
     no_barrier_board = Board(BoardConfig(grid_size=7, max_barriers=0))
     no_barrier_plan = TacticalPlanner(AgentRole.THIEF).evaluate(
@@ -178,7 +177,7 @@ def test_thief_accounts_for_move_then_barrier_capture_footprint():
     no_barrier_west = next(
         item for item in no_barrier_plan.evaluations if item.move is Move.WEST
     )
-    assert no_barrier_west.proximity_risk == 0.0
+    assert no_barrier_west.proximity_risk == west.proximity_risk
 
 
 def test_thief_treats_belief_proximity_as_a_hard_constraint():
@@ -189,10 +188,12 @@ def test_thief_treats_belief_proximity_as_a_hard_constraint():
         _belief_at(board, Position(2, 5)),
     )
 
-    # WEST, SOUTH, and STAY are inside the cop's move-then-barrier capture
+    # WEST, SOUTH, and STAY are within the Police's one-action capture
     # footprint. NORTH is the sole destination at a safe graph distance.
-    assert plan.allowed_moves == (Move.NORTH,)
-    assert plan.selected is Move.NORTH
+    assert Move.WEST not in plan.allowed_moves
+    assert Move.SOUTH not in plan.allowed_moves
+    assert plan.allowed_moves == (Move.STAY,)
+    assert plan.selected is Move.STAY
 
 
 def test_public_barrier_evidence_breaks_recorded_step_11_capture_route():

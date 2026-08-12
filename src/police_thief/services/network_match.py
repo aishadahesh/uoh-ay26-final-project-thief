@@ -45,12 +45,12 @@ from police_thief.services.network_protocol import (
     ControlMessage,
     NetworkProtocolError,
     TurnMessage,
-    audit_records,
     create_agreement,
     now_iso,
     seal_payload,
     validate_claim_response,
     verify_agreement,
+    verify_audit_records,
 )
 from police_thief.services.step0 import (
     Step0Declaration,
@@ -1130,20 +1130,47 @@ class NetworkMatchRunner:
                 timeout,
             )
         )
-        audit_ok, failed = audit_records(
+        audit_verdict = verify_audit_records(
             peer_audit.records,
             peer_commits,
             require_step0=True,
         )
-        if not audit_ok:
+        if not audit_verdict.verified:
+            failed = list(audit_verdict.failed_steps)
+            details = "; ".join(audit_verdict.errors)
+            self._save_rejected_peer_audit(peer_audit, audit_verdict)
+            if audit_verdict.cryptographic_failure:
+                emit(
+                    f"Opponent audit cryptographically failed at steps {failed}: "
+                    f"{details}; recording technical loss with mutual_sign_off=false"
+                )
+                self._send_control("status", "AUDIT_FAILED")
+                return self._write_technical_loss_result(
+                    params, own_records, peer_identity, emit,
+                )
             emit(
-                f"Opponent audit rejected at steps {failed}; recording technical loss "
-                "with mutual_sign_off=false"
+                f"Opponent audit envelope was not structurally verifiable at steps "
+                f"{failed}: {details}; retaining the completed {outcome.value!r} "
+                "outcome with mutual_sign_off=false"
             )
             self._send_control("status", "AUDIT_FAILED")
-            return self._write_technical_loss_result(
-                params, own_records, peer_identity, emit,
+            entries = self._safe_combined_log(
+                own_records, peer_audit.records, wire_role, peer_audit.sender,
             )
+            path = self._write_result(
+                params, entries, outcome, peer_identity, peer_audit.token_usage, emit,
+                mutual_sign_off=False,
+                audit={
+                    "log_verified": False,
+                    "tampered": False,
+                    "structural_failure": True,
+                    "failed_steps": failed,
+                    "errors": list(audit_verdict.errors),
+                    "peer_result_claim": peer_audit.result_claim,
+                },
+            )
+            self._send_control("status", "COMPLETE")
+            return path
         entries = self._combined_log(
             own_records,
             peer_audit.records,
@@ -1626,6 +1653,7 @@ class NetworkMatchRunner:
         emit: EventSink,
         *,
         mutual_sign_off: bool = True,
+        audit: dict | None = None,
     ) -> Path:
         s = self.settings
         save_log(entries, s.output_dir / f"log_{s.game_id}_g{s.sub_game_number:02d}.json")
@@ -1674,6 +1702,7 @@ class NetworkMatchRunner:
             ),
             participants,
             token_usage_by_group,
+            audit,
         )
         path = save_match_result(
             result,
@@ -1683,6 +1712,41 @@ class NetworkMatchRunner:
         status = "verified" if mutual_sign_off else "not mutually signed"
         emit(f"Audit {status}; result saved to {path}")
         return path
+
+    def _save_rejected_peer_audit(self, peer_audit, verdict) -> Path:
+        """Retain untrusted peer evidence verbatim for later diagnosis."""
+        s = self.settings
+        path = s.output_dir / (
+            f"audit_rejected_{s.game_id}_g{s.sub_game_number:02d}.json"
+        )
+        document = {
+            "game_id": s.game_id,
+            "sub_game_number": s.sub_game_number,
+            "verified": False,
+            "cryptographic_failure": verdict.cryptographic_failure,
+            "failed_steps": list(verdict.failed_steps),
+            "errors": list(verdict.errors),
+            "peer_audit": peer_audit.to_dict(),
+        }
+        path.write_text(json.dumps(document, indent=2, sort_keys=True), encoding="utf-8")
+        return path
+
+    @staticmethod
+    def _safe_combined_log(
+        own_records: list[dict], peer_records: list[dict], own_role: str, peer_role: str,
+    ) -> list[LogEntry]:
+        """Build a replay log from parseable moves while retaining raw evidence separately."""
+        parseable_peer = [
+            record for record in peer_records
+            if isinstance(record, dict)
+            and isinstance(record.get("payload"), dict)
+            and "step" in record["payload"]
+            and isinstance(record.get("nonce"), str)
+            and isinstance(record.get("commit"), str)
+        ]
+        return NetworkMatchRunner._combined_log(
+            own_records, parseable_peer, own_role, peer_role,
+        )
 
     def _write_technical_loss_result(
         self, params, own_records: list[dict], peer_identity: dict, emit: EventSink,
@@ -1797,6 +1861,10 @@ def finalize_completed_series(
             "tokens": result.get("token_usage_by_group") or dict.fromkeys(
                 current_participants, 0
             ),
+            "github_commit": {
+                group_id: str(identity.get("github_commit", ""))
+                for group_id, identity in current_participants.items()
+            },
             "mutual_sign_off": bool(result.get("mutual_sign_off", False)),
             "cop_score": int(result["cop_score"]),
             "thief_score": int(result["thief_score"]),

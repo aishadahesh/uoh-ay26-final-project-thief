@@ -292,7 +292,7 @@ A machine-readable report can be saved with `--json-output path/to/report.json`.
 uv run python -m police_thief peer --role thief
 ```
 
-Starts this repository as the Thief and runs exactly the configured sub-game. It never switches to the Police role in-process. Run the independent Cop repository for this team's Police-role sub-games.
+Starts a role-safe six-game coordinator. It launches a fresh Thief process for games 1/3/5 and a fresh process from the sibling Cop repository for games 2/4/6, advances the sub-game number, preserves verified completed games when resuming, and performs final series consensus after game 6. Neither child process changes role or reads the sibling role's private configuration.
 
 ### Non-counted smoke peer
 
@@ -351,7 +351,7 @@ uv run python -m police_thief peer --role police
 
 Each side may start first and wait at negotiation.
 
-This Thief process handles one Thief-role sub-game only. After its audited result is saved, use the independent Cop repository and endpoint for the next sub-game assigned to this team as Police. The two repositories do not share process memory or private role configuration.
+The public command coordinates the full series automatically. Each child still handles exactly one fixed-role sub-game; the parent alternates between the independent repositories without sharing their private role configuration or process memory.
 
 ### Shared versus private values
 

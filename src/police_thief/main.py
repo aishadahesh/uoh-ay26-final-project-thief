@@ -6,7 +6,8 @@ Police sub-games run from the sibling Cop repository as an independent
 process with independent configuration and process memory.
 
 Commands:
-  peer [--role thief]       PDF-compatible alias for `serve`.
+  peer [--role thief]      Coordinate the complete six-game series with
+                           fresh fixed-role Thief and Cop child processes.
   serve [--role thief]
                            Start this peer's FastMCP server (Chapter 2).
                            Defaults to --role thief. Police is deliberately
@@ -60,6 +61,7 @@ from police_thief.gui.replay_gui import ReplayGUI
 from police_thief.services.doctor import render_text, run_doctor, save_json_report
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
 from police_thief.services.network_match import NetworkMatchRunner, NetworkMatchSettings
+from police_thief.services.series_coordinator import mark_subgame_finished, run_series
 from police_thief.shared.config import load_network_config
 from police_thief.shared.constants import AgentRole
 from police_thief.shared.game_config import load_match_parameters
@@ -95,6 +97,20 @@ def _add_peer_command(subparsers: argparse._SubParsersAction, name: str, help_te
         "--non-counted",
         action="store_true",
         help="Require non-counted mode for smoke testing; official shared num_games is unchanged.",
+    )
+    command.add_argument("--single-subgame", action="store_true", help=argparse.SUPPRESS)
+    command.add_argument("--sub-game-number", type=int, help=argparse.SUPPRESS)
+    command.add_argument("--output-directory", type=Path, help=argparse.SUPPRESS)
+    command.add_argument("--series-state", type=Path, help=argparse.SUPPRESS)
+    command.add_argument("--finalize-series", action="store_true", help=argparse.SUPPRESS)
+    command.add_argument(
+        "--series-first-role", choices=["police", "thief"], default="thief",
+        help=argparse.SUPPRESS,
+    )
+    command.add_argument(
+        "--sibling-repo", type=Path,
+        default=DEFAULT_CONFIG_ROOT.parent.parent / "uoh-ay26-final-project-cop",
+        help="Path to this team's independent Cop repository.",
     )
 
 
@@ -148,14 +164,29 @@ def _serve(args: argparse.Namespace) -> None:
             "This submission repository can only run the Thief peer; use the "
             "independent Cop repository for Police games."
         )
+    project_root = args.config_root.parent
+    defaults = load_network_defaults(args.config_root / "network_match.json", project_root)
+    if not args.single_subgame:
+        first_role = (
+            AgentRole.COP if args.series_first_role == "police" else AgentRole.THIEF
+        )
+        run_series(
+            current_role=AgentRole.THIEF,
+            first_role=first_role,
+            current_repo=project_root,
+            sibling_repo=args.sibling_repo,
+            config_root=args.config_root,
+            output_dir=Path(defaults["output"]),
+            game_id=defaults["game"],
+            first_sub_game=int(defaults["subgame"]),
+        )
+        return
     if args.smoke_test:
         print(
             "NON-COUNTED TEST: deterministic peer server only; do not submit this as a counted result.",
             file=sys.stderr,
         )
     network = load_network_config(role, args.config_root)
-    project_root = args.config_root.parent
-    defaults = load_network_defaults(args.config_root / "network_match.json", project_root)
     validate_mcp_url(network.opponent_url)
     required = (
         "public",
@@ -196,9 +227,9 @@ def _serve(args: argparse.Namespace) -> None:
         opponent_url=network.opponent_url,
         public_url=defaults["public"],
         game_id=defaults["game"],
-        sub_game_number=int(defaults["subgame"]),
+        sub_game_number=args.sub_game_number or int(defaults["subgame"]),
         shared_config=args.config_root / "game.json",
-        output_dir=Path(defaults["output"]),
+        output_dir=args.output_directory or Path(defaults["output"]),
         team_name=defaults["team1_name"],
         members=(defaults["team1_member1"], defaults["team1_member2"]),
         opponent_team_name=defaults["team2_name"],
@@ -226,13 +257,29 @@ def _serve(args: argparse.Namespace) -> None:
     # Keep the submitted Cop and Thief as independent live processes.  This
     # Thief entry point runs exactly one configured sub-game and never changes
     # its role in-process; the sibling Cop repository owns police-role games.
-    settings = replace(settings, email_mode="series_deferred")
+    child_settings = replace(settings, email_mode="series_deferred")
     result_path = NetworkMatchRunner(
-        settings,
+        child_settings,
         inboxes,
         gemini_advisor=gemini_advisor,
     ).run(threading.Event(), emit=print)
+    if args.series_state is not None:
+        mark_subgame_finished(
+            args.series_state, settings.game_id, settings.sub_game_number,
+        )
     print(f"Thief sub-game complete -- result saved to {result_path}")
+    if args.finalize_series:
+        if args.series_state is None:
+            raise RuntimeError("--finalize-series requires --series-state")
+        from police_thief.services.network_match import finalize_completed_series
+
+        first_role = (
+            AgentRole.COP if args.series_first_role == "police" else AgentRole.THIEF
+        )
+        final_path = finalize_completed_series(
+            settings, inboxes, args.series_state, first_role, emit=print,
+        )
+        print(f"Final series result saved to {final_path}")
 
 
 def _doctor(args: argparse.Namespace) -> None:

@@ -62,7 +62,7 @@ def _boom(role, config_root):
 def test_serve_thief_role_reaches_role_specific_config(monkeypatch, capsys):
     monkeypatch.setattr(main, "load_network_config", _boom)
 
-    args = main.parse_args(["serve", "--role", "thief"])
+    args = main.parse_args(["serve", "--role", "thief", "--single-subgame"])
     with pytest.raises(RuntimeError, match="stop before networking"):
         main._serve(args)
 

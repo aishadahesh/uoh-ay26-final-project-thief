@@ -345,6 +345,25 @@ def test_thief_does_not_enter_corner_when_no_interior_escape_exists():
     assert Move.EAST not in plan.allowed_moves
 
 
+def test_thief_escapes_last_corridor_instead_of_reentering_barrier_ring():
+    """G005 g04: (3,3) had three blocked exits and was about to be sealed."""
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    for row, col in (
+        (2, 2), (2, 3), (2, 4), (3, 4), (4, 2), (4, 3), (4, 4),
+    ):
+        board.apply_declared_barrier(Position(row, col))
+    plan = TacticalPlanner(AgentRole.THIEF, strategy_seed=6).evaluate(
+        board,
+        Position(3, 2),
+        _belief_at(board, Position(5, 1)),
+        known_opponent_position=Position(5, 1),
+    )
+
+    assert plan.selected is Move.WEST
+    assert Move.EAST not in plan.allowed_moves
+    assert Move.STAY not in plan.allowed_moves
+
+
 def test_cop_captures_the_recorded_game_one_path_without_stalling():
     class ZeroScent:
         @staticmethod

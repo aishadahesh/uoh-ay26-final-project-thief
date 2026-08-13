@@ -168,6 +168,28 @@ class TacticalPlanner:
                     item.move for item in safety_pool if item.trap_risk > 0.0
                 )
                 safety_pool = trap_safe
+            # Public barriers are permanent.  Once two or more exits around
+            # the current cell have been removed, ordinary distance scoring
+            # must not send the Thief deeper into the pocket.  G005 g04 had a
+            # last open corridor at (3,2), but the planner re-entered (3,3),
+            # whose other three exits were already blocked, then STAYed until
+            # Police sealed the corridor.  In an active enclosure, maximize
+            # immediate open exits among otherwise capture-safe moves.
+            current_mobility = sum(
+                move is not Move.STAY for move in board.legal_moves(own)
+            )
+            if current_mobility <= 2 and safety_pool:
+                best_mobility = max(item.mobility for item in safety_pool)
+                if best_mobility > current_mobility:
+                    hard_excluded.update(
+                        item.move
+                        for item in safety_pool
+                        if item.mobility < best_mobility
+                    )
+                    safety_pool = tuple(
+                        item for item in safety_pool
+                        if item.mobility == best_mobility
+                    )
             # A currently safe boundary move can still hand the Police an
             # irreversible two-barrier corner trap. If an equally safe option
             # remains farther from the boundary, keep the Thief in that tier.

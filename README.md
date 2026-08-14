@@ -31,7 +31,9 @@ This repository combines evasive planning, constrained model output, decentraliz
 - [Trust and protocol design](#trust-and-protocol-design)
 - [Installation](#installation)
 - [Run modes](#run-modes)
+- [Animated game replays](#animated-game-replays)
 - [Two-computer match guide](#two-computer-match-guide)
+- [Verified match history](#verified-match-history)
 - [Configuration](#configuration)
 - [Results and automatic email](#results-and-automatic-email)
 - [Testing and quality](#testing-and-quality)
@@ -305,10 +307,28 @@ The explicit `--non-counted` requirement prevents deterministic connectivity che
 ### Replay an audited log
 
 ```bash
-uv run python -m police_thief replay --log results/network/log_G001_g01.json
+uv run python -m police_thief replay --log results/network/log_G009_g02.json
 ```
 
 The viewer recalculates commitments and flags modified evidence.
+
+## Animated game replays
+
+The replay GIFs below were generated from signed logs with the companion Cop repository's `scripts/visualize_game_log.py`. The renderer verifies commitments, reconstructs movement and barriers, and marks claims and terminal events. See [Running the project](docs/RUNNING.md#8-replay-and-read-the-artifacts) for the replay workflow.
+
+### Thief win — G009 sub-game 2
+
+The Thief (`uoh-ay26`) stays legal and survives the full 35-step limit against `sharNamr`.
+
+![Thief survival win from G009 sub-game 2](docs/replays/thief-win-G009-g02.gif)
+
+### Thief loss — G009 sub-game 6
+
+The opponent Police completes a signed boxed-in capture at step 25. Keeping a losing example makes the strategy limitations auditable.
+
+![Thief capture loss from G009 sub-game 6](docs/replays/thief-loss-G009-g06.gif)
+
+Both examples are from a mutually verified counted series; no positions or events were invented for the animations.
 
 ## Two-computer match guide
 
@@ -326,7 +346,7 @@ The viewer recalculates commitments and flags modified evidence.
 This project uses **Cloudflare Tunnel (`cloudflared`)** to expose the local FastMCP server securely over HTTPS without opening an inbound router port. Start the thief application first, then open another terminal and publish port `8802`:
 
 ```bash
-cloudflared tunnel --url http://localhost:8802
+cloudflared tunnel --url http://127.0.0.1:8802
 ```
 
 For a quick tunnel, `cloudflared` prints a temporary `https://<random>.trycloudflare.com` address. The MCP endpoint shared with the cop must append `/mcp`:
@@ -337,21 +357,24 @@ https://<random>.trycloudflare.com/mcp
 
 Put that full address in the cop peer's **Opponent public URL**. Put the cop's corresponding Cloudflare URL in this thief repository's opponent configuration. Keep the `cloudflared` process running throughout the match; restarting a quick tunnel generates a new URL that must be updated on the other peer.
 
-A named Cloudflare Tunnel and custom hostname may also be used when a stable URL is required. In either mode, Cloudflare handles the public HTTPS connection while FastMCP continues listening locally on `localhost:8802`.
+A named Cloudflare Tunnel and custom hostname may also be used when a stable URL is required. Use the explicit IPv4 origin `http://127.0.0.1:8802`; this avoids a Windows `localhost` IPv6 mismatch when the server is listening only on IPv4.
 
 ### Launch
 
 ```bash
-# Thief computer
+# Our team starts from this repository when Thief plays sub-games 1/3/5
 uv run python -m police_thief peer --role thief
 
-# Cop computer
+# If our team is Cop in sub-games 1/3/5, run this from the sibling Cop repository
+cd ../uoh-ay26-final-project-cop
 uv run python -m police_thief peer --role police
 ```
 
 Each side may start first and wait at negotiation.
 
 The public command coordinates the full series automatically. Each child still handles exactly one fixed-role sub-game; the parent alternates between the independent repositories without sharing their private role configuration or process memory.
+
+For the exact launch order, dual-hostname tunnel example, resume behavior, and pre-match checks, use [Running the project](docs/RUNNING.md). Before playing a new team, exchange every item in the [Opponent match guide](docs/OPPONENT_MATCH_GUIDE.md).
 
 ### Shared versus private values
 
@@ -384,17 +407,30 @@ These remain private:
 
 The tracked network defaults currently control whether automatic email begins enabled. The GUI can override that choice for the current launch.
 
+## Verified match history
+
+The team has completed **three counted six-sub-game series**. “Series W/L” is from `uoh-ay26`'s perspective.
+
+| Series | Opponent | Series W/L | Sub-games won | Score | Mutual agreement |
+|---|---|---:|---:|---:|---|
+| G001 | `najamjad` | Loss | 0–6 | 30–90 | Confirmed |
+| G002 | `amireman` | Win | 4–2 | 60–40 | Confirmed |
+| G009 | `sharNamr` | Loss | 2–4 | 40–60 | Confirmed |
+| **Total** | 3 opponents | **1–2** | **6–12** | **130–190** | 3 verified series |
+
+The table is derived from the saved aggregate result JSON files. Friendly and explicitly non-counted verification runs are excluded.
+
 ## Results and automatic email
 
 A verified match or series produces artifacts such as:
 
 ```text
 results/network/
-├── declaration_G001.json
-├── config_G001_g01.json
-├── log_G001_g01.json
-├── result_G001_g01.json
-└── result_G001.json
+├── declaration_G009.json
+├── config_G009_g01.json
+├── log_G009_g01.json
+├── result_G009_g01.json
+└── result_G009.json
 ```
 
 The result is constructed from audited records, scores, identities, repository links, and the replay-log hash.
@@ -456,7 +492,7 @@ src/police_thief/
 └── main.py                   # CLI entry point
 ```
 
-Detailed design decisions live in `docs/PRD_*.md`; the chronological engineering record is `ProgressDoc.md`.
+Start with [Running the project](docs/RUNNING.md) and the [Opponent match guide](docs/OPPONENT_MATCH_GUIDE.md). Detailed design decisions live in `docs/PRD_*.md`; the chronological engineering record is `ProgressDoc.md`.
 
 ## Troubleshooting
 
@@ -470,7 +506,7 @@ Check `GEMINI_API_KEY`, model name, timeout, and network access. The determinist
 
 ### Opponent is unreachable
 
-Verify `cloudflared`, local port `8802`, the public HTTPS URL, and the required `/mcp` suffix. Remember that a quick-tunnel URL changes after restart. Use `doctor --check-opponent` before a counted match.
+Verify `cloudflared`, the `http://127.0.0.1:8802` origin, the public HTTPS URL, and the required `/mcp` suffix. HTTP 502 normally means the route exists but the origin is unavailable; 530/1033 means no connected tunnel route. Remember that a quick-tunnel URL changes after restart. Use `doctor --check-opponent` before a counted match.
 
 ### Negotiation fails
 

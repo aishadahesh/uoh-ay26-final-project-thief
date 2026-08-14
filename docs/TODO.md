@@ -892,7 +892,7 @@ Legend: `[ ]` = not started, `[x]` = done. Do not skip layers — each stage sho
 - [x] T0668 Insert the cross-link to the sibling repository (cop <-> thief) — README banner + "Sibling repository" section
 - [x] T0669 Write a section explaining the scent/pheromone model and how uncertainty/deception were combined — covered in the Dec-POMDP and strategy-design sections (BeliefMap + detect_bluff)
 - [x] T0670 Write a section summarizing league results — README records all three counted opponents and verified scores
-- [ ] T0671 Write a section documenting any book-contradiction interpretation choices made per the academic-freedom clause — not yet folded into the README; currently only in `docs/TODO.md` (rule 47 note)
+- [x] T0671 Write a section documenting any book-contradiction interpretation choices made per the academic-freedom clause — README `Specification interpretations`
 - [x] T0672 Proofread the README for clarity, spelling, and academic tone
 - [ ] T0673 Verify the README renders correctly on GitHub's web UI (formatting, images, links) — re-check after pushing to the real GitHub repo
 

@@ -153,7 +153,8 @@ Open a signed log in the replay viewer:
 uv run python -m police_thief replay --log results/network/log_G009_g02.json
 ```
 
-README-ready examples generated from audited logs are stored in `docs/replays/`.
+README-ready examples and their signed source logs are stored in `assets/replays/`.
+The GIF renderer lives in the sibling Cop repository; exact reproducible commands are documented in [`assets/replays/README.md`](../assets/replays/README.md).
 
 ## 9. Automatic reporting
 

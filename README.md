@@ -11,6 +11,20 @@ This is the **thief-side repository** for the University of Haifa **Orchestratio
 
 The thief does not share memory with the cop, does not read the cop’s coordinates, and does not trust a central referee. It maintains its own board, belief map, private nonces, network state, audit evidence, and final report. The two peers agree only through signed configuration and a validated wire protocol.
 
+## Abstract
+
+This repository presents an autonomous evasive agent for a decentralized, partially observable pursuit game. Its objective is not merely to maximize immediate distance: it must preserve future mobility under a changing barrier geometry, reason from uncertain scent evidence, reject illegal model output, and coordinate with an untrusted opponent over a failure-prone public network. The implementation combines belief-aware escape scoring, anti-oscillation state history, bounded Gemini selection, deterministic legality checks, FastMCP peer orchestration, nonce-backed SHA-256 commitments, Step-0 environment attestation, mutual replay audit, and machine-readable reporting.
+
+The research emphasis is verifiable autonomy. The Thief never consumes the Cop's hidden coordinates or private strategy; every candidate action is filtered through the local board engine; and every reported outcome must be reproducible from signed evidence. Three counted six-sub-game series against independent teams ground the evaluation. A survival win and a capture loss are both committed as paired `JSON + GIF` evidence, making strengths and failure modes equally inspectable.
+
+### Contributions
+
+- A role-isolated Thief process that uses only protocol-authorized observations.
+- An interpretable escape policy combining threat distance, future exits, route history, dead-end risk, and anti-reversal pressure.
+- A validated LLM boundary with strict structured output, corrective retry, local legality checks, and deterministic fallback.
+- A fail-closed audit and consensus pipeline compatible with independently implemented peers.
+- Reproducible replay packages for one Thief win and one Thief loss, plus empirical results across 18 counted sub-games.
+
 ## Why this project is interesting
 
 Survival is not simply “move away.” The thief must answer harder questions:
@@ -26,6 +40,8 @@ This repository combines evasive planning, constrained model output, decentraliz
 ## Contents
 
 - [System at a glance](#system-at-a-glance)
+- [Formal problem formulation](#formal-problem-formulation)
+- [Required interface evidence](#required-interface-evidence)
 - [Thief intelligence](#thief-intelligence)
 - [Validated Gemini decision pipeline](#validated-gemini-decision-pipeline)
 - [Trust and protocol design](#trust-and-protocol-design)
@@ -34,12 +50,14 @@ This repository combines evasive planning, constrained model output, decentraliz
 - [Animated game replays](#animated-game-replays)
 - [Two-computer match guide](#two-computer-match-guide)
 - [Verified match history](#verified-match-history)
+- [Experimental methodology](#experimental-methodology)
 - [Configuration](#configuration)
 - [Results and automatic email](#results-and-automatic-email)
 - [Testing and quality](#testing-and-quality)
 - [Project map](#project-map)
 - [Troubleshooting](#troubleshooting)
 - [Academic design notes](#academic-design-notes)
+- [Limitations and future work](#limitations-and-future-work)
 
 ## System at a glance
 
@@ -67,6 +85,39 @@ The code is separated by responsibility:
 | `services/` | Gemini boundary, MCP protocol, commit–reveal, reporting |
 | `gui/` | Play modes, network setup, live board, replay viewer |
 | `shared/` | Configuration loading, constants, validation, versioning |
+
+## Formal problem formulation
+
+The match is modeled as a finite-horizon Dec-POMDP
+
+```text
+M = ⟨I, S, {Aᵢ}, T, R, {Ωᵢ}, O, H⟩
+```
+
+with agents `I = {cop, thief}` and horizon `H = 35`. A world state contains both positions, the public barrier set, the active turn, remaining budgets, and terminal status. The Thief action set is the legal subset of north, south, east, west, and `STAY`; `T` is deterministic after legal actions are selected. Rewards are asymmetric: survival favors the Thief, while capture favors the Cop.
+
+The Thief's observation contains its own coordinate, public board changes, signed protocol events, and scent evidence, but excludes the Cop's hidden coordinate. The controller therefore maintains a belief `b_t(s)` over feasible Cop locations and evaluates escape actions relative to that distribution. Strategic uncertainty and physical legality remain separate: a belief can be wrong, but the board engine still prevents an illegal move.
+
+No reinforcement-learning policy was trained, so learning curves are not applicable. The chosen Bayesian/heuristic policy is intentionally interpretable and reproducible. Gemini contributes bounded tactical selection, but cannot alter the action set, board state, capture semantics, or audit evidence.
+
+The physical observation model follows the shared scent equation with `ρ = 0.10`, center intensity `0.9`, and a `5 × 5` footprint:
+
+```text
+τᵢⱼ(t+1) = max(0, (1 - ρ)τᵢⱼ(t) + Δτᵢⱼ)
+b'(s) ∝ Predict(b)(s) · (τ(s) + ε)
+```
+
+The prediction step distributes belief through legal one-step transitions before scent is used as a likelihood. Barriers remove impossible cells, and the posterior is renormalized. This prevents a stale scent peak from becoming permanent certainty and keeps deceptive language separate from non-fakeable physical evidence.
+
+## Required interface evidence
+
+The Live GUI renders only local truth plus the inferred belief heatmap. The Cop's actual hidden coordinate is deliberately absent.
+
+![Thief Live GUI with opponent belief heatmap](assets/live_gui_thief.png)
+
+The Replay Viewer recomputes every commitment before displaying its status. The `Verified OK` label below is therefore an audit result, not a decorative caption.
+
+![Replay Viewer showing Verified OK](assets/replay_verified_ok.png)
 
 ## Thief intelligence
 
@@ -320,15 +371,19 @@ The replay GIFs below were generated from signed logs with the companion Cop rep
 
 The Thief (`uoh-ay26`) stays legal and survives the full 35-step limit against `sharNamr`.
 
-![Thief survival win from G009 sub-game 2](docs/replays/thief-win-G009-g02.gif)
+![Thief survival win from G009 sub-game 2](assets/replays/thief-win-G009-g02.gif)
+
+Reproduce it from [`thief-win-G009-g02.json`](assets/replays/thief-win-G009-g02.json).
 
 ### Thief loss — G009 sub-game 6
 
 The opponent Police completes a signed boxed-in capture at step 25. Keeping a losing example makes the strategy limitations auditable.
 
-![Thief capture loss from G009 sub-game 6](docs/replays/thief-loss-G009-g06.gif)
+![Thief capture loss from G009 sub-game 6](assets/replays/thief-loss-G009-g06.gif)
 
-Both examples are from a mutually verified counted series; no positions or events were invented for the animations.
+Reproduce it from [`thief-loss-G009-g06.json`](assets/replays/thief-loss-G009-g06.json).
+
+Both examples are from a mutually verified counted series; no positions or events were invented for the animations. The committed copies are intentionally isolated from the mutable `results/` workspace; provenance and regeneration commands are recorded in [`assets/replays/README.md`](assets/replays/README.md).
 
 ## Two-computer match guide
 
@@ -419,6 +474,14 @@ The team has completed **three counted six-sub-game series**. “Series W/L” i
 | **Total** | 3 opponents | **1–2** | **6–12** | **130–190** | 3 verified series |
 
 The table is derived from the saved aggregate result JSON files. Friendly and explicitly non-counted verification runs are excluded.
+
+## Experimental methodology
+
+Evaluation covers three counted series against three independently developed opponent teams. Each series contains six sub-games with alternating roles. A result is included only after both implementations agree on the six outcomes, role-aware scores, winner, and canonical consensus digest. Friendly, partial, and aborted runs are excluded.
+
+Competitive performance and evidence quality are reported separately. Survival or capture determines score; mutual audit determines whether the observation is admissible. This avoids treating a locally favorable but unverifiable outcome as success. The 18-sub-game sample demonstrates real cross-team interoperability and provides useful failure cases, but it is not large enough to claim statistical dominance over unseen strategies.
+
+Each committed replay is generated from the same signed log consumed by the audit implementation. The renderer verifies commitments and reconstructs movement, barriers, claims, and termination. The GIF communicates behavior; the adjacent JSON preserves the machine-verifiable source.
 
 ## Results and automatic email
 
@@ -526,15 +589,33 @@ That is expected: gameplay evidence is created before email delivery. Preserve t
 
 ## Academic design notes
 
-The game is represented as a decentralized partially observable Markov decision process:
+### FastMCP orchestration dilemmas
 
-```text
-⟨agents, states, actions, transition, rewards, observations, observation model, γ⟩
-```
+Both agents act as MCP server and client, so there is no central process that can silently resolve timing disputes. Negotiation must survive unequal startup order, role swaps, quick-tunnel replacement, transient 502 responses, and late audit traffic. Explicit lifecycle states, bounded queues, retry windows, role-checked envelopes, fresh per-sub-game processes, and a series coordinator isolate these concerns without sharing private state across repositories.
 
-The true state includes both positions and barrier layout, yet neither peer observes the full state. Scent provides truthful but decaying evidence; verbal hints may be deceptive; belief maps summarize uncertainty; signed shared configuration keeps physics consistent across machines.
+Information timing creates a second dilemma. Early revelation can leak a tactical advantage, while complete secrecy would prevent synchronization of public barriers and capture claims. The protocol publishes only rule-mandated shared events during play, commits private state with a nonce-backed SHA-256 digest, and defers full revelation to the audit phase. The Thief responds truthfully to a matching Capture Claim and terminates without making an escape move.
 
-The selected policy is deliberately interpretable. Distance explains immediate safety, mobility explains route quality, and every model-assisted choice is logged and validated. This provides stronger auditability than an opaque end-to-end policy while still allowing Gemini to contribute contextual tactical reasoning.
+### Orchestrator and Gatekeeper responsibilities
+
+The Orchestrator controls phase order—preflight, negotiation, Step-0, turns, audit, consensus, artifacts, and reporting—but delegates action selection to the decision module and physical legality to the board. This prevents networking code or Gemini output from becoming an alternative rules engine.
+
+The Gatekeeper enforces external boundaries: canonical shared configuration, peer identity and repository revision, time and token budgets, message schemas, reporting quotas, and Gmail recipient policy. Invalid model responses are rejected locally; invalid protocol messages fail closed; a failed email cannot alter completed evidence. The separation makes strategy, transport, audit, and reporting failures independently diagnosable.
+
+### Evidence and reproducibility
+
+Step-0 binds participant identity, code revision, hardware, and model metadata. Turn commitments bind state, move, intent, and nonce. Final audit recomputes those commitments, compares result claims, and exchanges a canonical series digest. The two examples in `assets/replays/` preserve signed logs beside their rendered views so a reviewer can reproduce both success and failure without relying on mutable match folders.
+
+### Specification interpretations
+
+The official mandatory-parameters table takes precedence when illustrative configuration examples differ. Coordinate coincidence is treated only as a capture opportunity: a legal capture requires the Police's post-move landing, a Capture Claim for that cell, and the Thief's truthful `caught=true` response. The Thief then terminates without an escape move. Step-0 is preserved as a sealed `step: 0`, `type: "system_spec"` audit record, while final series consensus uses a dedicated empty-record envelope so a post-series exchange cannot mutate an already completed game.
+
+## Limitations and future work
+
+- Belief accuracy is bounded by the public scent signal and can degrade under saturation.
+- A finite-history heuristic reduces oscillation but does not solve the full adversarial game tree.
+- Gemini availability and public tunnels remain external operational dependencies; deterministic fallback preserves legality, not necessarily optimality.
+- Three opponents provide meaningful interoperability evidence but limited statistical coverage.
+- Future work could compare mobility scoring with bounded-depth minimax, risk-sensitive planning over belief states, or reinforcement learning, provided every learned action remains inside the existing validation and audit boundary.
 
 ## Team and companion repository
 

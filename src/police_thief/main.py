@@ -212,15 +212,8 @@ def _serve(args: argparse.Namespace) -> None:
 
     from dotenv import load_dotenv
 
-    from police_thief.services.gemini_agent import GeminiAgentAdvisor, GeminiConfigurationError
-
     load_dotenv(project_root / ".env")
     gemini_advisor = None
-    if not args.smoke_test:
-        try:
-            gemini_advisor = GeminiAgentAdvisor()
-        except GeminiConfigurationError as exc:
-            raise SystemExit(f"Cannot start the network agent: {exc}") from exc
     settings = NetworkMatchSettings(
         role=role,
         local_port=network.my_port,
@@ -243,7 +236,7 @@ def _serve(args: argparse.Namespace) -> None:
         email_recipient=defaults["email_recipient"],
         credentials_path=project_root / "credentials.json",
         token_path=project_root / "token.json",
-        llm_model=gemini_advisor.model if gemini_advisor else "deterministic-smoke",
+        llm_model="deterministic-smoke" if args.smoke_test else "deterministic-brain",
     )
     inboxes = PeerInboxes()
     mcp = build_peer_server(role.value, inboxes)

@@ -230,6 +230,41 @@ def _public_barrier_cop_candidates(
     return tuple(dict.fromkeys((barrier_target, *board.neighbors(barrier_target))))
 
 
+def _barrier_claim_cop_position(
+    board: Board,
+    known_cop_position: Position | None,
+    barrier_target: Position,
+    capture_claim: list[int] | None,
+) -> tuple[Position | None, list[int] | None]:
+    """Interpret barrier-turn capture_claim without mistaking wall echoes for movement."""
+    if capture_claim is None:
+        return None, None
+    claimed = Position(*capture_claim)
+    if known_cop_position is None:
+        if claimed == barrier_target:
+            return None, None
+        return claimed, capture_claim
+    if claimed == known_cop_position:
+        return known_cop_position, capture_claim
+    if claimed == barrier_target:
+        if (
+            barrier_target != known_cop_position
+            and barrier_target not in board.neighbors(known_cop_position)
+        ):
+            raise NetworkProtocolError(
+                "police declared a barrier outside its current or "
+                "orthogonally adjacent cell"
+            )
+        return known_cop_position, [
+            known_cop_position.row,
+            known_cop_position.col,
+        ]
+    raise NetworkProtocolError(
+        "police changed position while placing a barrier; "
+        "the barrier must consume its movement turn"
+    )
+
+
 def _infer_public_scent_center(
     board: Board,
     previous_grid: dict[str, float],
@@ -962,20 +997,14 @@ class NetworkMatchRunner:
                             "thief illegally declared a barrier"
                         )
                     barrier_target = Position(*message.barrier_placed)
-                    declared_cop_position = (
-                        Position(*message.capture_claim)
-                        if message.capture_claim is not None
-                        else None
-                    )
-                    if (
-                        declared_cop_position is not None
-                        and known_cop_position is not None
-                        and declared_cop_position != known_cop_position
-                    ):
-                        raise NetworkProtocolError(
-                            "police changed position while placing a barrier; "
-                            "the barrier must consume its movement turn"
+                    declared_cop_position, cop_position_claim = (
+                        _barrier_claim_cop_position(
+                            board,
+                            known_cop_position,
+                            barrier_target,
+                            message.capture_claim,
                         )
+                    )
                     if (
                         declared_cop_position is not None
                         and barrier_target != declared_cop_position
@@ -994,7 +1023,9 @@ class NetworkMatchRunner:
                     previous_known_cop_position = known_cop_position
                     known_cop_position = _confirmed_cop_position(
                         belief,
-                        message.capture_claim,
+                        cop_position_claim
+                        if message.barrier_placed is not None
+                        else message.capture_claim,
                         occupied_blocked_position=barrier_target,
                     )
                     if known_cop_position is not None:

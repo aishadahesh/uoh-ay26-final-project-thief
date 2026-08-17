@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from police_thief.domain.belief import BeliefMap
 from police_thief.domain.board import Board, BoardConfig, Move, Position
 from police_thief.domain.hints import TemplateHintProvider
@@ -11,12 +13,14 @@ from police_thief.services.network_match import (
     NetworkMatchRunner,
     NetworkMatchSettings,
     _audit_revealed_trajectory,
+    _barrier_claim_cop_position,
     _confirmed_cop_position,
     _infer_public_scent_candidates,
     _infer_public_scent_center,
     _public_barrier_cop_candidates,
     _truthful_capture_claim,
 )
+from police_thief.services.network_protocol import NetworkProtocolError
 from police_thief.shared.constants import AgentRole
 
 
@@ -109,6 +113,34 @@ def test_police_always_claims_its_post_move_cell_without_belief_gate():
 
     assert _truthful_capture_claim(AgentRole.COP, cop) == [3, 3]
     assert _truthful_capture_claim(AgentRole.THIEF, cop) is None
+
+
+def test_barrier_claim_repeating_wall_cell_keeps_known_cop_position():
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+    known_cop = Position(2, 3)
+    barrier_target = Position(3, 3)
+
+    position, claim = _barrier_claim_cop_position(
+        board,
+        known_cop,
+        barrier_target,
+        [3, 3],
+    )
+
+    assert position == known_cop
+    assert claim == [2, 3]
+
+
+def test_barrier_claim_repeating_illegal_wall_cell_is_rejected():
+    board = Board(BoardConfig(grid_size=7, max_barriers=14))
+
+    with pytest.raises(NetworkProtocolError, match="outside"):
+        _barrier_claim_cop_position(
+            board,
+            Position(0, 0),
+            Position(3, 3),
+            [3, 3],
+        )
 
 
 def test_cop_claims_recorded_step_13_post_move_cell():

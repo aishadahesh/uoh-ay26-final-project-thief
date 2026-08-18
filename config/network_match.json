@@ -1,13 +1,13 @@
-{
+﻿{
   "schema_version": "1.00",
   "peer": {
     "role": "thief",
     "local_port": 8802,
-    "opponent_url": "https://know-counts-negotiations-rooms.trycloudflare.com/mcp",
+    "opponent_url": "https://practical-growing-differences-albums.trycloudflare.com/mcp",
     "public_url": "https://theif.uohay26game.com/mcp"
   },
   "match": {
-    "game_id": "G003",
+    "game_id": "AHK-YOSI-vs-uoh-ay26-F002",
     "sub_game_number": 1,
     "shared_match_secret": "50",
     "output_directory": "results/network"
@@ -21,15 +21,15 @@
     }
   },
   "team_2": {
-    "name": "sharNamr",
-    "members": ["Sharbel Maroun", "Amr safadi"],
+    "name": "ahk-yosi",
+    "members": ["Yosef Shanaa", "Ahmad Kais"],
     "repos": {
-      "cop": "https://github.com/SharbelMaroun/p2p-cop-agent",
-      "thief": "https://github.com/SharbelMaroun/p2p-thief-agent"
+      "cop": "https://github.com/yosefshanaa/p2p-police-agent",
+      "thief": "https://github.com/yosefshanaa/p2p-thief-agent"
     }
   },
   "email": {
-    "automatic": false,
-    "recipient": "rmisegal+uoh26finalgame@gmail.com"
+    "automatic": true,
+    "recipient": "assdiyousef@gmail.com"
   }
 }

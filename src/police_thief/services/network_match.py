@@ -1468,6 +1468,7 @@ class NetworkMatchRunner:
             "repos": {"cop": s.own_cop_repo, "thief": s.own_thief_repo},
             "mcp_servers": {s.role.value: s.public_url},
             "llm_model": s.llm_model,
+            "counted_games_played": s.previous_counted_games,
             "spec": {
                 "os": hardware.os_name,
                 "cpu_type": platform.processor() or "unknown",

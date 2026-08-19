@@ -39,6 +39,7 @@ def load_network_defaults(path: Path, project_root: Path) -> dict:
         "opponent": str(peer.get("opponent_url", "https://opponent.example/mcp")),
         "public": str(peer.get("public_url", "https://your-tunnel.example/mcp")),
         "game": str(match.get("game_id", "G001")),
+        "game_uid": str(match.get("game_uid", "")),
         "subgame": str(match.get("sub_game_number", 1)),
         "output": str(output),
         "secret": str(match.get("shared_match_secret", "")),
@@ -97,6 +98,7 @@ class NetworkSetupDialog:
             ),
             "public": tk.StringVar(value=defaults.get("public", "https://your-tunnel.example/mcp")),
             "game": tk.StringVar(value=defaults.get("game", "G001")),
+            "game_uid": tk.StringVar(value=defaults.get("game_uid", "")),
             "subgame": tk.StringVar(value=defaults.get("subgame", "1")),
             "output": tk.StringVar(
                 value=defaults.get("output", str(project_root / "results" / "network"))
@@ -345,6 +347,7 @@ class NetworkSetupDialog:
             opponent_url=opponent,
             public_url=public,
             game_id=game_id,
+            game_uid=self.vars["game_uid"].get().strip(),
             sub_game_number=subgame,
             shared_config=self.project_root / "config" / "game.json",
             output_dir=Path(self.vars["output"].get()),

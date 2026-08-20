@@ -3,11 +3,11 @@
   "peer": {
     "role": "thief",
     "local_port": 8802,
-    "opponent_url": "https://know-counts-negotiations-rooms.trycloudflare.com/mcp",
+    "opponent_url": "https://apps-mens-figured-spirituality.trycloudflare.com/mcp",
     "public_url": "https://theif.uohay26game.com/mcp"
   },
   "match": {
-    "game_id": "G003",
+    "game_id": "G010",
     "sub_game_number": 1,
     "shared_match_secret": "50",
     "output_directory": "results/network"
@@ -21,15 +21,15 @@
     }
   },
   "team_2": {
-    "name": "sharNamr",
-    "members": ["Sharbel Maroun", "Amr safadi"],
+    "name": "yanell11",
+    "members": ["Nell Khoury", "Yanal Serhan"],
     "repos": {
-      "cop": "https://github.com/SharbelMaroun/p2p-cop-agent",
-      "thief": "https://github.com/SharbelMaroun/p2p-thief-agent"
+      "cop": "https://github.com/Nell-Kh/police-agent",
+      "thief": "https://github.com/Nell-Kh/thief-agent"
     }
   },
   "email": {
     "automatic": false,
-    "recipient": "rmisegal+uoh26finalgame@gmail.com"
+    "recipient": "assdiyousef@gmail.com"
   }
 }

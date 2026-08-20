@@ -18,7 +18,7 @@ DEFAULT_REPORT_EMAIL = "rmisegal+uoh26finalgame@gmail.com"
 def load_network_defaults(path: Path, project_root: Path) -> dict:
     """Flatten the editable network launcher JSON into Tkinter field defaults."""
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(path.read_text(encoding="utf-8-sig"))
         peer = raw["peer"]
         match = raw["match"]
         team1 = raw["team_1"]

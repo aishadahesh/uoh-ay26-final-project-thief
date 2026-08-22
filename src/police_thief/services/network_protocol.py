@@ -58,6 +58,10 @@ REQUIRED_IDENTITY_FIELDS = frozenset(
 )
 
 
+def _identity_commit_hash(identity: dict) -> str:
+    return str(identity.get("git_commit_hash") or identity.get("github_commit") or "")
+
+
 class NetworkProtocolError(ValueError):
     """Raised when a peer message is malformed, incompatible, or tampered."""
 
@@ -114,12 +118,16 @@ def create_agreement(
     terms: dict, identity: dict, conformance: dict | None = None,
 ) -> dict:
     nonce = secrets.token_hex(16)
+    commit_hash = _identity_commit_hash(identity)
     agreement = {
         "terms": terms,
         "nonce": nonce,
         "signature": _digest(terms, nonce),
         "identity": identity,
     }
+    if commit_hash:
+        agreement["git_commit_hash"] = commit_hash
+        agreement["github_commit"] = commit_hash
     if conformance is not None:
         agreement["conformance"] = conformance
     return agreement
@@ -150,6 +158,13 @@ def verify_agreement(message: dict, expected_terms: dict) -> dict:
         raise NetworkProtocolError(f"opponent game terms do not match: {details}")
     if not secrets.compare_digest(signature, _digest(terms, nonce)):
         raise NetworkProtocolError("opponent negotiation signature is invalid")
+    for field in ("git_commit_hash", "github_commit"):
+        if not identity.get(field) and message.get(field):
+            identity[field] = str(message[field])
+    commit_hash = _identity_commit_hash(identity)
+    if commit_hash:
+        identity.setdefault("git_commit_hash", commit_hash)
+        identity.setdefault("github_commit", commit_hash)
     return identity
 
 
@@ -172,6 +187,11 @@ def validate_handshake_terms(terms: dict) -> None:
 
 
 def verify_peer_identity(identity: dict, expected_peer_role: str) -> dict:
+    identity = dict(identity)
+    commit_hash = _identity_commit_hash(identity)
+    if commit_hash:
+        identity.setdefault("git_commit_hash", commit_hash)
+        identity.setdefault("github_commit", commit_hash)
     missing = sorted(REQUIRED_IDENTITY_FIELDS - set(identity))
     if missing:
         raise NetworkProtocolError(f"peer identity missing mandatory fields: {missing}")
@@ -183,7 +203,7 @@ def verify_peer_identity(identity: dict, expected_peer_role: str) -> dict:
     protocol = identity.get("protocol")
     if not isinstance(protocol, dict) or protocol.get("version") != PROTOCOL_VERSION:
         raise NetworkProtocolError("peer identity protocol version is unsupported")
-    if len(str(identity["git_commit_hash"])) < 7:
+    if len(_identity_commit_hash(identity)) < 7:
         raise NetworkProtocolError("peer identity git commit hash is missing")
     return identity
 

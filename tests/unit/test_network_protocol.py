@@ -222,13 +222,52 @@ def test_peer_identity_rejects_role_conflict_and_missing_commit():
         "protocol": {"name": "police-thief-mcp", "version": "3.0.0"},
         "step0_hardware": {"os_name": "Windows"},
     }
-    assert verify_peer_identity(identity, "police") == identity
+    verified = verify_peer_identity(identity, "police")
+    assert verified["git_commit_hash"] == identity["git_commit_hash"]
+    assert verified["github_commit"] == identity["git_commit_hash"]
     with pytest.raises(NetworkProtocolError, match="expected opponent role"):
         verify_peer_identity(identity, "thief")
     broken = dict(identity)
     broken["git_commit_hash"] = ""
     with pytest.raises(NetworkProtocolError, match="git commit hash"):
         verify_peer_identity(broken, "police")
+
+
+def test_agreement_accepts_top_level_commit_aliases_for_peer_identity():
+    terms = {"board_size": 7}
+    identity = {
+        "group_id": "team-a",
+        "group_name": "Team A",
+        "role": "police",
+        "software_version": "1.00",
+        "protocol": {"name": "police-thief-mcp", "version": "3.0.0"},
+        "step0_hardware": {"os_name": "Windows"},
+    }
+    agreement = create_agreement(terms, identity)
+    agreement["git_commit_hash"] = "a" * 40
+    agreement["github_commit"] = "a" * 40
+
+    verified = verify_agreement(agreement, terms)
+
+    assert verified["git_commit_hash"] == "a" * 40
+    assert verified["github_commit"] == "a" * 40
+    assert verify_peer_identity(verified, "police")["git_commit_hash"] == "a" * 40
+
+
+def test_peer_identity_accepts_github_commit_alias():
+    identity = {
+        "group_id": "team-a",
+        "group_name": "Team A",
+        "role": "police",
+        "software_version": "1.00",
+        "github_commit": "b" * 40,
+        "protocol": {"name": "police-thief-mcp", "version": "3.0.0"},
+        "step0_hardware": {"os_name": "Windows"},
+    }
+
+    verified = verify_peer_identity(identity, "police")
+
+    assert verified["git_commit_hash"] == "b" * 40
 
 
 def _envelope(**overrides):

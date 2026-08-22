@@ -69,6 +69,49 @@ def test_run_series_launches_fixed_role_repositories_and_finalizes_last_child(
     assert "--finalize-series" in calls[5][0]
 
 
+def test_run_series_relaunches_subgame_that_exits_without_result(tmp_path, monkeypatch) -> None:
+    current = tmp_path / "thief"
+    sibling = tmp_path / "cop"
+    (current / "config").mkdir(parents=True)
+    (sibling / "config").mkdir(parents=True)
+    output = tmp_path / "results"
+    monkeypatch.setattr(
+        series_coordinator, "load_match_parameters",
+        lambda _path: SimpleNamespace(network_league=SimpleNamespace(num_games=1)),
+    )
+    monkeypatch.setattr(series_coordinator, "SUBGAME_RELAUNCH_DELAY_SECONDS", 0.0)
+    calls = []
+
+    def fake_run(command, *, cwd, env, check):
+        calls.append((command, cwd, env, check))
+        if len(calls) == 1:
+            return SimpleNamespace(returncode=1)
+        (output / "log_G003_g01.json").write_text("[]", encoding="utf-8")
+        (output / "result_G003_g01.json").write_text(json.dumps({
+            "game_id": "G003",
+            "sub_game_number": 1,
+            "outcome": "survival",
+            "mutual_sign_off": True,
+        }), encoding="utf-8")
+        (output / "result_G003.json").write_text("{}", encoding="utf-8")
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(series_coordinator.subprocess, "run", fake_run)
+    path = series_coordinator.run_series(
+        current_role=AgentRole.THIEF,
+        first_role=AgentRole.THIEF,
+        current_repo=current,
+        sibling_repo=sibling,
+        config_root=current / "config",
+        output_dir=output,
+        game_id="G003",
+        first_sub_game=1,
+    )
+    assert path == output / "result_G003.json"
+    assert len(calls) == 2
+    assert [call[0][call[0].index("--sub-game-number") + 1] for call in calls] == ["1", "1"]
+
+
 def test_run_series_resumes_after_verified_existing_artifact(tmp_path, monkeypatch) -> None:
     current = tmp_path / "thief"
     sibling = tmp_path / "cop"

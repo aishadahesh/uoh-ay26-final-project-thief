@@ -11,7 +11,7 @@ repos = { cop = "https://github.com/aishadahesh/uoh-ay26-final-project-cop", thi
 
 [network]
 my_port = 8802
-opponent_url = "https://plenty-warehouse-bibliography-making.trycloudflare.com/mcp"
+opponent_url = "https://chemicals-bob-gallery-festival.trycloudflare.com/mcp"
 turn_timeout_seconds = 120
 
 [strategy]
@@ -27,3 +27,4 @@ step_deadline_seconds = 30
 [email]
 recipient = "rmisegal+uoh26finalgame@gmail.com"
 mode = "dry_run"
+

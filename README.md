@@ -617,6 +617,7 @@ The official mandatory-parameters table takes precedence when illustrative confi
 - A finite-history heuristic reduces oscillation but does not solve the full adversarial game tree.
 - Gemini availability and public tunnels remain external operational dependencies; deterministic fallback preserves legality, not necessarily optimality.
 - Five opponents provide meaningful interoperability evidence but limited statistical coverage.
+- The `SMNGRP05-vs-uoh-ay26-C01` bundle records its `game_uid` in the league interop-kit's *labeled* form, which folds the agreed `game_id` into the derivation. This repository's `derive_game_uid` predates that variant and derives the unlabeled form from the agreed terms and group IDs alone, so running `validate_submission_directory` against that one bundle reports a `derivation_mismatch` on `game_uid`. The bundle itself is internally consistent and was verified by both peers at match time; the other four validate cleanly here.
 - Future work could compare mobility scoring with bounded-depth minimax, risk-sensitive planning over belief states, or reinforcement learning, provided every learned action remains inside the existing validation and audit boundary.
 
 ## Team and companion repository

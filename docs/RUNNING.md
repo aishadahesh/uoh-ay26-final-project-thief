@@ -150,7 +150,7 @@ Each sub-game must finish with a verified audit for mutual sign-off. The aggrega
 Open a signed log in the replay viewer:
 
 ```powershell
-uv run python -m police_thief replay --log results/network/log_G009_g02.json
+uv run python -m police_thief replay --log results/network/log_AHK-YOSI-vs-uoh-ay26-C001_g01.json
 ```
 
 README-ready examples and their signed source logs are stored in `assets/replays/`.

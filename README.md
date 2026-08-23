@@ -15,7 +15,7 @@ The thief does not share memory with the cop, does not read the cop’s coordina
 
 This repository presents an autonomous evasive agent for a decentralized, partially observable pursuit game. Its objective is not merely to maximize immediate distance: it must preserve future mobility under a changing barrier geometry, reason from uncertain scent evidence, reject illegal model output, and coordinate with an untrusted opponent over a failure-prone public network. The implementation combines belief-aware escape scoring, anti-oscillation state history, bounded Gemini selection, deterministic legality checks, FastMCP peer orchestration, nonce-backed SHA-256 commitments, Step-0 environment attestation, mutual replay audit, and machine-readable reporting.
 
-The research emphasis is verifiable autonomy. The Thief never consumes the Cop's hidden coordinates or private strategy; every candidate action is filtered through the local board engine; and every reported outcome must be reproducible from signed evidence. Three counted six-sub-game series against independent teams ground the evaluation. A survival win and a capture loss are both committed as paired `JSON + GIF` evidence, making strengths and failure modes equally inspectable.
+The research emphasis is verifiable autonomy. The Thief never consumes the Cop's hidden coordinates or private strategy; every candidate action is filtered through the local board engine; and every reported outcome must be reproducible from signed evidence. Four counted six-sub-game series against independent teams ground the evaluation. A survival win and a capture loss are both committed as paired `JSON + GIF` evidence, making strengths and failure modes equally inspectable.
 
 ### Contributions
 
@@ -464,20 +464,21 @@ The tracked network defaults currently control whether automatic email begins en
 
 ## Verified match history
 
-The team has completed **three counted six-sub-game series**. “Series W/L” is from `uoh-ay26`'s perspective.
+The team has completed **four counted six-sub-game series**. “Series W/L” is from `uoh-ay26`'s perspective.
 
 | Series | Opponent | Series W/L | Sub-games won | Score | Mutual agreement |
 |---|---|---:|---:|---:|---|
 | G001 | `najamjad` | Loss | 0–6 | 30–90 | Confirmed |
 | G002 | `amireman` | Win | 4–2 | 60–40 | Confirmed |
 | G009 | `sharNamr` | Loss | 2–4 | 40–60 | Confirmed |
-| **Total** | 3 opponents | **1–2** | **6–12** | **130–190** | 3 verified series |
+| `SMNGRP05-vs-uoh-ay26-C01` | `SMNGRP05` | Tie | 3–3 | 47–47 | Confirmed |
+| **Total** | 4 opponents | **1–2–1** | **9–15** | **177–237** | 4 verified series |
 
 The table is derived from the saved aggregate result JSON files. Friendly and explicitly non-counted verification runs are excluded.
 
 ## Experimental methodology
 
-Evaluation covers three counted series against three independently developed opponent teams. Each series contains six sub-games with alternating roles. A result is included only after both implementations agree on the six outcomes, role-aware scores, winner, and canonical consensus digest. Friendly, partial, and aborted runs are excluded.
+Evaluation covers four counted series against four independently developed opponent teams. Each series contains six sub-games with alternating roles. A result is included only after both implementations agree on the six outcomes, role-aware scores, winner, and canonical consensus digest. Friendly, partial, and aborted runs are excluded.
 
 Competitive performance and evidence quality are reported separately. Survival or capture determines score; mutual audit determines whether the observation is admissible. This avoids treating a locally favorable but unverifiable outcome as success. The 18-sub-game sample demonstrates real cross-team interoperability and provides useful failure cases, but it is not large enough to claim statistical dominance over unseen strategies.
 
@@ -614,7 +615,7 @@ The official mandatory-parameters table takes precedence when illustrative confi
 - Belief accuracy is bounded by the public scent signal and can degrade under saturation.
 - A finite-history heuristic reduces oscillation but does not solve the full adversarial game tree.
 - Gemini availability and public tunnels remain external operational dependencies; deterministic fallback preserves legality, not necessarily optimality.
-- Three opponents provide meaningful interoperability evidence but limited statistical coverage.
+- Four opponents provide meaningful interoperability evidence but limited statistical coverage.
 - Future work could compare mobility scoring with bounded-depth minimax, risk-sensitive planning over belief states, or reinforcement learning, provided every learned action remains inside the existing validation and audit boundary.
 
 ## Team and companion repository

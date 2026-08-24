@@ -16,6 +16,7 @@ from police_thief.services.submission_schema import (
     canonical_bytes,
     canonical_hash,
 )
+from police_thief.shared.game_config import FIXED_TIE_SCORE
 
 
 def series_consensus_payload(
@@ -101,3 +102,32 @@ def save_submission_validation_report(
     })
 
 
+def series_final_result(
+    result_rows: list[dict[str, Any]], participants: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Aggregate the per-sub-game rows into the series `final_result` block."""
+    totals = {key: sum(item["score"].get(key, 0) for item in result_rows) for key in participants}
+    wins = {
+        key: sum(item["winner_group"] == key for item in result_rows) for key in participants
+    }
+    ties = sum(item["tie"] for item in result_rows)
+    series_tie = len(set(totals.values())) == 1
+    if series_tie:
+        # Tie Rule (Sec. 9.2.8-9.2.9 / Appendix F Table 17 row 5): a tied
+        # cumulative series credits each side the fixed tie score on top of
+        # its raw subtotal, so e.g. 75-75 is reported as 77-77.
+        totals = {key: value + FIXED_TIE_SCORE for key, value in totals.items()}
+    winner = None if series_tie else max(totals, key=totals.get)
+    token_totals = {
+        key: sum(int(item["tokens"].get(key, 0)) for item in result_rows)
+        for key in participants
+    }
+    final = {
+        "total_score": totals,
+        "sub_games_won": wins,
+        "ties": ties,
+        "winner_group": winner,
+        "series_tie": series_tie,
+        "tokens_total_series": token_totals,
+    }
+    return final

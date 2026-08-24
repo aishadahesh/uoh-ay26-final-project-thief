@@ -48,6 +48,10 @@ def load_network_defaults(path: Path, project_root: Path) -> dict:
         # filer previously defaulted this to 0 and mis-declared a five-series
         # record as zero.
         "counted_games_played": int(team1.get("counted_games_played", 0)),
+        "opponent_counted_games_played": (
+            None if team2.get("counted_games_played") is None
+            else int(team2["counted_games_played"])
+        ),
         "prior_counted_opponents": tuple(team1.get("prior_counted_opponents", ())),
         "counted": bool(raw.get("league", {}).get("counted", True)),
         "settlement_scope": str(raw.get("league", {}).get("settlement_scope", "uid")),
@@ -381,3 +385,4 @@ class NetworkSetupDialog:
     def show(self) -> NetworkMatchSettings | None:
         self.window.wait_window()
         return self.result
+

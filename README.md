@@ -520,6 +520,12 @@ uv run ruff check .
 uv run ruff format --check .
 ```
 
+`ruff check .` passes clean; `pytest` reports 627 passed / 2 skipped. Two gates are
+honestly not met and are tracked rather than hidden: coverage is ~81% against the
+configured `fail_under = 85`, and `ruff format --check` still reports files it would
+reformat -- formatting was deliberately not applied wholesale before submission to
+keep the final diffs reviewable.
+
 Focused strategy coverage includes:
 
 - legal-action enumeration;
@@ -637,7 +643,7 @@ audited rather than taken on trust.
 | **Coordination** (Ch.2) | 21 / 25 | Peer-to-peer FastMCP with no central referee; the four-tool contract; six counted six-sub-game series completed cross-machine over public tunnels with alternating roles and reciprocal consensus | The mid-match disconnect integration test does not pass in the cop repo (`T0522`, `T0622`); the slow-but-responsive opponent path is unit-tested only, never over real HTTP (`T0530`) |
 | **Adaptation** (Ch.4, 6) | 20 / 25 | Pheromone emission/decay, a belief map that demonstrably drives move selection, a deterministic brain, and a standalone bluff classifier | Verbal hints are never fused into the belief map with a trust weight (`T0283`, `T0290`); no LLM sits on the per-step path — hints are template-generated at zero token cost (`T0328`); the per-series token budget is not enforced (`T0316`) |
 | **Integrity** (Ch.5) | 23 / 25 | SHA-256 commit–reveal with end-game nonce reveal, mutual per-sub-game audit, signed Step-0 declarations, a reciprocal series consensus digest, and a submission validator that four of the six retained bundles pass cleanly | Two bundles fail the local validator on `game_uid` — `SMNGRP05-vs-uoh-ay26-C01` on the interop-kit's labeled form and `counted-2` on a uid this repository cannot re-derive from the committed terms (`T0898`); both-sides Gmail delivery is proven for G009 but not for every counted series (`T0866`, `T0737`) |
-| **Architecture** (Ch.8, 10) | 20 / 25 | Gatekeeper and Orchestrator patterns, a real rate limiter, typed peer-client errors, and graceful degradation rather than crashes; 626 (cop) and 627 (thief) tests passing | Rule 3 is not satisfied — no single Orchestrator entry point fronts all sub-systems (`T0837`, found by our own review); line coverage is ~80% in both repos against the project's own 85% gate; rule 47's illegal-exit case is still unresolved, with `MoveRejectedError` propagating uncaught (`T0881`) |
+| **Architecture** (Ch.8, 10) | 20 / 25 | Gatekeeper and Orchestrator patterns, a real rate limiter, typed peer-client errors, and graceful degradation rather than crashes; 626 (cop) and 627 (thief) tests passing | Rule 3 is not satisfied — no single Orchestrator entry point fronts all sub-systems (`T0837`, found by our own review); line coverage is ~81% in both repos against the project's own 85% gate; rule 47's illegal-exit case is still unresolved, with `MoveRejectedError` propagating uncaught (`T0881`) |
 
 ### Why not higher, and why not lower
 
@@ -662,7 +668,8 @@ These figures were measured, not estimated:
 | Check | Cop repo | Thief repo |
 |---|---|---|
 | Test suite | 626 passed, 3 skipped, **1 failing** (`test_a_mid_match_disconnect_resolves_to_technical_loss_on_both_sides`) | 627 passed, 2 skipped, 0 failing |
-| Line coverage | 80.34% (gate: 85%) | 80.17% (gate: 85%) |
+| Line coverage | ~81% (gate: 85%) | 80.98% (gate: 85%) |
+| Files within the 150-code-line guideline | all except `services/network_match.py` (~1976 code lines; documented exception, `T0899`) | all except `services/network_match.py` (~1970 code lines; documented exception, `T0899`) |
 | Retained bundles passing `validate_submission_directory` | G001, G002, G009 pass; `SMNGRP05-vs-uoh-ay26-C01` fails on `game_uid` | `AHK-YOSI-vs-uoh-ay26-C001` passes; `counted-2` fails on `game_uid` |
 
 Two further rulebook items are excluded from the score above because they are submission-time or
@@ -674,3 +681,7 @@ Word/PDF per-member deliverables (`T0877`, `T0878`, rules 43–44).
 Built by **Aisha Abu Dahesh** and **Yousef Asadi** for the University of Haifa Orchestration of AI Agents course.
 
 Companion cop implementation: [uoh-ay26-final-project-cop](https://github.com/aishadahesh/uoh-ay26-final-project-cop).
+
+### Credits and license
+
+See [`LICENSE`](LICENSE) for educational-use terms. Course specifications and submission guidance remain the intellectual work of their respective authors.

@@ -113,7 +113,7 @@ Appendix F of `police_thief_p2p.pdf` is treated as the highest authority for num
 |---|---|---|---|---|---|---|---|---|---|
 | Q-001 | Secondary PDF sec. 2 p.7 | README exists and includes install/usage/config/screenshots/credits. | SHOULD | Repo docs. | README present and extensive. | Static inspection. | PASS | - | None. |
 | Q-002 | Secondary PDF sec. 2 p.7 | `docs/PRD.md`, `docs/PLAN.md`, `docs/TODO.md`, per-mechanism PRDs exist. | SHOULD | Repo docs. | Files present. | Static inspection. | PASS | - | None. |
-| Q-003 | Secondary PDF sec. 3 p.10 | Python files should generally be <=150 code lines. | SHOULD | Code quality. | 12 files exceed 150; largest `network_match.py` has 305. | Line-count scan. | FAIL | P3 | Split large modules after mandatory gaps are fixed. |
+| Q-003 | Secondary PDF sec. 3 p.10 | Python files should generally be <=150 code lines. | SHOULD | Code quality. | Resolved 2026-08-24 for every file except `network_match.py` (~1970; documented exception, TODO T0899): src/, tests/ and scripts/ split into <=150-code-line modules with suites unchanged. | AST-based line-count scan. | PARTIAL | P3 | Only `network_match.py` remains; see T0899 for the rationale. |
 | Q-004 | Secondary PDF sec. 7 p.17 | `ruff check` must pass with zero violations. | SHOULD | Quality gate. | `uv run ruff check .` | Exit 0. | PASS | - | None. |
 | Q-005 | Secondary PDF quality gate | Formatting check should pass. | SHOULD | Quality gate. | `uv run ruff format --check .` | Exit 1; 42 files would reformat. | FAIL | P2 | Run formatter after audit approval. |
 | Q-006 | Secondary PDF sec. 6 p.15 | Test coverage target is at least 85%. | SHOULD | Quality gate. | `uv run pytest --cov` | 85.22%. | PASS | - | Keep above threshold when fixing. |

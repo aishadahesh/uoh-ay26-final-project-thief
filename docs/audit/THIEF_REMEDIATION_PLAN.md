@@ -35,7 +35,7 @@ No P0 finding was confirmed locally. No tracked or history-secret exposure was f
 
 | ID | Requirement reference | Affected files | Proposed change | Test required | Dependencies | Difficulty | Regression risk |
 |---|---|---|---|---|---|---|---|
-| P3-001 | Q-003 | `network_match.py`, `play_app.py`, `network_setup.py`, `main.py`, other long files | Split files over 150 code lines by responsibility after behavior fixes are stable. | Full test suite; focused GUI/network smoke tests. | None. | Medium | Medium. |
+| P3-001 | Q-003 | `network_match.py`, `play_app.py`, `network_setup.py`, `main.py`, other long files | Done 2026-08-24 for every file except `network_match.py` (documented exception, TODO T0899): split by responsibility into facade/mixin modules, suites unchanged (627/2 thief). | Full test suite; CLI and GUI smoke tests; byte-diff of moved method bodies for the strategy planner. | None. | Medium | Done except the one exception. |
 | P3-002 | Q-009 | `pyproject.toml`, typed boundaries | Add intentional mypy configuration or fix the 18 reported errors/stub gaps. | `uv run mypy src\police_thief`. | Stubs/config decisions. | Medium | Low. |
 | P3-003 | Q-010 | `pyproject.toml`, docs | Add dependency vulnerability scanning command if permitted. | `uv run <audit tool>` in test-results doc. | Network/advisory database access. | Low | Low. |
 | P3-004 | Coverage gaps | `network_match_app.py`, `network_reporting.py`, `gmail_oauth.py`, `mcp_client.py` | Increase coverage above a less fragile buffer, targeting >90% for network/report paths. | `uv run pytest --cov`. | None. | Medium | Low-Medium. |

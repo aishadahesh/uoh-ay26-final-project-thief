@@ -15,7 +15,7 @@ The thief does not share memory with the cop, does not read the cop’s coordina
 
 This repository presents an autonomous evasive agent for a decentralized, partially observable pursuit game. Its objective is not merely to maximize immediate distance: it must preserve future mobility under a changing barrier geometry, reason from uncertain scent evidence, reject illegal model output, and coordinate with an untrusted opponent over a failure-prone public network. The implementation combines belief-aware escape scoring, anti-oscillation state history, bounded Gemini selection, deterministic legality checks, FastMCP peer orchestration, nonce-backed SHA-256 commitments, Step-0 environment attestation, mutual replay audit, and machine-readable reporting.
 
-The research emphasis is verifiable autonomy. The Thief never consumes the Cop's hidden coordinates or private strategy; every candidate action is filtered through the local board engine; and every reported outcome must be reproducible from signed evidence. Five counted six-sub-game series against independent teams ground the evaluation. A survival win and a capture loss are both committed as paired `JSON + GIF` evidence, making strengths and failure modes equally inspectable.
+The research emphasis is verifiable autonomy. The Thief never consumes the Cop's hidden coordinates or private strategy; every candidate action is filtered through the local board engine; and every reported outcome must be reproducible from signed evidence. Six counted six-sub-game series against independent teams ground the evaluation. A survival win and a capture loss are both committed as paired `JSON + GIF` evidence, making strengths and failure modes equally inspectable.
 
 ### Contributions
 
@@ -465,7 +465,7 @@ The tracked network defaults currently control whether automatic email begins en
 
 ## Verified match history
 
-The team has completed **five counted six-sub-game series**. “Series W/L” is from `uoh-ay26`'s perspective.
+The team has completed **six counted six-sub-game series**. “Series W/L” is from `uoh-ay26`'s perspective.
 
 | Series | Opponent | Series W/L | Sub-games won | Score | Mutual agreement |
 |---|---|---:|---:|---:|---|
@@ -474,15 +474,16 @@ The team has completed **five counted six-sub-game series**. “Series W/L” is
 | G009 | `sharNamr` | Loss | 2–4 | 40–60 | Confirmed |
 | `SMNGRP05-vs-uoh-ay26-C01` | `SMNGRP05` | Tie | 3–3 | 47–47 | Confirmed |
 | `AHK-YOSI-vs-uoh-ay26-C001` | `ahk-yosi` | Win | 5–1 | 75–35 | Confirmed |
-| **Total** | 5 opponents | **2–2–1** | **14–16** | **252–272** | 5 verified series |
+| `counted-2` | `yanell11` | Loss | 0–6 | 30–90 | Confirmed |
+| **Total** | 6 opponents | **2–3–1** | **14–22** | **282–362** | 6 verified series |
 
 The table is derived from the saved aggregate result JSON files. Friendly and explicitly non-counted verification runs are excluded.
 
 ## Experimental methodology
 
-Evaluation covers five counted series against five independently developed opponent teams. Each series contains six sub-games with alternating roles. A result is included only after both implementations agree on the six outcomes, role-aware scores, winner, and canonical consensus digest. Friendly, partial, and aborted runs are excluded.
+Evaluation covers six counted series against six independently developed opponent teams. Each series contains six sub-games with alternating roles. A result is included only after both implementations agree on the six outcomes, role-aware scores, winner, and canonical consensus digest. Friendly, partial, and aborted runs are excluded.
 
-Competitive performance and evidence quality are reported separately. Survival or capture determines score; mutual audit determines whether the observation is admissible. This avoids treating a locally favorable but unverifiable outcome as success. The 18-sub-game sample demonstrates real cross-team interoperability and provides useful failure cases, but it is not large enough to claim statistical dominance over unseen strategies.
+Competitive performance and evidence quality are reported separately. Survival or capture determines score; mutual audit determines whether the observation is admissible. This avoids treating a locally favorable but unverifiable outcome as success. The 36-sub-game sample demonstrates real cross-team interoperability and provides useful failure cases, but it is not large enough to claim statistical dominance over unseen strategies.
 
 Each committed replay is generated from the same signed log consumed by the audit implementation. The renderer verifies commitments and reconstructs movement, barriers, claims, and termination. The GIF communicates behavior; the adjacent JSON preserves the machine-verifiable source.
 
@@ -617,8 +618,8 @@ The official mandatory-parameters table takes precedence when illustrative confi
 - Belief accuracy is bounded by the public scent signal and can degrade under saturation.
 - A finite-history heuristic reduces oscillation but does not solve the full adversarial game tree.
 - Gemini availability and public tunnels remain external operational dependencies; deterministic fallback preserves legality, not necessarily optimality.
-- Five opponents provide meaningful interoperability evidence but limited statistical coverage.
-- The `SMNGRP05-vs-uoh-ay26-C01` bundle records its `game_uid` in the league interop-kit's *labeled* form, which folds the agreed `game_id` into the derivation. This repository's `derive_game_uid` predates that variant and derives the unlabeled form from the agreed terms and group IDs alone, so running `validate_submission_directory` against that one bundle reports a `derivation_mismatch` on `game_uid`. The bundle itself is internally consistent and was verified by both peers at match time; the other four validate cleanly here.
+- Six opponents provide meaningful interoperability evidence but limited statistical coverage.
+- Two of the six retained bundles report a `derivation_mismatch` on `game_uid` under this repository's own `validate_submission_directory`, for two different reasons. `SMNGRP05-vs-uoh-ay26-C01` records the uid in the league interop-kit's *labeled* form, which folds the agreed `game_id` into the derivation; this repository's `derive_game_uid` predates that variant and derives the unlabeled form from the agreed terms and group IDs alone. `counted-2` records a uid that neither form reproduces from the terms committed alongside it, so the declaration's uid and the locally derivable one disagree. In both cases the bundle is internally consistent — all fourteen required attachments carry the same uid — and both peers confirmed the series consensus digest at match time; the mismatch is between the recorded uid and this repository's local re-derivation, not between the two teams. The other four bundles validate cleanly here.
 - Future work could compare mobility scoring with bounded-depth minimax, risk-sensitive planning over belief states, or reinforcement learning, provided every learned action remains inside the existing validation and audit boundary.
 
 ## Recommended self-score for submission
@@ -633,9 +634,9 @@ audited rather than taken on trust.
 
 | Axis (Ch.) | Score | What earns it | What it loses |
 |---|---:|---|---|
-| **Coordination** (Ch.2) | 21 / 25 | Peer-to-peer FastMCP with no central referee; the four-tool contract; five counted six-sub-game series completed cross-machine over public tunnels with alternating roles and reciprocal consensus | The mid-match disconnect integration test does not pass in the cop repo (`T0522`, `T0622`); the slow-but-responsive opponent path is unit-tested only, never over real HTTP (`T0530`) |
+| **Coordination** (Ch.2) | 21 / 25 | Peer-to-peer FastMCP with no central referee; the four-tool contract; six counted six-sub-game series completed cross-machine over public tunnels with alternating roles and reciprocal consensus | The mid-match disconnect integration test does not pass in the cop repo (`T0522`, `T0622`); the slow-but-responsive opponent path is unit-tested only, never over real HTTP (`T0530`) |
 | **Adaptation** (Ch.4, 6) | 20 / 25 | Pheromone emission/decay, a belief map that demonstrably drives move selection, a deterministic brain, and a standalone bluff classifier | Verbal hints are never fused into the belief map with a trust weight (`T0283`, `T0290`); no LLM sits on the per-step path — hints are template-generated at zero token cost (`T0328`); the per-series token budget is not enforced (`T0316`) |
-| **Integrity** (Ch.5) | 23 / 25 | SHA-256 commit–reveal with end-game nonce reveal, mutual per-sub-game audit, signed Step-0 declarations, a reciprocal series consensus digest, and a submission validator that four of the five retained bundles pass cleanly | The `SMNGRP05-vs-uoh-ay26-C01` bundle records the interop-kit's labeled `game_uid` and fails the local validator (`T0898`); both-sides Gmail delivery is proven for G009 but not for every counted series (`T0866`, `T0737`) |
+| **Integrity** (Ch.5) | 23 / 25 | SHA-256 commit–reveal with end-game nonce reveal, mutual per-sub-game audit, signed Step-0 declarations, a reciprocal series consensus digest, and a submission validator that four of the six retained bundles pass cleanly | Two bundles fail the local validator on `game_uid` — `SMNGRP05-vs-uoh-ay26-C01` on the interop-kit's labeled form and `counted-2` on a uid this repository cannot re-derive from the committed terms (`T0898`); both-sides Gmail delivery is proven for G009 but not for every counted series (`T0866`, `T0737`) |
 | **Architecture** (Ch.8, 10) | 20 / 25 | Gatekeeper and Orchestrator patterns, a real rate limiter, typed peer-client errors, and graceful degradation rather than crashes; 626 (cop) and 627 (thief) tests passing | Rule 3 is not satisfied — no single Orchestrator entry point fronts all sub-systems (`T0837`, found by our own review); line coverage is ~80% in both repos against the project's own 85% gate; rule 47's illegal-exit case is still unresolved, with `MoveRejectedError` propagating uncaught (`T0881`) |
 
 ### Why not higher, and why not lower
@@ -648,7 +649,7 @@ requirement; the belief map never consumes verbal hints, so one full half of the
 technical-loss path currently fails.
 
 The case against a lower score is that the mandatory end-to-end spine genuinely works and is
-evidenced, not asserted. Five counted series against five distinct opponents were completed
+evidenced, not asserted. Six counted series against six distinct opponents were completed
 cross-machine — against a `min_games_to_pass` of 2 — and each is retained as a signed, replayable
 bundle whose scores were recomputed from the JSON for the table above rather than transcribed.
 Where a requirement was not met, the repository says so in the open TODO item rather than
@@ -662,7 +663,7 @@ These figures were measured, not estimated:
 |---|---|---|
 | Test suite | 626 passed, 3 skipped, **1 failing** (`test_a_mid_match_disconnect_resolves_to_technical_loss_on_both_sides`) | 627 passed, 2 skipped, 0 failing |
 | Line coverage | 80.34% (gate: 85%) | 80.17% (gate: 85%) |
-| Retained bundles passing `validate_submission_directory` | G001, G002, G009 pass; `SMNGRP05-vs-uoh-ay26-C01` fails on `game_uid` | `AHK-YOSI-vs-uoh-ay26-C001` passes |
+| Retained bundles passing `validate_submission_directory` | G001, G002, G009 pass; `SMNGRP05-vs-uoh-ay26-C01` fails on `game_uid` | `AHK-YOSI-vs-uoh-ay26-C001` passes; `counted-2` fails on `game_uid` |
 
 Two further rulebook items are excluded from the score above because they are submission-time or
 course-logistics actions rather than code quality: the annotated Git tag (`T0875`, rule 41) and the

@@ -10,13 +10,14 @@ from contextlib import suppress
 from dataclasses import replace
 from tkinter import messagebox, ttk
 
-from police_thief.gui.theme import COLORS, FONT, MONO_FONT, configure_window, install_styles
+from police_thief.gui.network_match_layout import NetworkMatchLayoutMixin
+from police_thief.gui.theme import COLORS, configure_window, install_styles
 from police_thief.services.gemini_agent import GeminiAgentAdvisor
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
 from police_thief.services.network_match import NetworkMatchRunner, NetworkMatchSettings
 
 
-class NetworkMatchApp:
+class NetworkMatchApp(NetworkMatchLayoutMixin):
     def __init__(
         self,
         master: tk.Misc,
@@ -45,74 +46,6 @@ class NetworkMatchApp:
         self.shell.pack(fill="both", expand=True)
         self._build()
 
-    def _build(self) -> None:
-        header = ttk.Frame(self.shell, style="App.TFrame")
-        header.pack(fill="x", pady=(0, 18))
-        title = ttk.Frame(header, style="App.TFrame")
-        title.pack(side="left")
-        ttk.Label(title, text="SHADOWGRID", style="Title.TLabel").pack(anchor="w")
-        ttk.Label(title, text="DISTRIBUTED MCP ARENA", style="Subtitle.TLabel").pack(anchor="w")
-        self.new_game_button = ttk.Button(
-            header,
-            text="NEW GAME",
-            style="Secondary.TButton",
-            command=self._new_game,
-        )
-        self.new_game_button.pack(side="right")
-
-        cards = ttk.Frame(self.shell, style="App.TFrame")
-        cards.pack(fill="x")
-        for label, value in (
-            ("ROLE", self.settings.role.value.upper()),
-            ("LOCAL ENDPOINT", f"0.0.0.0:{self.settings.local_port}/mcp"),
-            ("GAME", f"{self.settings.game_id} / G{self.settings.sub_game_number:02d}"),
-        ):
-            card = ttk.Frame(cards, style="Card.TFrame", padding=14)
-            card.pack(side="left", fill="x", expand=True, padx=5)
-            ttk.Label(card, text=label, style="CardText.TLabel").pack(anchor="w")
-            ttk.Label(card, text=value, style="CardTitle.TLabel").pack(anchor="w", pady=(4, 0))
-
-        endpoint = ttk.Frame(self.shell, style="Card.TFrame", padding=18)
-        endpoint.pack(fill="x", pady=16)
-        ttk.Label(endpoint, text="PEER ROUTING", style="CardTitle.TLabel").pack(anchor="w")
-        for caption, value in (
-            ("SHARE WITH OPPONENT", self.settings.public_url),
-            ("OPPONENT URL", self.settings.opponent_url),
-        ):
-            tk.Label(
-                endpoint,
-                text=f"{caption:<22} {value}",
-                bg=COLORS["surface"],
-                fg=COLORS["accent"],
-                font=(MONO_FONT, 9),
-                anchor="w",
-            ).pack(fill="x", pady=(8, 0))
-
-        console = ttk.Frame(self.shell, style="Card.TFrame", padding=18)
-        console.pack(fill="both", expand=True)
-        ttk.Label(console, text="SECURE MATCH TELEMETRY", style="CardTitle.TLabel").pack(anchor="w")
-        self.status = tk.Label(
-            console,
-            text="INITIALIZING PEER",
-            bg=COLORS["surface"],
-            fg=COLORS["warning"],
-            font=(FONT, 11, "bold"),
-            anchor="w",
-        )
-        self.status.pack(fill="x", pady=(8, 10))
-        self.log = tk.Text(
-            console,
-            bg=COLORS["surface_alt"],
-            fg=COLORS["text"],
-            insertbackground=COLORS["text"],
-            relief="flat",
-            state="disabled",
-            font=(MONO_FONT, 9),
-            padx=12,
-            pady=12,
-            height=14,
-        )
-        self.log.pack(fill="both", expand=True)
 
     def start(self) -> None:
         if self._started:

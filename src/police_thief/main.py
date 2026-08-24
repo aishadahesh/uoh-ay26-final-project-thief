@@ -56,11 +56,11 @@ from police_thief.domain.replay import ReplaySession, load_log
 from police_thief.domain.scent import ScentConfig, ScentField
 from police_thief.domain.simulation import run_local_match
 from police_thief.gui.live_gui import LiveGUI
-from police_thief.gui.network_setup import load_network_defaults, validate_mcp_url
 from police_thief.gui.replay_gui import ReplayGUI
 from police_thief.services.doctor import render_text, run_doctor, save_json_report
 from police_thief.services.mcp_server import PeerInboxes, build_peer_server, run_peer_server
 from police_thief.services.network_match import NetworkMatchRunner, NetworkMatchSettings
+from police_thief.services.network_match_config import load_network_defaults, validate_mcp_url
 from police_thief.services.series_coordinator import mark_subgame_finished, run_series
 from police_thief.shared.config import load_network_config
 from police_thief.shared.constants import AgentRole

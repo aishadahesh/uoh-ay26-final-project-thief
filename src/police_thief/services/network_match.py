@@ -128,6 +128,9 @@ class NetworkMatchSettings:
     # gaming the diversity reward.
     counted_games_played: int = 0
     prior_counted_opponents: tuple[str, ...] = ()
+    # Which settlement preimage both peers agreed to hash. Must match the
+    # opponent's exactly; see submission_artifacts.SETTLEMENT_SCOPES.
+    settlement_scope: str = "uid"
     team_name: str = "TBD"
     members: tuple[str, ...] = ()
     opponent_team_name: str = "TBD"
@@ -2254,6 +2257,7 @@ def finalize_completed_series(
             counted=settings.counted,
             previous_counted_games=settings.counted_games_played,
             own_group_id=str(settings.team_name).casefold().replace(" ", "-"),
+            settlement_scope=settings.settlement_scope,
             first_meeting_between_groups=_is_first_meeting(settings, participants),
         )
     except SubmissionBundleError as exc:
@@ -2467,6 +2471,7 @@ class NetworkMatchSeriesRunner:
                 counted=self.settings.counted,
                 previous_counted_games=self.settings.counted_games_played,
                 own_group_id=str(self.settings.team_name).casefold().replace(" ", "-"),
+                settlement_scope=self.settings.settlement_scope,
                 first_meeting_between_groups=_is_first_meeting(self.settings, participants),
             )
         except SubmissionBundleError as exc:

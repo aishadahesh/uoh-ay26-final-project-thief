@@ -250,6 +250,7 @@ def _serve(args: argparse.Namespace) -> None:
         counted=defaults["counted"],
         counted_games_played=defaults["counted_games_played"],
         prior_counted_opponents=defaults["prior_counted_opponents"],
+        settlement_scope=defaults["settlement_scope"],
     )
     inboxes = PeerInboxes()
     mcp = build_peer_server(role.value, inboxes)

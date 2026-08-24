@@ -247,6 +247,9 @@ def _serve(args: argparse.Namespace) -> None:
         credentials_path=project_root / "credentials.json",
         token_path=project_root / "token.json",
         llm_model=gemini_advisor.model if gemini_advisor else "deterministic-smoke",
+        counted=defaults["counted"],
+        counted_games_played=defaults["counted_games_played"],
+        prior_counted_opponents=defaults["prior_counted_opponents"],
     )
     inboxes = PeerInboxes()
     mcp = build_peer_server(role.value, inboxes)

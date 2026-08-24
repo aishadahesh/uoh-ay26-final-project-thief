@@ -1,7 +1,8 @@
-"""Two independent peers negotiating, playing, and auditing in memory."""
+"""Two peers playing a full agreed series with role alternation.
+
+Split out of the original `test_network_match.py`."""
 
 import json
-import queue
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Event
@@ -10,62 +11,14 @@ import pytest
 
 from police_thief.services.mcp_server import PeerInboxes
 from police_thief.services.network_match import (
-    NetworkMatchRunner,
     NetworkMatchSeriesRunner,
     NetworkMatchSettings,
-    role_for_subgame,
 )
 from police_thief.shared.constants import AgentRole
-
-
-class MemoryTransport:
-    def __init__(self, own: PeerInboxes, peer: PeerInboxes) -> None:
-        self.own = own
-        self.peer = peer
-
-    def exchange_agreement(self, message, timeout):
-        self.peer.agreements.put(message)
-        return self.own.agreements.get(timeout=timeout)
-
-    def send_turn(self, message, _timeout):
-        self.peer.turns.put(message)
-
-    def receive_turn(self, timeout):
-        return self.own.turns.get(timeout=timeout)
-
-    def exchange_audit(self, payload, timeout):
-        self.peer.audits.put(payload)
-        return self.own.audits.get(timeout=timeout)
-
-    def send_control(self, message, timeout=2.0):
-        self.peer.controls.put(message)
-
-    def poll_control(self):
-        try:
-            return self.own.controls.get_nowait()
-        except queue.Empty:
-            return None
-
-
-def _team_config(tmp_path, source, name, group_id, members, repos, num_games=6):
-    target = tmp_path / name / "game.json"
-    target.parent.mkdir(parents=True)
-    game = json.loads(source.read_text(encoding="utf-8"))
-    game["network_and_league"]["num_games"] = num_games
-    target.write_text(json.dumps(game), encoding="utf-8")
-    timeout = game["network_and_league"]["response_timeout_sec"]
-    target.with_suffix(".toml").write_text(
-        f'version = "1.00"\n[game]\ngroup_name = "{name}"\n'
-        f'group_id = "{group_id}"\nsub_game_number = 1\n'
-        f'members = {json.dumps(list(members))}\nrepos = {json.dumps(repos)}\n'
-        f'[network]\nmy_port = 8801\nopponent_url = "https://peer.example/mcp"\n'
-        f'turn_timeout_seconds = {timeout}\n',
-        encoding="utf-8",
-    )
-    text = target.with_suffix(".toml").read_text(encoding="utf-8")
-    text = text.replace('"cop":', 'cop =').replace('"thief":', 'thief =')
-    target.with_suffix(".toml").write_text(text, encoding="utf-8")
-    return target
+from tests.integration.network_match_helpers import (
+    MemoryTransport,
+    _team_config,
+)
 
 
 @pytest.mark.skip(reason="obsolete: submitted repositories may not alternate live roles in-process")
@@ -189,48 +142,3 @@ def test_two_peers_play_agreed_series_with_role_alternation(
     assert len(trajectories) >= min(2, num_games), (
         "multi-game series must not replay one identical trajectory"
     )
-
-
-def test_legacy_series_runner_rejects_in_process_role_alternation(tmp_path):
-    settings = NetworkMatchSettings(
-        role=AgentRole.THIEF,
-        local_port=8802,
-        opponent_url="https://cop.example/mcp",
-        public_url="https://thief.example/mcp",
-        game_id="NETWORK-TEST",
-        sub_game_number=2,
-        shared_config=Path(__file__).parents[2] / "config" / "game.json",
-        output_dir=tmp_path,
-        team_name="alpha",
-        members=("Ada", "Grace"),
-        opponent_team_name="beta",
-        opponent_members=("Linus", "Margaret"),
-        own_cop_repo="https://github.com/example/a-cop",
-        own_thief_repo="https://github.com/example/a-thief",
-        opponent_cop_repo="https://github.com/example/b-cop",
-        opponent_thief_repo="https://github.com/example/b-thief",
-        shared_key=b"integration-secret",
-    )
-    with pytest.raises(RuntimeError, match="in-process role alternation is disabled"):
-        NetworkMatchSeriesRunner(settings, PeerInboxes()).run(Event())
-
-
-def test_thief_repository_role_never_changes_between_subgames():
-    assert [role_for_subgame(AgentRole.THIEF, index) for index in range(6)] == [
-        AgentRole.THIEF
-    ] * 6
-
-
-def test_thief_repository_rejects_live_police_runner(tmp_path):
-    settings = NetworkMatchSettings(
-        role=AgentRole.COP,
-        local_port=8802,
-        opponent_url="https://peer.example/mcp",
-        public_url="https://thief.example/mcp",
-        game_id="NETWORK-TEST",
-        sub_game_number=1,
-        shared_config=Path(__file__).parents[2] / "config" / "game.json",
-        output_dir=tmp_path,
-    )
-    with pytest.raises(RuntimeError, match="cannot run a live Police role"):
-        NetworkMatchRunner(settings, PeerInboxes(), transport=object()).run(Event())

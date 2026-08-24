@@ -1,0 +1,81 @@
+[
+  {
+    "state": {
+      "row": 3,
+      "col": 3
+    },
+    "move": "STAY",
+    "intent": false,
+    "nonce": "7e4daddc4a05ca8df053a590b15e9cba04ad40d2a7926cbca86de54c2f88405c",
+    "h_commit": "123e572517b48878f7a70d12ca735dd2298804081bcf36b09cd7229f9ff6b509",
+    "payload": {
+      "step": 1,
+      "role": "thief",
+      "state": {
+        "row": 3,
+        "col": 3
+      },
+      "position": [
+        3,
+        3
+      ],
+      "move": "STAY",
+      "intent": false,
+      "hint": "I moved west."
+    }
+  },
+  {
+    "state": "grid=7x7;self=[0, 1];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "628ba26f3014b8565c3a71150349b80b",
+    "h_commit": "af8aa000d83744e0bbc6af45cd8ab00df1f84a15c8104d23aa41971c638c36bc",
+    "payload": {
+      "step": 1,
+      "role": "police",
+      "type": "turn",
+      "state": "grid=7x7;self=[0, 1];barriers=[]",
+      "position": [
+        0,
+        1
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "Somewhere between Mount Carmel and nowhere, good luck.",
+      "tokens_step": 0,
+      "tokens_total": 0
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 3
+    },
+    "move": "STAY",
+    "intent": false,
+    "nonce": "b27ebf9cd048c7038543c734bc108694d2c0d0465c949abc028591c10b06d5c1",
+    "h_commit": "a9e7c977952c19acdfc1b5421e3618bbd592315f4bf436ccac5e505e78a0a19a",
+    "payload": {
+      "step": 2,
+      "role": "thief",
+      "state": {
+        "row": 3,
+        "col": 3
+      },
+      "position": [
+        3,
+        3
+      ],
+      "move": "STAY",
+      "intent": false,
+      "hint": "I moved south.",
+      "claim_response": {
+        "claim": [
+          0,
+          1
+        ],
+        "caught": false
+      }
+    }
+  }
+]

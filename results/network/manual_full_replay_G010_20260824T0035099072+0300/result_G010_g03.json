@@ -1,0 +1,85 @@
+{
+  "audit": null,
+  "cop_score": 20,
+  "game_id": "G010",
+  "log_sha256": "9939c4f4b8f3bda07936e82ba73868ef652036b7667e2f30c6f881abf9894d3f",
+  "mutual_sign_off": true,
+  "outcome": "capture",
+  "participants": {
+    "uoh-ay26": {
+      "code_version": "3.0.0",
+      "github_commit": "50900276aadb5f7a9a7973be377fdfb9b1723b26",
+      "group_id": "uoh-ay26",
+      "group_name": "uoh-ay26",
+      "hardware_spec": {
+        "cpu_cores": 8,
+        "cpu_freq_mhz": "unknown",
+        "cpu_type": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+        "gpu_cores_or_cuda": "unknown",
+        "gpu_type": "unknown",
+        "os": "Windows",
+        "ram_gb": 15.7,
+        "vram_gb": "unknown"
+      },
+      "llm_model": "gemini-3.1-flash-lite",
+      "mcp_servers": {
+        "thief": "https://thief.uohay26game.com/mcp"
+      },
+      "members": [
+        "Aisha Abu Dahesh",
+        "Yousef Asadi"
+      ],
+      "repos": {
+        "cop": "https://github.com/aishadahesh/uoh-ay26-final-project-cop",
+        "thief": "https://github.com/aishadahesh/uoh-ay26-final-project-thief"
+      },
+      "signature": "sha256:e8c83e0ec94df1d3a3ff72697d9e7e17d8bfc186683a14fe71fd84164632f0b7"
+    },
+    "yanell11": {
+      "code_version": "3.0.0",
+      "github_commit": "e021a1b0b17ec28a288fc61aa5bfe785a9bc6a8f",
+      "group_id": "yanell11",
+      "group_name": "YANELL11",
+      "hardware_spec": {},
+      "llm_model": "unknown",
+      "mcp_servers": {},
+      "members": [
+        "NellKhoury",
+        "YanalSerhan"
+      ],
+      "repos": {
+        "cop": "https://github.com/Nell-Kh/police-agent",
+        "thief": "https://github.com/Nell-Kh/thief-agent"
+      },
+      "signature": "sha256:a7d2940276e051462c4083c34fa672222b2eca6b80027d2603ee853484521999"
+    }
+  },
+  "repo_links": {
+    "team_a_cop_repo": "https://github.com/aishadahesh/uoh-ay26-final-project-cop",
+    "team_a_thief_repo": "https://github.com/aishadahesh/uoh-ay26-final-project-thief",
+    "team_b_cop_repo": "https://github.com/Nell-Kh/police-agent",
+    "team_b_thief_repo": "https://github.com/Nell-Kh/thief-agent"
+  },
+  "sub_game_number": 3,
+  "team_a": {
+    "members": [
+      "Aisha Abu Dahesh",
+      "Yousef Asadi"
+    ],
+    "team_name": "uoh-ay26"
+  },
+  "team_b": {
+    "members": [
+      "NellKhoury",
+      "YanalSerhan"
+    ],
+    "team_name": "YANELL11"
+  },
+  "thief_score": 5,
+  "token_usage_available": false,
+  "token_usage_by_group": {
+    "uoh-ay26": 16115,
+    "yanell11": 0
+  },
+  "total_tokens_used": 16115
+}

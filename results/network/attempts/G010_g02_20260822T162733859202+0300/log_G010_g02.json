@@ -1,0 +1,104 @@
+[
+  {
+    "state": "grid=7x7;self=[3, 3];barriers=[]",
+    "move": "move:STAY",
+    "intent": "lie",
+    "nonce": "e5ec30ebda8e5434270a6938192dd103",
+    "h_commit": "2774da6a8616c2420194c0711b13fee44ddbab98011deab824734efa81a2a924",
+    "payload": {
+      "step": 1,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 3];barriers=[]",
+      "position": [
+        3,
+        3
+      ],
+      "move": "move:STAY",
+      "intent": "lie",
+      "hint": "You will find only my shadow east of Mount Carmel.",
+      "tokens_step": 0,
+      "tokens_total": 0
+    }
+  },
+  {
+    "state": {
+      "row": 0,
+      "col": 0
+    },
+    "move": "S",
+    "intent": false,
+    "nonce": "76e3387a995e2dafac1ac88eac1e9b25306374f01ee33e65cd8e29a79fb1b7e0",
+    "h_commit": "94848434c5bcfcdb1ba8f3bfa453cfd4919eb4f39cdd4b464eeea0e593f72676",
+    "payload": {
+      "step": 1,
+      "role": "police",
+      "state": {
+        "row": 0,
+        "col": 0
+      },
+      "position": [
+        1,
+        0
+      ],
+      "move": "S",
+      "intent": false,
+      "hint": "I stayed put.",
+      "capture_claim": [
+        1,
+        0
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 4];barriers=[]",
+    "move": "move:E",
+    "intent": "lie",
+    "nonce": "c490cbc5f8ea43d16cdb7b964be9094f",
+    "h_commit": "7c6b3cf64e3dd329ad683b9f41f1e81ef859a0048eb3b5412a8ec9569f564328",
+    "payload": {
+      "step": 2,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 4];barriers=[]",
+      "position": [
+        3,
+        4
+      ],
+      "move": "move:E",
+      "intent": "lie",
+      "hint": "Heading west, the German Colony covers my tracks.",
+      "tokens_step": 0,
+      "tokens_total": 0
+    }
+  },
+  {
+    "state": {
+      "row": 1,
+      "col": 0
+    },
+    "move": "E",
+    "intent": true,
+    "nonce": "753066ea28e53093122549f42b69044f02139e741d2dd8a064f6f352cc68e29c",
+    "h_commit": "380a3d1f83a7ab6e2a579f1d597ed08bded07b2a87330839404e369dc7dce3e1",
+    "payload": {
+      "step": 2,
+      "role": "police",
+      "state": {
+        "row": 1,
+        "col": 0
+      },
+      "position": [
+        1,
+        1
+      ],
+      "move": "E",
+      "intent": true,
+      "hint": "I moved east.",
+      "capture_claim": [
+        1,
+        1
+      ]
+    }
+  }
+]

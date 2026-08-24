@@ -1,0 +1,76 @@
+{
+  "declaration_type": "pre_game_declaration",
+  "game_id": "uoh-ay26-vs-yanell11-G010",
+  "game_started_at": "2026-08-24T01:22:28.108267+03:00",
+  "game_uid": "9d720049-dd3d-6ee2-a7db-67f17fb78f2d",
+  "groups": {
+    "group_1": {
+      "code_version": "3.0.0",
+      "github_commit": "50900276aadb5f7a9a7973be377fdfb9b1723b26",
+      "group_id": "uoh-ay26",
+      "group_name": "uoh-ay26",
+      "hardware_spec": {
+        "cpu_cores": 8,
+        "cpu_freq_mhz": "unknown",
+        "cpu_type": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+        "gpu_cores_or_cuda": "unknown",
+        "gpu_type": "unknown",
+        "os": "Windows",
+        "ram_gb": 15.7,
+        "vram_gb": "unknown"
+      },
+      "llm_model": "gemini-3.1-flash-lite",
+      "mcp_servers": {
+        "thief": "https://thief.uohay26game.com/mcp"
+      },
+      "members": [
+        "Aisha Abu Dahesh",
+        "Yousef Asadi"
+      ],
+      "repos": {
+        "cop": "https://github.com/aishadahesh/uoh-ay26-final-project-cop",
+        "thief": "https://github.com/aishadahesh/uoh-ay26-final-project-thief"
+      },
+      "signature": "sha256:e8c83e0ec94df1d3a3ff72697d9e7e17d8bfc186683a14fe71fd84164632f0b7"
+    },
+    "group_2": {
+      "code_version": "3.0.0",
+      "github_commit": "e021a1b0b17ec28a288fc61aa5bfe785a9bc6a8f",
+      "group_id": "yanell11",
+      "group_name": "YANELL11",
+      "hardware_spec": {},
+      "llm_model": "unknown",
+      "mcp_servers": {},
+      "members": [
+        "NellKhoury",
+        "YanalSerhan"
+      ],
+      "repos": {
+        "cop": "https://github.com/Nell-Kh/police-agent",
+        "thief": "https://github.com/Nell-Kh/thief-agent"
+      },
+      "signature": "sha256:a7d2940276e051462c4083c34fa672222b2eca6b80027d2603ee853484521999"
+    }
+  },
+  "links": {
+    "config": "config_uoh-ay26-vs-yanell11-G010_g<NN>.json",
+    "declaration": "declaration_uoh-ay26-vs-yanell11-G010.json",
+    "github": {
+      "uoh-ay26": {
+        "cop": "https://github.com/aishadahesh/uoh-ay26-final-project-cop",
+        "thief": "https://github.com/aishadahesh/uoh-ay26-final-project-thief"
+      },
+      "yanell11": {
+        "cop": "https://github.com/Nell-Kh/police-agent",
+        "thief": "https://github.com/Nell-Kh/thief-agent"
+      }
+    },
+    "log": "log_uoh-ay26-vs-yanell11-G010_g<NN>.json",
+    "result": "result_uoh-ay26-vs-yanell11-G010.json"
+  },
+  "max_tokens_per_game": 200000,
+  "num_sub_games": 6,
+  "report_type": "declaration",
+  "schema_version": "1.1",
+  "timezone": "Asia/Jerusalem"
+}

@@ -1,0 +1,32 @@
+{
+  "game_id": "G010",
+  "step0": {
+    "declaration": {
+      "code_version": "3.00",
+      "config_fingerprint": "2dc92f9044fcd1b420a7fe4ae49d86a43e1a93453ff4c015a049c1540620f2a7",
+      "game_id": "G010",
+      "git_commit_hash": "d54c3ffbbb9910438df5d7635d4ab0bcab9d1239",
+      "hardware": {
+        "cpu_count": 8,
+        "gpu_present": false,
+        "llm_model": "gemini-3.1-flash-lite",
+        "os_name": "Windows",
+        "ram_gb": 15.7
+      },
+      "sub_game_number": 2,
+      "team_name": "uoh-ay26"
+    },
+    "signature": "a07ea5e2d0aebbb1af6fa654606e0d1eb78b74dff73066831e63c19ff4b18eb1"
+  },
+  "sub_game_number": 2,
+  "team": {
+    "cop_repo_url": "https://github.com/aishadahesh/uoh-ay26-final-project-cop",
+    "members": [
+      "Aisha Abu Dahesh",
+      "Yousef Asadi"
+    ],
+    "team_name": "uoh-ay26",
+    "thief_repo_url": "https://github.com/aishadahesh/uoh-ay26-final-project-thief"
+  },
+  "token_budget_per_series": 200000
+}

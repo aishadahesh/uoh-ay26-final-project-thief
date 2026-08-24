@@ -1,0 +1,1742 @@
+[
+  {
+    "state": "grid=7x7;self=[3, 3];barriers=[]",
+    "move": "move:STAY",
+    "intent": "lie",
+    "nonce": "4846725d1dad78ca5127e5e82a03ecb7",
+    "h_commit": "38fc84ef0cf07242bcafa10a31796c1a1b6b33d9264c997b4358f5d78d7e66ce",
+    "payload": {
+      "step": 1,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 3];barriers=[]",
+      "position": [
+        3,
+        3
+      ],
+      "move": "move:STAY",
+      "intent": "lie",
+      "hint": "You will find only my shadow east of Mount Carmel.",
+      "tokens_step": 0,
+      "tokens_total": 0
+    }
+  },
+  {
+    "state": {
+      "row": 0,
+      "col": 0
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "e7472b17d9dbc28d5ae3b5db1c1a4b1a77818514fab67414dc100d893b37a2b2",
+    "h_commit": "94961a75bfc9e44d52f8d7c81546e80462b847c655adc6939da3fe10034ab724",
+    "payload": {
+      "step": 1,
+      "role": "police",
+      "state": {
+        "row": 0,
+        "col": 0
+      },
+      "position": [
+        0,
+        1
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved south."
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 3];barriers=[]",
+    "move": "move:S",
+    "intent": "lie",
+    "nonce": "1c2245c41a0bb688a93591df64edc6c0",
+    "h_commit": "562a0b1901c846cf75334b117c90913bc46854c96b6efebf6c6b8ec855bf8395",
+    "payload": {
+      "step": 2,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 3];barriers=[]",
+      "position": [
+        4,
+        3
+      ],
+      "move": "move:S",
+      "intent": "lie",
+      "hint": "Heading north, the German Colony covers my tracks.",
+      "tokens_step": 0,
+      "tokens_total": 0
+    }
+  },
+  {
+    "state": {
+      "row": 0,
+      "col": 1
+    },
+    "move": "S",
+    "intent": true,
+    "nonce": "391b782150fa4b3cdd2c90994aaf716d8e0b5b8b93fc0e9a4c89d96667bd1c59",
+    "h_commit": "749d555cb6b6501bf2386e9998595a2d3fb022bf456b7b8ad7b08cad8c065d19",
+    "payload": {
+      "step": 2,
+      "role": "police",
+      "state": {
+        "row": 0,
+        "col": 1
+      },
+      "position": [
+        1,
+        1
+      ],
+      "move": "S",
+      "intent": true,
+      "hint": "I moved south."
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 4];barriers=[]",
+    "move": "move:E",
+    "intent": "lie",
+    "nonce": "86b8dae3ec9a4b4272246058641b3c8c",
+    "h_commit": "6694f94c5c8175f951c41a2e8e0c8f0b9a4f4bd96747c826ee9a4b1537f1fc10",
+    "payload": {
+      "step": 3,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 4];barriers=[]",
+      "position": [
+        4,
+        4
+      ],
+      "move": "move:E",
+      "intent": "lie",
+      "hint": "Lost me at the Stella Maris Monastery? Wrong direction, officer\u2014I headed west!",
+      "tokens_step": 92,
+      "tokens_total": 92
+    }
+  },
+  {
+    "state": {
+      "row": 1,
+      "col": 1
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "9f272c3c1922278652adcf7486bad3090b2879da169248b65deb928f54ce3f9f",
+    "h_commit": "a75b50cf5929660d0cb4d7d7874387cb53b777d667b961af70ffcea371e36909",
+    "payload": {
+      "step": 3,
+      "role": "police",
+      "state": {
+        "row": 1,
+        "col": 1
+      },
+      "position": [
+        1,
+        2
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved west."
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 3];barriers=[]",
+    "move": "move:W",
+    "intent": "lie",
+    "nonce": "c5479d047f426cc5923d2245647e3be6",
+    "h_commit": "d36d237205adc9e6a717ddeb00f9b522764b085f04709473cf43d551d4b677c4",
+    "payload": {
+      "step": 4,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 3];barriers=[]",
+      "position": [
+        4,
+        3
+      ],
+      "move": "move:W",
+      "intent": "lie",
+      "hint": "Look east, somewhere around Wadi Nisnas - or not.",
+      "tokens_step": 0,
+      "tokens_total": 92
+    }
+  },
+  {
+    "state": {
+      "row": 1,
+      "col": 2
+    },
+    "move": "S",
+    "intent": false,
+    "nonce": "956e44e0fe649b62596ce7f0e3c0104b735c3dc45a3c584b1ca4b39c1502e9be",
+    "h_commit": "a858791e6dfab57664c510ebf3ca9d5c5b69d21fc62f64eafded213197db2e3b",
+    "payload": {
+      "step": 4,
+      "role": "police",
+      "state": {
+        "row": 1,
+        "col": 2
+      },
+      "position": [
+        2,
+        2
+      ],
+      "move": "S",
+      "intent": false,
+      "hint": "I moved north."
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 4];barriers=[]",
+    "move": "move:E",
+    "intent": "lie",
+    "nonce": "577bbacea1f691bb9994010f6e427b9f",
+    "h_commit": "9ed113f21ec47081a3449f74aea399955eb79aaf4d1afd587143aa3ac2c49590",
+    "payload": {
+      "step": 5,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 4];barriers=[]",
+      "position": [
+        4,
+        4
+      ],
+      "move": "move:E",
+      "intent": "lie",
+      "hint": "Slipping west past the Louis Promenade, try to keep up.",
+      "tokens_step": 0,
+      "tokens_total": 92
+    }
+  },
+  {
+    "state": {
+      "row": 2,
+      "col": 2
+    },
+    "move": "S",
+    "intent": false,
+    "nonce": "18a41bedef0fea6346d0c2c2e869f07a25d95c6da0d0dec4dcf96af114ad624a",
+    "h_commit": "0717c884007fb9c586895ba2ef8285d32016cf77caea62c86491e15884f14539",
+    "payload": {
+      "step": 5,
+      "role": "police",
+      "state": {
+        "row": 2,
+        "col": 2
+      },
+      "position": [
+        3,
+        2
+      ],
+      "move": "S",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        3,
+        2
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 4];barriers=[]",
+    "move": "move:N",
+    "intent": "lie",
+    "nonce": "f5c93d2a39beee51024fbe2f17409160",
+    "h_commit": "2b4c84edec0b20d08d6ce1e37855f19331a7788af73e14c1b14072d5e6f310fa",
+    "payload": {
+      "step": 6,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 4];barriers=[]",
+      "position": [
+        3,
+        4
+      ],
+      "move": "move:N",
+      "intent": "lie",
+      "hint": "\"Catch me if you can\u2014I'm heading south past the Baha'i Gardens, suckers!\"",
+      "tokens_step": 95,
+      "tokens_total": 187
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 2
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "71aca1ff4fabf5d530f38ba55ffbd99fbaf8ab57b047ce6d1cc197e60f0bebac",
+    "h_commit": "2200f5bc4b255c7ae09007ac2a25f84f026521b1d0c43f10ba6f4ff74fc2681e",
+    "payload": {
+      "step": 6,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 2
+      },
+      "position": [
+        3,
+        3
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved south.",
+      "capture_claim": [
+        3,
+        3
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 5];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "f39d3244a3d5d086aac7f23d27a8f0ad",
+    "h_commit": "5b5bb8b16747185c6ead9af83b93ec90609346c43d5ca74543b70c74a2d74f7c",
+    "payload": {
+      "step": 7,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 5];barriers=[]",
+      "position": [
+        3,
+        5
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "Mount Carmel keeps my secrets better than you keep pace.",
+      "tokens_step": 0,
+      "tokens_total": 187
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 3
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "25ac6d66ea6c887e7796cddaece887a4f5f5aa0a46e65ef87f9fa71716fe7f24",
+    "h_commit": "96a0ad31bde877271d70b3abac1f5fc76754d08334084605552eecc9f9d4af02",
+    "payload": {
+      "step": 7,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 3
+      },
+      "position": [
+        3,
+        4
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I stayed put.",
+      "capture_claim": [
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 5];barriers=[]",
+    "move": "move:S",
+    "intent": "truth",
+    "nonce": "68806a661c6e1eaec40c5ddefc5ef03c",
+    "h_commit": "34bdb7c1544a577f77ec5e5990a6ea1dcd63f71636b3f2ae8c36ccb1941e0521",
+    "payload": {
+      "step": 8,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 5];barriers=[]",
+      "position": [
+        4,
+        5
+      ],
+      "move": "move:S",
+      "intent": "truth",
+      "hint": "Every alley near the German Colony tells a different story about me.",
+      "tokens_step": 0,
+      "tokens_total": 187
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 4
+    },
+    "move": "S",
+    "intent": false,
+    "nonce": "75c56af9b1a1d06977fa2ce9fdddbff2ea2c358245daf57e77c7d462878e1d83",
+    "h_commit": "31b63152b671cb33f5ff1e2123bc700fe6df63758c1c26efaf248ca4da894016",
+    "payload": {
+      "step": 8,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 4
+      },
+      "position": [
+        4,
+        4
+      ],
+      "move": "S",
+      "intent": false,
+      "hint": "I moved west.",
+      "capture_claim": [
+        4,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 5];barriers=[]",
+    "move": "move:N",
+    "intent": "truth",
+    "nonce": "620c63b1205807ca929d3c825a34486e",
+    "h_commit": "09248d07a8e24e3a7baece551137c1b07d20e7079bed58aba77d0f16575a5d80",
+    "payload": {
+      "step": 9,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 5];barriers=[]",
+      "position": [
+        3,
+        5
+      ],
+      "move": "move:N",
+      "intent": "truth",
+      "hint": "I'm basking in the shadow of something truly monumental, you'll never catch me.",
+      "tokens_step": 123,
+      "tokens_total": 310
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 4
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "489863ef6f5f096ea5a6fe6a46f9bea2aab3a9ad2bbf3bc49a13b3e45d671467",
+    "h_commit": "d987f36153ac820f41aa30cc1d7b652026e3bb32d5cd67a0a50cf1f759032504",
+    "payload": {
+      "step": 9,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 4
+      },
+      "position": [
+        4,
+        5
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved south.",
+      "capture_claim": [
+        4,
+        5
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 4];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "61ef0d9a912581a99c431fccde35c18e",
+    "h_commit": "7555d89c676a8d3e0df988c973777eb2790200607167db7287e0e9cf8a9822f3",
+    "payload": {
+      "step": 10,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 4];barriers=[]",
+      "position": [
+        3,
+        4
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "The city hides me well, ask Wadi Nisnas if you doubt it.",
+      "tokens_step": 0,
+      "tokens_total": 310
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 5
+    },
+    "move": "N",
+    "intent": true,
+    "nonce": "f95964e0ef3ed451bde66262c095e1eae406dccf297bb65fd6eccad97695d78d",
+    "h_commit": "ceadf6e6edcf86ff32971775061396db24de3f0cc1b688c48da7dfb41de21de2",
+    "payload": {
+      "step": 10,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 5
+      },
+      "position": [
+        3,
+        5
+      ],
+      "move": "N",
+      "intent": true,
+      "hint": "I moved north.",
+      "capture_claim": [
+        3,
+        5
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 3];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "02c13e9cb98f85aa563882c8508ee9b9",
+    "h_commit": "ee2228697cf93441bda8cd5dccc5a2fec4214a2c65371f840586654b2a083fa7",
+    "payload": {
+      "step": 11,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 3];barriers=[]",
+      "position": [
+        3,
+        3
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "Somewhere between the Louis Promenade and nowhere, good luck.",
+      "tokens_step": 0,
+      "tokens_total": 310
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 5
+    },
+    "move": "W",
+    "intent": true,
+    "nonce": "4497d2ee7333ace0f3ae0a74d97963cd39d126238622106a60ccb6ad366e610d",
+    "h_commit": "3b0dfb3bad22070b772aad205d80ae4448a7eedcec09347c85b5babb928cc61f",
+    "payload": {
+      "step": 11,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 5
+      },
+      "position": [
+        3,
+        4
+      ],
+      "move": "W",
+      "intent": true,
+      "hint": "I moved west.",
+      "capture_claim": [
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 2];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "d9a0141464e6b39a77bdaac70572fa96",
+    "h_commit": "55727749ee731303d279559bfd479010549c401f44f00bab9953bc38cc43c32a",
+    "payload": {
+      "step": 12,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 2];barriers=[]",
+      "position": [
+        3,
+        2
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "Your precious Bah\u00e1\u02bc\u00ed Gardens won't shelter you from my cunning, officer.",
+      "tokens_step": 124,
+      "tokens_total": 434
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 4
+    },
+    "move": "W",
+    "intent": false,
+    "nonce": "522f0aaf5efb2a3b60f35d362fb2dd0c5983553798409a508707a88953280acd",
+    "h_commit": "f61f03a51972f6960a9a5dbe5431b37b160dc62942a18c3a7f87bc7613fb6744",
+    "payload": {
+      "step": 12,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 4
+      },
+      "position": [
+        3,
+        3
+      ],
+      "move": "W",
+      "intent": false,
+      "hint": "I moved east.",
+      "capture_claim": [
+        3,
+        3
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 1];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "c5ad768cc0c93f79cf94d1546ec6daa2",
+    "h_commit": "8479285d2290019b39f213aa686b07bfb9d76757e46f0caa6a23370c9402c9b2",
+    "payload": {
+      "step": 13,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 1];barriers=[]",
+      "position": [
+        3,
+        1
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "Every alley near Mount Carmel tells a different story about me.",
+      "tokens_step": 0,
+      "tokens_total": 434
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 3
+    },
+    "move": "W",
+    "intent": false,
+    "nonce": "2f11192648297566f867485ca232454157a310d7f01c4529d0ad177d439c678b",
+    "h_commit": "913f7aecc2a0801246beb01bec301369eb7bd8c865635655c55f7a836c4a8528",
+    "payload": {
+      "step": 13,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 3
+      },
+      "position": [
+        3,
+        2
+      ],
+      "move": "W",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        3,
+        2
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 1];barriers=[]",
+    "move": "move:S",
+    "intent": "truth",
+    "nonce": "b93c04284c76f4e8f89a6fb3b4bc42cd",
+    "h_commit": "d98d568d5bc6ebf70c4ff0d6207086bff43afe3310a107ce115889a057361cb5",
+    "payload": {
+      "step": 14,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 1];barriers=[]",
+      "position": [
+        4,
+        1
+      ],
+      "move": "move:S",
+      "intent": "truth",
+      "hint": "I could be watching you from the German Colony at this very moment.",
+      "tokens_step": 0,
+      "tokens_total": 434
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 2
+    },
+    "move": "S",
+    "intent": false,
+    "nonce": "ba6402834d7a652227b4367e958cd0c97899db5751940d2306ee408ad71171ee",
+    "h_commit": "cde29f763f6347e8741446e5b3079e42b5f319b963195100400e473919e9bd5a",
+    "payload": {
+      "step": 14,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 2
+      },
+      "position": [
+        4,
+        2
+      ],
+      "move": "S",
+      "intent": false,
+      "hint": "I moved west.",
+      "capture_claim": [
+        4,
+        2
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 1];barriers=[]",
+    "move": "move:N",
+    "intent": "truth",
+    "nonce": "8638cf54a89b8fb31ef3e5d99b215d07",
+    "h_commit": "9b012d8b8fb907f7051cd4d1ebabcaabb1216471547f872f8355561d183cb3d3",
+    "payload": {
+      "step": 15,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 1];barriers=[]",
+      "position": [
+        3,
+        1
+      ],
+      "move": "move:N",
+      "intent": "truth",
+      "hint": "The Baha'i Gardens watch over all, but they see nothing tonight.",
+      "tokens_step": 121,
+      "tokens_total": 555
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 2
+    },
+    "move": "W",
+    "intent": false,
+    "nonce": "07763c92addbe63a108b66b9b25c0896ea89f421d8ec2d5ad98b7b49400eee92",
+    "h_commit": "974e8346401112b3b6e465f5e516cc35f24b0bb81d6b5aa4f570f2d7120c22f9",
+    "payload": {
+      "step": 15,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 2
+      },
+      "position": [
+        4,
+        1
+      ],
+      "move": "W",
+      "intent": false,
+      "hint": "I moved south.",
+      "capture_claim": [
+        4,
+        1
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 2];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "3f46a78bf73b3e422ea1dc2e121c678a",
+    "h_commit": "4d25250609f0d85eb966f46a2baf6b5fcd72a3bbdfe096a15b27f1a53483a91b",
+    "payload": {
+      "step": 16,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 2];barriers=[]",
+      "position": [
+        3,
+        2
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "Somewhere between Wadi Nisnas and nowhere, good luck.",
+      "tokens_step": 0,
+      "tokens_total": 555
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 1
+    },
+    "move": "N",
+    "intent": false,
+    "nonce": "a19a9bba217636b7d05d4729cd9bbabacb85be6303383736369293df876042a0",
+    "h_commit": "b2a26e565dc2acd5e441500f526e214693aa56789614343f074b058e00652266",
+    "payload": {
+      "step": 16,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 1
+      },
+      "position": [
+        3,
+        1
+      ],
+      "move": "N",
+      "intent": false,
+      "hint": "I moved south.",
+      "capture_claim": [
+        3,
+        1
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 3];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "9567c4cb8d6759233a863f2082917e13",
+    "h_commit": "4be491a24fcc244c16356788bc4431dded2998cbd3c10f9802dd27946ea32cb0",
+    "payload": {
+      "step": 17,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 3];barriers=[]",
+      "position": [
+        3,
+        3
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "the Louis Promenade keeps my secrets better than you keep pace.",
+      "tokens_step": 0,
+      "tokens_total": 555
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 1
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "ef2d7ebc3290fa11e2779fef055edfcb9f93fec4471576ed3756b8fe4bd8dc58",
+    "h_commit": "26b2886d6c5c13c7d68fcdb287da868937c160eb31a82b0034b82d166f004e9a",
+    "payload": {
+      "step": 17,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 1
+      },
+      "position": [
+        3,
+        2
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        3,
+        2
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 4];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "3c445287904cf605ea537b7d2e77e933",
+    "h_commit": "5e86759c0516be6c77ac7d9246439476b010e6b2b0f9c27ca7a369c9d110aa0f",
+    "payload": {
+      "step": 18,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 4];barriers=[]",
+      "position": [
+        3,
+        4
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "The Baha'i Gardens watch over me, as they watch over all thieves who dream.",
+      "tokens_step": 125,
+      "tokens_total": 680
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 2
+    },
+    "move": "E",
+    "intent": true,
+    "nonce": "b6f48c8b152cd171a135d3152e84d823c9e16b277b5cd09fe10517a7b33790e1",
+    "h_commit": "d798d8c58088461def77226cf4830eac1124fe16a9dc98b9684d3c3f6bdb7cba",
+    "payload": {
+      "step": 18,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 2
+      },
+      "position": [
+        3,
+        3
+      ],
+      "move": "E",
+      "intent": true,
+      "hint": "I moved east.",
+      "capture_claim": [
+        3,
+        3
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 5];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "8b0fa68b6aeeff40ea5bd08a1f036c10",
+    "h_commit": "ba74201b9e37ce6aa866d0596eaff2a09f9dccd8e1571384d9dd706c3915ebee",
+    "payload": {
+      "step": 19,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 5];barriers=[]",
+      "position": [
+        3,
+        5
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "I could be watching you from Mount Carmel at this very moment.",
+      "tokens_step": 0,
+      "tokens_total": 680
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 3
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "9155d3ca0af6b4a92a5d6c3dd4c2ed6db4f7656189a953774f8f870dd181376a",
+    "h_commit": "57e36e0d1ded8c503848f841108017c5b44511230146e35985c610b0e1c604e1",
+    "payload": {
+      "step": 19,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 3
+      },
+      "position": [
+        3,
+        4
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved west.",
+      "capture_claim": [
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 5];barriers=[]",
+    "move": "move:S",
+    "intent": "truth",
+    "nonce": "a4489d957699b0604c6720222db7e4bd",
+    "h_commit": "f9ee75cc9b5ff340764aaa101c09de35a24fb0523f4d1a329c6d8d7700889ab4",
+    "payload": {
+      "step": 20,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 5];barriers=[]",
+      "position": [
+        4,
+        5
+      ],
+      "move": "move:S",
+      "intent": "truth",
+      "hint": "The city hides me well, ask the German Colony if you doubt it.",
+      "tokens_step": 0,
+      "tokens_total": 680
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 4
+    },
+    "move": "S",
+    "intent": true,
+    "nonce": "6c34ecc69aa44b4b8ad980c0f9a2975bda8b313b2b1f7f0e13aab07c6afdd409",
+    "h_commit": "63da611ae724a7e044b04e72c47d75bd3b7c1fe8f47bf421efceba4d023cd3ea",
+    "payload": {
+      "step": 20,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 4
+      },
+      "position": [
+        4,
+        4
+      ],
+      "move": "S",
+      "intent": true,
+      "hint": "I moved south.",
+      "capture_claim": [
+        4,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 5];barriers=[]",
+    "move": "move:N",
+    "intent": "truth",
+    "nonce": "c26493fc45137b5d9a4421d6e9b96388",
+    "h_commit": "4c5c2d11b02318d225e7190f2307bf87b0e417375c48502a7db94e32850e0ed2",
+    "payload": {
+      "step": 21,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 5];barriers=[]",
+      "position": [
+        3,
+        5
+      ],
+      "move": "move:N",
+      "intent": "truth",
+      "hint": "The Baha'i Gardens watch over all who dare enter their golden paths.",
+      "tokens_step": 121,
+      "tokens_total": 801
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 4
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "b2c4c5da376c1fb55415b767321f045dd4e05cc57f5eb19f6f494cb1dfebedf4",
+    "h_commit": "5bb7d005adc892f7e7fbc03183349753f419be0392ca46403d8e1ecfc1a10685",
+    "payload": {
+      "step": 21,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 4
+      },
+      "position": [
+        4,
+        5
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved south.",
+      "capture_claim": [
+        4,
+        5
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 4];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "9008f74329cad3a79146ef3acb42949c",
+    "h_commit": "6e2d983c5963a49e028acfffd1d8485eaa166914a06fd87ff93dc0e7f325c86f",
+    "payload": {
+      "step": 22,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 4];barriers=[]",
+      "position": [
+        3,
+        4
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "Wadi Nisnas keeps my secrets better than you keep pace.",
+      "tokens_step": 0,
+      "tokens_total": 801
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 5
+    },
+    "move": "N",
+    "intent": false,
+    "nonce": "ab107fd8dfa0e259df791474df4470df2ebd3f4ae82a81d1f9bc0a7ecc920c6e",
+    "h_commit": "adaa9dcc48085e0283f528bc6e6c34917de6c1b80cbe497cdf6633a4e1f71a9b",
+    "payload": {
+      "step": 22,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 5
+      },
+      "position": [
+        3,
+        5
+      ],
+      "move": "N",
+      "intent": false,
+      "hint": "I stayed put.",
+      "capture_claim": [
+        3,
+        5
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 3];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "1b22985c4e8f3b85fbb8d39949405454",
+    "h_commit": "5dc595bab982a81f75e2959b9e4cfa5fd960dcecc04c0f00b8234f9f4813695d",
+    "payload": {
+      "step": 23,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 3];barriers=[]",
+      "position": [
+        3,
+        3
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "Every alley near the Louis Promenade tells a different story about me.",
+      "tokens_step": 0,
+      "tokens_total": 801
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 5
+    },
+    "move": "W",
+    "intent": false,
+    "nonce": "0490ee59aae780f74c3045086b7d558859e21d28f7a929e0f690e37588f48a8a",
+    "h_commit": "795782039a36ca96505955719c2f34ab3bf6d61b7c6cf30984e3cee768f33927",
+    "payload": {
+      "step": 23,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 5
+      },
+      "position": [
+        3,
+        4
+      ],
+      "move": "W",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 2];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "f85b0f07812aa58636a0408d41cbabfd",
+    "h_commit": "e379479033d956b5755403abd5dccab17b2373f78b68bbfbe586ff107ff548c0",
+    "payload": {
+      "step": 24,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 2];barriers=[]",
+      "position": [
+        3,
+        2
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "You'll never catch me near the Bah\u00e1'\u00ed Gardens\u2014I'm far too clever for that!",
+      "tokens_step": 126,
+      "tokens_total": 927
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 4
+    },
+    "move": "W",
+    "intent": false,
+    "nonce": "4cac8c6bda99a738b44532c30e2284c70aa2b9c66455a9e8e32e4f03321878bf",
+    "h_commit": "26c06d87979d79d2b1e522c9efb0f3d7b5a74418f410e52201679d6ec102fa2d",
+    "payload": {
+      "step": 24,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 4
+      },
+      "position": [
+        3,
+        3
+      ],
+      "move": "W",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        3,
+        3
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 1];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "49fde10e52c33126b9881cebb8a1441c",
+    "h_commit": "6fb250bbf2becc3ac74936acf84e4589b9433f7c7c7b4ac4da55632b2e7eaa25",
+    "payload": {
+      "step": 25,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 1];barriers=[]",
+      "position": [
+        3,
+        1
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "The city hides me well, ask Mount Carmel if you doubt it.",
+      "tokens_step": 0,
+      "tokens_total": 927
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 3
+    },
+    "move": "W",
+    "intent": false,
+    "nonce": "d920661be44a0053b5e97e33caebe932e7ce48dee533113b6b2d56a0d0c03c05",
+    "h_commit": "8503ed35f2d770f26c77746811fcc0e824b9d9e7c066c2b0bc40cf1cc1816795",
+    "payload": {
+      "step": 25,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 3
+      },
+      "position": [
+        3,
+        2
+      ],
+      "move": "W",
+      "intent": false,
+      "hint": "I moved south.",
+      "capture_claim": [
+        3,
+        2
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 1];barriers=[]",
+    "move": "move:S",
+    "intent": "truth",
+    "nonce": "d0adea0edca5f50fd889dcaa59141cb9",
+    "h_commit": "7371605d813bf728db6353dd3185ec6d157f77cf4807fe4d95dc055c42d74457",
+    "payload": {
+      "step": 26,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 1];barriers=[]",
+      "position": [
+        4,
+        1
+      ],
+      "move": "move:S",
+      "intent": "truth",
+      "hint": "Somewhere between the German Colony and nowhere, good luck.",
+      "tokens_step": 0,
+      "tokens_total": 927
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 2
+    },
+    "move": "S",
+    "intent": false,
+    "nonce": "a58fd3193105c8ea399b74fe3b55a7a87a98d2d21c9d21b13dff91a866529206",
+    "h_commit": "b7ca92136ef9852bc714b16de8c52015e85d45250c58afd200310eea67c42ab3",
+    "payload": {
+      "step": 26,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 2
+      },
+      "position": [
+        4,
+        2
+      ],
+      "move": "S",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        4,
+        2
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 1];barriers=[]",
+    "move": "move:N",
+    "intent": "truth",
+    "nonce": "645aa948ad14fbd26542b8b6bb77e233",
+    "h_commit": "cefa5b0ce1857dea7f735fbd507ff180d5cd70ab9047696c94856fd026d02b7f",
+    "payload": {
+      "step": 27,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 1];barriers=[]",
+      "position": [
+        3,
+        1
+      ],
+      "move": "move:N",
+      "intent": "truth",
+      "hint": "The Baha'i Gardens watch all who pass beneath their golden dome.",
+      "tokens_step": 120,
+      "tokens_total": 1047
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 2
+    },
+    "move": "W",
+    "intent": true,
+    "nonce": "3252bc898fa15948fc8ecf879b0c68ddc2806a695845ee1b6bef8ed1c42bc8c8",
+    "h_commit": "92e205564266af73b615ad81aa47c54e126ddb4ac62f7c55f2dec8f260166e20",
+    "payload": {
+      "step": 27,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 2
+      },
+      "position": [
+        4,
+        1
+      ],
+      "move": "W",
+      "intent": true,
+      "hint": "I moved west.",
+      "capture_claim": [
+        4,
+        1
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 2];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "400d80ecb05025f38876132f95bbfcb7",
+    "h_commit": "f863b202b59f8611fd76a5ca4c798bfc5042bde9bbba63b9418b2035259d742c",
+    "payload": {
+      "step": 28,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 2];barriers=[]",
+      "position": [
+        3,
+        2
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "Every alley near Wadi Nisnas tells a different story about me.",
+      "tokens_step": 0,
+      "tokens_total": 1047
+    }
+  },
+  {
+    "state": {
+      "row": 4,
+      "col": 1
+    },
+    "move": "N",
+    "intent": false,
+    "nonce": "87e9b3ee7c9ffab39ff93a8fca360bed9c2041ab42d140c01ff8a85889c26016",
+    "h_commit": "be346e689981fea1a550b2b5472c857c755cdafb4eeaf0c0d9d22246e52a4578",
+    "payload": {
+      "step": 28,
+      "role": "police",
+      "state": {
+        "row": 4,
+        "col": 1
+      },
+      "position": [
+        3,
+        1
+      ],
+      "move": "N",
+      "intent": false,
+      "hint": "I moved west.",
+      "capture_claim": [
+        3,
+        1
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 3];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "f4b876c7b77adfd649abc5afd3042fdf",
+    "h_commit": "c9ccf94206c7138d50d25f6e38d364739dd069d6bf1e7e4c36fdf5a1f4ec17de",
+    "payload": {
+      "step": 29,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 3];barriers=[]",
+      "position": [
+        3,
+        3
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "I could be watching you from the Louis Promenade at this very moment.",
+      "tokens_step": 0,
+      "tokens_total": 1047
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 1
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "116270c5377d08af8d8fff8c03987cdfa919bae17d3d8f5e8bc7a7c5943fa78e",
+    "h_commit": "c30bae76f7a9f318fb8fb9bd2f2b538c8a9a627ec2dd1abe9b357b322b449681",
+    "payload": {
+      "step": 29,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 1
+      },
+      "position": [
+        3,
+        2
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        3,
+        2
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 4];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "716142118ed89635ab90b2dd051d747f",
+    "h_commit": "a5396b3c6b61fe61893bf627bc222519adec2d03b81bde39668e126efacc22e8",
+    "payload": {
+      "step": 30,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 4];barriers=[]",
+      "position": [
+        3,
+        4
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "Baha'i Gardens watch everything, but they never catch me.",
+      "tokens_step": 119,
+      "tokens_total": 1166
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 2
+    },
+    "move": "E",
+    "intent": true,
+    "nonce": "74f1bd1abb65ed5567713293ac0bade4be131648620ee5b1c812cc2d65716cc5",
+    "h_commit": "c887ba7c86e3f353276a511fdfd6c19d165c7b53a5f95932acff2514ec048516",
+    "payload": {
+      "step": 30,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 2
+      },
+      "position": [
+        3,
+        3
+      ],
+      "move": "E",
+      "intent": true,
+      "hint": "I moved east.",
+      "capture_claim": [
+        3,
+        3
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[3, 5];barriers=[]",
+    "move": "move:E",
+    "intent": "truth",
+    "nonce": "9bee1d3bb6055593467104418cdcfa9a",
+    "h_commit": "6300ec9226b27c53c086f612aff0f010f86fdfb6d538189f175803fd65f9e3e9",
+    "payload": {
+      "step": 31,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[3, 5];barriers=[]",
+      "position": [
+        3,
+        5
+      ],
+      "move": "move:E",
+      "intent": "truth",
+      "hint": "Somewhere between Mount Carmel and nowhere, good luck.",
+      "tokens_step": 0,
+      "tokens_total": 1166
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 3
+    },
+    "move": "N",
+    "intent": false,
+    "nonce": "05d4c4a107f2edcac2db9bc95c7cd702f86c1d949a85ae43de2c686b7bf51043",
+    "h_commit": "0d2242b7f728ba2c65b8060bfe895fd90d3c91d8af9a68b2bc4165c096b1c4f3",
+    "payload": {
+      "step": 31,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 3
+      },
+      "position": [
+        2,
+        3
+      ],
+      "move": "N",
+      "intent": false,
+      "hint": "I moved south.",
+      "capture_claim": [
+        2,
+        3
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 5];barriers=[]",
+    "move": "move:S",
+    "intent": "truth",
+    "nonce": "e62c895d07317b1a6d0b9ee1e44ab474",
+    "h_commit": "293b564cd19290066a7a686f7716b3bb5ecd521198a70fc0ad808a190bd726de",
+    "payload": {
+      "step": 32,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 5];barriers=[]",
+      "position": [
+        4,
+        5
+      ],
+      "move": "move:S",
+      "intent": "truth",
+      "hint": "the German Colony keeps my secrets better than you keep pace.",
+      "tokens_step": 0,
+      "tokens_total": 1166
+    }
+  },
+  {
+    "state": {
+      "row": 2,
+      "col": 3
+    },
+    "move": "E",
+    "intent": false,
+    "nonce": "9c2db40f442534b1f6452488a5b7059ecfed406c80a807ebd07c68ea393a7b93",
+    "h_commit": "5db763b3e004d84fe8d0e9acdf2001c042f6560028782abf5c0f1f74ac6ad8bc",
+    "payload": {
+      "step": 32,
+      "role": "police",
+      "state": {
+        "row": 2,
+        "col": 3
+      },
+      "position": [
+        2,
+        4
+      ],
+      "move": "E",
+      "intent": false,
+      "hint": "I moved north.",
+      "capture_claim": [
+        2,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 4];barriers=[]",
+    "move": "move:W",
+    "intent": "lie",
+    "nonce": "e733497ebeb412322941e03413b3150f",
+    "h_commit": "bf3a1f30b1f70d30af011666fdbe48fb80e796b0aa4852d18f7da3bfb8351647",
+    "payload": {
+      "step": 33,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 4];barriers=[]",
+      "position": [
+        4,
+        4
+      ],
+      "move": "move:W",
+      "intent": "lie",
+      "hint": "I've slipped past the Bahai Gardens, heading toward the eastern cliffs!",
+      "tokens_step": 89,
+      "tokens_total": 1255
+    }
+  },
+  {
+    "state": {
+      "row": 2,
+      "col": 4
+    },
+    "move": "S",
+    "intent": true,
+    "nonce": "6aac84a50aee802d0a2afc21e949dccf61da6b8165170556cca7640c6a122d42",
+    "h_commit": "80bcf49d35a75c363d46a3664b3766437eb74405c6a9db9a3d1c3ee02503ec10",
+    "payload": {
+      "step": 33,
+      "role": "police",
+      "state": {
+        "row": 2,
+        "col": 4
+      },
+      "position": [
+        3,
+        4
+      ],
+      "move": "S",
+      "intent": true,
+      "hint": "I moved south.",
+      "capture_claim": [
+        3,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 3];barriers=[]",
+    "move": "move:W",
+    "intent": "lie",
+    "nonce": "0a6c1abc2d0a6b38bf29429e9b20797a",
+    "h_commit": "dba41b6de2ff0bad34d0535a06161b05938ce279d9730370354708fae33c4461",
+    "payload": {
+      "step": 34,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 3];barriers=[]",
+      "position": [
+        4,
+        3
+      ],
+      "move": "move:W",
+      "intent": "lie",
+      "hint": "Look east, somewhere around Wadi Nisnas - or not.",
+      "tokens_step": 0,
+      "tokens_total": 1255
+    }
+  },
+  {
+    "state": {
+      "row": 3,
+      "col": 4
+    },
+    "move": "S",
+    "intent": false,
+    "nonce": "cd1f11c64dc6d8a8ec15719a7ad2c8e5a6b376d61561621cf7bf8a544beab3ee",
+    "h_commit": "3ca27d495b0890873f17038132bbd22818df482d5fded9519ede3202d1b10d18",
+    "payload": {
+      "step": 34,
+      "role": "police",
+      "state": {
+        "row": 3,
+        "col": 4
+      },
+      "position": [
+        4,
+        4
+      ],
+      "move": "S",
+      "intent": false,
+      "hint": "I moved east.",
+      "capture_claim": [
+        4,
+        4
+      ]
+    }
+  },
+  {
+    "state": "grid=7x7;self=[4, 2];barriers=[]",
+    "move": "move:W",
+    "intent": "truth",
+    "nonce": "f5099aa673d1ae87c4ca58f7b4130d01",
+    "h_commit": "87666461f7c2d66e62a4123592efd09f84e4cbc72aae7c9d68d6b90d6c48ee70",
+    "payload": {
+      "step": 35,
+      "role": "thief",
+      "type": "turn",
+      "state": "grid=7x7;self=[4, 2];barriers=[]",
+      "position": [
+        4,
+        2
+      ],
+      "move": "move:W",
+      "intent": "truth",
+      "hint": "The city hides me well, ask the Louis Promenade if you doubt it.",
+      "tokens_step": 0,
+      "tokens_total": 1255
+    }
+  }
+]

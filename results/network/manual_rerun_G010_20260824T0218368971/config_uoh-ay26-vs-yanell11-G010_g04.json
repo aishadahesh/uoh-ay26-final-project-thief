@@ -1,0 +1,45 @@
+{
+  "config_sha256": "ad9e1bfd724e9debcde523833381cb7982a5d619d693d3738b59e0da61f4d81a",
+  "game_id": "uoh-ay26-vs-yanell11-G010",
+  "game_uid": "9d720049-dd3d-6ee2-a7db-67f17fb78f2d",
+  "links": {
+    "config": "config_uoh-ay26-vs-yanell11-G010_g<NN>.json",
+    "declaration": "declaration_uoh-ay26-vs-yanell11-G010.json",
+    "github": {
+      "uoh-ay26": {
+        "cop": "https://github.com/aishadahesh/uoh-ay26-final-project-cop",
+        "thief": "https://github.com/aishadahesh/uoh-ay26-final-project-thief"
+      },
+      "yanell11": {
+        "cop": "https://github.com/Nell-Kh/police-agent",
+        "thief": "https://github.com/Nell-Kh/thief-agent"
+      }
+    },
+    "log": "log_uoh-ay26-vs-yanell11-G010_g<NN>.json",
+    "result": "result_uoh-ay26-vs-yanell11-G010.json"
+  },
+  "schema_version": "1.1",
+  "sub_game_number": 4,
+  "terms": {
+    "axis_origin_corner": "top-left",
+    "axis_start_index": 0,
+    "barriers_max": 14,
+    "board_size": 7,
+    "cop_start": [
+      0,
+      0
+    ],
+    "decay_per_step": 0.1,
+    "emit_intensity": 0.9,
+    "hint_max_words": 15,
+    "max_steps": 35,
+    "min_center_intensity": 0.5,
+    "num_games": 6,
+    "setting": "Haifa",
+    "smell_grid_size": 5,
+    "thief_start": [
+      3,
+      3
+    ]
+  }
+}

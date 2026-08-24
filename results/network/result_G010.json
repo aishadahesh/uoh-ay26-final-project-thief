@@ -1,0 +1,178 @@
+{
+  "consensus_confirmed": true,
+  "consensus_sha": "b7f1130440f328d43a99a82401023a4627a88c39a894a6a7b3e012992c66d3cc",
+  "first_sub_game_number": 1,
+  "game_id": "G010",
+  "mutual_sign_off": true,
+  "num_games": 6,
+  "schema_version": "1.00",
+  "sub_games": [
+    {
+      "cop_score": 20,
+      "ended_at": "2026-08-24T02:20:29.989213+03:00",
+      "github_commit": {
+        "uoh-ay26": "50900276aadb5f7a9a7973be377fdfb9b1723b26",
+        "yanell11": "e021a1b0b17ec28a288fc61aa5bfe785a9bc6a8f"
+      },
+      "log_sha256": "a936b779429690e830e30e61882ab8a714a9a871a0836d254c17c97049376aa8",
+      "mutual_sign_off": true,
+      "outcome": "capture",
+      "result_file": "result_G010_g01.json",
+      "roles": {
+        "uoh-ay26": "thief",
+        "yanell11": "cop"
+      },
+      "score": {
+        "uoh-ay26": 5,
+        "yanell11": 20
+      },
+      "started_at": "2026-08-24T02:19:16.062463+03:00",
+      "sub_game_number": 1,
+      "thief_score": 5,
+      "tokens": {
+        "uoh-ay26": 16184,
+        "yanell11": 0
+      }
+    },
+    {
+      "cop_score": 5,
+      "ended_at": "2026-08-24T02:22:51.273777+03:00",
+      "github_commit": {
+        "uoh-ay26": "8db961d9a85142ec875d0540a6dad3de42c2616a",
+        "yanell11": "a75a16a87c0890f1fb8c378b0e7cf2b9d36d3f83"
+      },
+      "log_sha256": "b5e1592c5b345aeeb8bb6ebdeafe75b63d640c18c0c78fcee7a2f4f0aa77c952",
+      "mutual_sign_off": true,
+      "outcome": "survival",
+      "result_file": "result_G010_g02.json",
+      "roles": {
+        "uoh-ay26": "cop",
+        "yanell11": "thief"
+      },
+      "score": {
+        "uoh-ay26": 5,
+        "yanell11": 10
+      },
+      "started_at": "2026-08-24T02:20:30.330467+03:00",
+      "sub_game_number": 2,
+      "thief_score": 10,
+      "tokens": {
+        "uoh-ay26": 23185,
+        "yanell11": 0
+      }
+    },
+    {
+      "cop_score": 20,
+      "ended_at": "2026-08-24T02:23:55.534802+03:00",
+      "github_commit": {
+        "uoh-ay26": "50900276aadb5f7a9a7973be377fdfb9b1723b26",
+        "yanell11": "e021a1b0b17ec28a288fc61aa5bfe785a9bc6a8f"
+      },
+      "log_sha256": "f18354ae4762cb6c8395fe400c65fa5eacac6a2a46cdd9346344b079933761c2",
+      "mutual_sign_off": true,
+      "outcome": "capture",
+      "result_file": "result_G010_g03.json",
+      "roles": {
+        "uoh-ay26": "thief",
+        "yanell11": "cop"
+      },
+      "score": {
+        "uoh-ay26": 5,
+        "yanell11": 20
+      },
+      "started_at": "2026-08-24T02:22:51.620542+03:00",
+      "sub_game_number": 3,
+      "thief_score": 5,
+      "tokens": {
+        "uoh-ay26": 16115,
+        "yanell11": 0
+      }
+    },
+    {
+      "cop_score": 5,
+      "ended_at": "2026-08-24T02:26:29.190819+03:00",
+      "github_commit": {
+        "uoh-ay26": "8db961d9a85142ec875d0540a6dad3de42c2616a",
+        "yanell11": "a75a16a87c0890f1fb8c378b0e7cf2b9d36d3f83"
+      },
+      "log_sha256": "bc770da0f79fb9129befe8ab4ed4f1975c9bef4dd174796598e494c310643df9",
+      "mutual_sign_off": true,
+      "outcome": "survival",
+      "result_file": "result_G010_g04.json",
+      "roles": {
+        "uoh-ay26": "cop",
+        "yanell11": "thief"
+      },
+      "score": {
+        "uoh-ay26": 5,
+        "yanell11": 10
+      },
+      "started_at": "2026-08-24T02:23:55.872953+03:00",
+      "sub_game_number": 4,
+      "thief_score": 10,
+      "tokens": {
+        "uoh-ay26": 23567,
+        "yanell11": 0
+      }
+    },
+    {
+      "cop_score": 20,
+      "ended_at": "2026-08-24T02:27:33.226399+03:00",
+      "github_commit": {
+        "uoh-ay26": "50900276aadb5f7a9a7973be377fdfb9b1723b26",
+        "yanell11": "e021a1b0b17ec28a288fc61aa5bfe785a9bc6a8f"
+      },
+      "log_sha256": "ff72894288cd47d8126b7b38a65565bfaab00ab84e3205869d9f981684947ce2",
+      "mutual_sign_off": true,
+      "outcome": "capture",
+      "result_file": "result_G010_g05.json",
+      "roles": {
+        "uoh-ay26": "thief",
+        "yanell11": "cop"
+      },
+      "score": {
+        "uoh-ay26": 5,
+        "yanell11": 20
+      },
+      "started_at": "2026-08-24T02:26:29.540203+03:00",
+      "sub_game_number": 5,
+      "thief_score": 5,
+      "tokens": {
+        "uoh-ay26": 16232,
+        "yanell11": 0
+      }
+    },
+    {
+      "cop_score": 5,
+      "ended_at": "2026-08-24T02:30:28.749575+03:00",
+      "github_commit": {
+        "uoh-ay26": "8db961d9a85142ec875d0540a6dad3de42c2616a",
+        "yanell11": "a75a16a87c0890f1fb8c378b0e7cf2b9d36d3f83"
+      },
+      "log_sha256": "7917b7c1de31660a72032108b0fce2e54df87049b8b9d86daefdedf2afe0fede",
+      "mutual_sign_off": true,
+      "outcome": "survival",
+      "result_file": "result_G010_g06.json",
+      "roles": {
+        "uoh-ay26": "cop",
+        "yanell11": "thief"
+      },
+      "score": {
+        "uoh-ay26": 5,
+        "yanell11": 10
+      },
+      "started_at": "2026-08-24T02:27:33.569691+03:00",
+      "sub_game_number": 6,
+      "thief_score": 10,
+      "tokens": {
+        "uoh-ay26": 23172,
+        "yanell11": 0
+      }
+    }
+  ],
+  "team_scores": {
+    "uoh-ay26": 30,
+    "yanell11": 90
+  },
+  "winner": "yanell11"
+}

@@ -1,0 +1,707 @@
+{
+  "cryptographic_failure": false,
+  "errors": [
+    "unexpected revealed step 35 had no live commitment"
+  ],
+  "failed_steps": [
+    35
+  ],
+  "game_id": "G010",
+  "peer_audit": {
+    "records": [
+      {
+        "commit": "7f311e4e2fd8d919edaa3f3599bba4b1471f0d6f4b345f795acb4eade38996b3",
+        "nonce": "c98caff6d87c8174fa08aabd73a585cf",
+        "payload": {
+          "code_version": "1.00",
+          "github_commit": "b0689f1bee01385ae814f16b913653d088db5f90",
+          "group_name": "YANELL11",
+          "model": "claude-haiku-4-5",
+          "spec": {
+            "cpu_cores": 12,
+            "cpu_mhz": 2592.0,
+            "gpu": "none detected",
+            "machine": "AMD64",
+            "os": "Windows 10",
+            "python": "3.10.20",
+            "ram_gb": 15.77
+          },
+          "step": 0,
+          "sub_game_number": 2,
+          "token_budget": 200000,
+          "type": "system_spec"
+        }
+      },
+      {
+        "commit": "0441d77bc8ead38ccc843d0959b737c79ee9a87571cd601dedae44c7e00052e0",
+        "nonce": "ff1d95aab7cabad5c7cb27ef3ddda091",
+        "payload": {
+          "hint": "You will find only my shadow east of Mount Carmel.",
+          "intent": "lie",
+          "move": "move:STAY",
+          "position": [
+            3,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 3];barriers=[]",
+          "step": 1,
+          "tokens_step": 0,
+          "tokens_total": 0,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "386ee24f180f5c046b4c6976afaf44dbf10cd84c03759b95cd771fda9338975a",
+        "nonce": "5d004d1ee34ae08d22fb62407142fff2",
+        "payload": {
+          "hint": "Heading west, the German Colony covers my tracks.",
+          "intent": "lie",
+          "move": "move:E",
+          "position": [
+            3,
+            4
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 4];barriers=[]",
+          "step": 2,
+          "tokens_step": 0,
+          "tokens_total": 0,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "29518d91a2f69db763b3505ab4c73694029a4fc8fa590004b62a0fdf02389c48",
+        "nonce": "ddeb1272fa1c0691ac82e06f9816a7bc",
+        "payload": {
+          "hint": "I've slipped past the Baha'i Gardens, heading toward the northern hills. Catch me if you",
+          "intent": "lie",
+          "move": "move:S",
+          "position": [
+            4,
+            4
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 4];barriers=[]",
+          "step": 3,
+          "tokens_step": 97,
+          "tokens_total": 97,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "65c33bbb80457696cd0f9c88a0915be63cadf0c54f072aa591cae5e4112b4bb5",
+        "nonce": "3fbaf94a0210a04a6cdcc401ee3ec30b",
+        "payload": {
+          "hint": "Look south, somewhere around Wadi Nisnas - or not.",
+          "intent": "lie",
+          "move": "move:N",
+          "position": [
+            3,
+            4
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 4];barriers=[]",
+          "step": 4,
+          "tokens_step": 0,
+          "tokens_total": 97,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "052a15801b8e4e92f382973724dd7a025f733428286caca938eda973fca5ec07",
+        "nonce": "fc9e3374957a40448edb8f8d7d0350d3",
+        "payload": {
+          "hint": "Slipping north past the Louis Promenade, try to keep up.",
+          "intent": "lie",
+          "move": "move:S",
+          "position": [
+            4,
+            4
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 4];barriers=[]",
+          "step": 5,
+          "tokens_step": 0,
+          "tokens_total": 97,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "55b5141d2d665dc5e85ab35a852efef86f0f427cf933242ef8ad0c5e1ee36602",
+        "nonce": "1634176384581f1c61fed3b81529b895",
+        "payload": {
+          "hint": "\"You'll find me past the Bahai Gardens, heading toward the eastern harbor!\"",
+          "intent": "lie",
+          "move": "move:W",
+          "position": [
+            4,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 3];barriers=[]",
+          "step": 6,
+          "tokens_step": 89,
+          "tokens_total": 186,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "232a1861a5771c5182288e5704b94e3e5ff27032a928cb4fdd1a66c7dc5a8a77",
+        "nonce": "3933750e647d31f5b110a648bf8ac2bc",
+        "payload": {
+          "hint": "Mount Carmel keeps my secrets better than you keep pace.",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            5,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[5, 3];barriers=[]",
+          "step": 7,
+          "tokens_step": 0,
+          "tokens_total": 186,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "18894aa85adf34351c79c538124f0780c38b00e54bb9b7f8bf1867e97b130baa",
+        "nonce": "ed0b88df43930d58969428d8b8ebf71c",
+        "payload": {
+          "hint": "Every alley near the German Colony tells a different story about me.",
+          "intent": "truth",
+          "move": "move:W",
+          "position": [
+            5,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[5, 2];barriers=[]",
+          "step": 8,
+          "tokens_step": 0,
+          "tokens_total": 186,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "7733ef3aa7b782adba7a47a6934971970066d4d0666feb66b410a18106f6cde4",
+        "nonce": "55b435e800ca09beab6fe2e09a3f7cb1",
+        "payload": {
+          "hint": "The Bah\u00e1'\u00ed Gardens watch all, but they see nothing of me.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            4,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 2];barriers=[]",
+          "step": 9,
+          "tokens_step": 121,
+          "tokens_total": 307,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "52c71b2f19a3627ff969120f8819a6d8f09b9d0c9ce112cef0974eaee6f4cb31",
+        "nonce": "0bf28d72708423be6d75f5dec18c7755",
+        "payload": {
+          "hint": "The city hides me well, ask Wadi Nisnas if you doubt it.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            3,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 2];barriers=[]",
+          "step": 10,
+          "tokens_step": 0,
+          "tokens_total": 307,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "483dd7dc96bba7a16d6751f3f86a274e24c92b1d076efd620d73072ac0d873ac",
+        "nonce": "525c13d8e3cc45c8615dfe3edc3ebecf",
+        "payload": {
+          "hint": "Somewhere between the Louis Promenade and nowhere, good luck.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            2,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 2];barriers=[]",
+          "step": 11,
+          "tokens_step": 0,
+          "tokens_total": 307,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "69a550e25d0af72c44c90708536fdd25ba8d63839a77d07435d5a96e2d027251",
+        "nonce": "83cc7b7b38c8c6397e32a5ea46fd0da3",
+        "payload": {
+          "hint": "I can taste the salt spray near the Stella Maris Carmelite Monastery\u2014you'll never catch me!",
+          "intent": "truth",
+          "move": "move:E",
+          "position": [
+            2,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 3];barriers=[]",
+          "step": 12,
+          "tokens_step": 130,
+          "tokens_total": 437,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "f9458e206c594df9286f6b3efff286ba67df6e506722ebe8152166036bdcc60f",
+        "nonce": "a89b1e40be1802f498cb56d739d45b21",
+        "payload": {
+          "hint": "Every alley near Mount Carmel tells a different story about me.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            1,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[1, 3];barriers=[]",
+          "step": 13,
+          "tokens_step": 0,
+          "tokens_total": 437,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "e9ff8df579edc6b6a5f043f4247acdbd8d9580fc855a061e7d847cd49e2b3b27",
+        "nonce": "fecb04f2b252aadfbfdf346112b8e5c9",
+        "payload": {
+          "hint": "I could be watching you from the German Colony at this very moment.",
+          "intent": "truth",
+          "move": "move:W",
+          "position": [
+            1,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[1, 2];barriers=[]",
+          "step": 14,
+          "tokens_step": 0,
+          "tokens_total": 437,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "ffe200c5bafa815600e32e95e34287b98a833084d573698b2edf786fdda53d47",
+        "nonce": "d712689e3989e40526ccf1de4dc01f36",
+        "payload": {
+          "hint": "The Baha'i Gardens watch over this city\u2014but they can't see everything.",
+          "intent": "truth",
+          "move": "move:E",
+          "position": [
+            1,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[1, 3];barriers=[]",
+          "step": 15,
+          "tokens_step": 123,
+          "tokens_total": 560,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "b3428a3c1b72654f03c9ab29ddb0fa7fff81b09c313715027bc6eb23d7d441ef",
+        "nonce": "f8ac34edeb4905471e30229a73e7ca9b",
+        "payload": {
+          "hint": "Somewhere between Wadi Nisnas and nowhere, good luck.",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            2,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 3];barriers=[]",
+          "step": 16,
+          "tokens_step": 0,
+          "tokens_total": 560,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "12485ca2233618a6bdf3e2fd0fd800a82219cf1dffbb70d26412c6a69992ae4d",
+        "nonce": "a4ca01d8f56ca25b1de23a07d9f16150",
+        "payload": {
+          "hint": "the Louis Promenade keeps my secrets better than you keep pace.",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            3,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 3];barriers=[]",
+          "step": 17,
+          "tokens_step": 0,
+          "tokens_total": 560,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "231ec565346cf1932f5f578f7920e9b7e47134f886665142f2b31a094364934b",
+        "nonce": "2c6842ec440c5fa962dabe1e11cf035f",
+        "payload": {
+          "hint": "The Baha'i Gardens watch all, but they see nothing of my cleverness.",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            4,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 3];barriers=[]",
+          "step": 18,
+          "tokens_step": 123,
+          "tokens_total": 683,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "48ea258c732793a9a2f80f07b5037dd97541ece4594af699dc8703235a496e87",
+        "nonce": "181abe9b92b2397900d8286a1c1341fe",
+        "payload": {
+          "hint": "I could be watching you from Mount Carmel at this very moment.",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            5,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[5, 3];barriers=[]",
+          "step": 19,
+          "tokens_step": 0,
+          "tokens_total": 683,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "3aeaab60083ef5150a62b458b88f0c30dd41cc9ff535345fb3f93a4b208632ae",
+        "nonce": "684ede935e3927878ee6b68f8cda223e",
+        "payload": {
+          "hint": "The city hides me well, ask the German Colony if you doubt it.",
+          "intent": "truth",
+          "move": "move:W",
+          "position": [
+            5,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[5, 2];barriers=[]",
+          "step": 20,
+          "tokens_step": 0,
+          "tokens_total": 683,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "74dd82039b31b1654d3222de7d6f27b3e39bdd303c36795d9afdcdbf19d19d88",
+        "nonce": "c0072e4f7bd99185762d926bd7ee420c",
+        "payload": {
+          "hint": "You'll never catch me near the Stella Maris\u2014I'm far too clever for that.",
+          "intent": "truth",
+          "move": "move:E",
+          "position": [
+            5,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[5, 3];barriers=[]",
+          "step": 21,
+          "tokens_step": 125,
+          "tokens_total": 808,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "57d9617ca37342bb2d721e7f868fe723c031dd59498ba7ed0c45fdef503983f8",
+        "nonce": "f148de70cf39e98747c7ec5436b72f1d",
+        "payload": {
+          "hint": "Wadi Nisnas keeps my secrets better than you keep pace.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            4,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 3];barriers=[]",
+          "step": 22,
+          "tokens_step": 0,
+          "tokens_total": 808,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "2b51d64449e9ac11d0b285f1f6e4494b614075b6d2de7d9c9a314b6e74b2e83d",
+        "nonce": "55f4b093ba632054897ac7b8165809f5",
+        "payload": {
+          "hint": "Every alley near the Louis Promenade tells a different story about me.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            3,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 3];barriers=[]",
+          "step": 23,
+          "tokens_step": 0,
+          "tokens_total": 808,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "c069f38ac42d0da9988202750f30853a6e1aac2950574ee9d0585acdd35cf3b7",
+        "nonce": "708f5794d7a643260f31af2e272b8cc3",
+        "payload": {
+          "hint": "\"The Stella Maris monastery watches over secrets I keep close to heart.\"",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            2,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 3];barriers=[]",
+          "step": 24,
+          "tokens_step": 121,
+          "tokens_total": 929,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "59bf43f69294102dcae1c18fa92b3d15f3d895171bca3901faca3ddbb396d8fe",
+        "nonce": "35e27577ffec30505e8c615490d5b0f1",
+        "payload": {
+          "hint": "The city hides me well, ask Mount Carmel if you doubt it.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            1,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[1, 3];barriers=[]",
+          "step": 25,
+          "tokens_step": 0,
+          "tokens_total": 929,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "ccf35b9d4e3b6c2bd3fe5987d56187de1218b31346879a282593eb59c628e713",
+        "nonce": "b41442f39289d4c6cf9002572ac57f2f",
+        "payload": {
+          "hint": "Somewhere between the German Colony and nowhere, good luck.",
+          "intent": "truth",
+          "move": "move:W",
+          "position": [
+            1,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[1, 2];barriers=[]",
+          "step": 26,
+          "tokens_step": 0,
+          "tokens_total": 929,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "411a3b7f3dfab0a54d1484f6374abcb16ed4122de47912ea0a6a0655a4d1e4c9",
+        "nonce": "9dad8c48c2be51dbd3a9344d446c9c20",
+        "payload": {
+          "hint": "You'll never catch me near the Baha'i Gardens\u2014I'm too clever for that!",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            2,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 2];barriers=[]",
+          "step": 27,
+          "tokens_step": 125,
+          "tokens_total": 1054,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "615c7d57b7e736e3fb7523ab90b81031346d5a6ce8b3caa23d8af09510e40c57",
+        "nonce": "d35f52c0dba300b410e2413f2abb266a",
+        "payload": {
+          "hint": "Every alley near Wadi Nisnas tells a different story about me.",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            3,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 2];barriers=[]",
+          "step": 28,
+          "tokens_step": 0,
+          "tokens_total": 1054,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "631c0ba07f1a6ce61ace4c730de6d320776fff1ce5126794f8a8bfb2003af63f",
+        "nonce": "b3b65279503c98863d55a31a9caf07a0",
+        "payload": {
+          "hint": "I could be watching you from the Louis Promenade at this very moment.",
+          "intent": "truth",
+          "move": "move:S",
+          "position": [
+            4,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 2];barriers=[]",
+          "step": 29,
+          "tokens_step": 0,
+          "tokens_total": 1054,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "19fd780f2c0f1d41ffe9c436a6104dec0be1c1600f53528fc593e7ee568081be",
+        "nonce": "eeab2516cc09d39457ae1f1207eca32e",
+        "payload": {
+          "hint": "I can smell the salt air near the Bah\u00e1\u02bc\u00ed Gardens\u2014but you'll never catch me here!",
+          "intent": "truth",
+          "move": "move:E",
+          "position": [
+            4,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 3];barriers=[]",
+          "step": 30,
+          "tokens_step": 128,
+          "tokens_total": 1182,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "f3eb76578d8145f4358ea5d647a516ee1c25b216b5c0d647338a0401d9ff5f03",
+        "nonce": "fbf9ddb1dba07826fc76df08cb480aa6",
+        "payload": {
+          "hint": "Somewhere between Mount Carmel and nowhere, good luck.",
+          "intent": "truth",
+          "move": "move:E",
+          "position": [
+            4,
+            4
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[4, 4];barriers=[]",
+          "step": 31,
+          "tokens_step": 0,
+          "tokens_total": 1182,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "3e622619232ab5c1369e5419c65e815621b4f6bd6444bf5cf41ee450a30870d5",
+        "nonce": "16c18f85024dc89684d09849c8c0ecad",
+        "payload": {
+          "hint": "the German Colony keeps my secrets better than you keep pace.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            3,
+            4
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[3, 4];barriers=[]",
+          "step": 32,
+          "tokens_step": 0,
+          "tokens_total": 1182,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "f55287fa929e38cf8af7dc3bb2864f04134f32223be672fdeea4dd2b0cc93812",
+        "nonce": "4a72b4dc656c6dbb1efe42856444003d",
+        "payload": {
+          "hint": "The Baha'i Gardens watch over fools who think they've cornered me.",
+          "intent": "truth",
+          "move": "move:N",
+          "position": [
+            2,
+            4
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 4];barriers=[]",
+          "step": 33,
+          "tokens_step": 123,
+          "tokens_total": 1305,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "95816eab02183efd5b3dc887361092c4056829aeacb359bf111fa07d2fda74ae",
+        "nonce": "53f84fdec8038c16e719a8492e858745",
+        "payload": {
+          "hint": "I could be watching you from Wadi Nisnas at this very moment.",
+          "intent": "truth",
+          "move": "move:W",
+          "position": [
+            2,
+            3
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 3];barriers=[]",
+          "step": 34,
+          "tokens_step": 0,
+          "tokens_total": 1305,
+          "type": "turn"
+        }
+      },
+      {
+        "commit": "feb0c7468f3fd26b33f050acf0d711693f9b8c9ed4f8ca98b5bf5b6f899c72b2",
+        "nonce": "17c16353c7302eaa38841528c5aa3465",
+        "payload": {
+          "hint": "The city hides me well, ask the Louis Promenade if you doubt it.",
+          "intent": "truth",
+          "move": "move:W",
+          "position": [
+            2,
+            2
+          ],
+          "role": "thief",
+          "state": "grid=7x7;self=[2, 2];barriers=[]",
+          "step": 35,
+          "tokens_step": 0,
+          "tokens_total": 1305,
+          "type": "turn"
+        }
+      }
+    ],
+    "result_claim": "survival",
+    "sender": "thief",
+    "token_usage": null
+  },
+  "sub_game_number": 2,
+  "verified": false
+}
